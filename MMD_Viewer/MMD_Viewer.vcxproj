@@ -76,6 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(solutiondir)mmdsdk;$(solutiondir)mathutil;$(solutiondir)system;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -91,6 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(solutiondir)mmdsdk;$(solutiondir)mathutil;$(solutiondir)system;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -106,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\Projects\MMD_Viewer\System;D:\Projects\MMD_Viewer\MMDsdk;D:\Projects\MMD_Viewer\MathUtil;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(solutiondir)mmdsdk;$(solutiondir)mathutil;$(solutiondir)system;D:\Projects\MMD_Viewer\System;D:\Projects\MMD_Viewer\MMDsdk;D:\Projects\MMD_Viewer\MathUtil;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -123,7 +125,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\Projects\MMD_Viewer\System;D:\Projects\MMD_Viewer\MMDsdk;D:\Projects\MMD_Viewer\MathUtil;D:\Projects\MMD_Viewer\Math;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(solutiondir)mmdsdk;$(solutiondir)mathutil;$(solutiondir)system;D:\Projects\MMD_Viewer\System;D:\Projects\MMD_Viewer\MMDsdk;D:\Projects\MMD_Viewer\MathUtil;D:\Projects\MMD_Viewer\Math;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
