@@ -1358,11 +1358,12 @@ PmxFile::PmxFile(const char* filepath)
 	for (int i = 0; i < 1; ++i)
 	{
 		auto& d = mDisplayFrame[i];
-
+		
 		d.name.Load(&file);
 		d.nameEng.Load(&file);
 		file.Read(d.type);
 		file.Read(d.frameElementCount);
+		d.LoadFrameElement(&file);
 	}
 	//last
 }
@@ -2025,7 +2026,29 @@ const int32_t& PmxFile::GetDisplayFrameCount() const
 
 const PmxFile::DisplayFrame::FrameElement& PmxFile::DisplayFrame::GetFrameElement(const int32_t i) const
 {
-	return {};
+	NO_REF(i);
+	NO_DATA(frameElement, frameElementCount);
+	IS_OUT_OF_RANGE(frameElement, i, frameElementCount);
+	return frameElement[i];
+}
+
+void PmxFile::DisplayFrame::LoadFrameElement(void* _file)
+{
+	auto& file = GetFile(_file);
+	frameElement = new FrameElement[frameElementCount];
+	for (int i = 0; i < frameElementCount; ++i)
+	{
+		auto& fe = frameElement[i];
+		DebugOutParamI(fe.elementType);
+		file.Read(fe.elementType);
+		DebugMessage("read element type");
+		DebugOutParamI(fe.elementType);
+	}
+}
+
+PmxFile::DisplayFrame::~DisplayFrame()
+{
+	SafeDeleteArray(&frameElement);
 }
 
 const PmxFile::DisplayFrame& PmxFile::GetDisplayFrame(const int32_t i) const

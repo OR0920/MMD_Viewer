@@ -931,9 +931,14 @@ namespace MMDsdk
 					FET_NONE
 				} elementType = FET_NONE;
 			};
-
+		private:
+			FrameElement* frameElement = nullptr;
+		public:
 
 			const FrameElement& GetFrameElement(const int32_t i) const;
+
+			void LoadFrameElement(void* _file);
+			~DisplayFrame();
 		};
 		const DisplayFrame& GetDisplayFrame(const int32_t i) const;
 
