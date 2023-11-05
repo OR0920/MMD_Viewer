@@ -1360,7 +1360,7 @@ PmxFile::PmxFile(const char* filepath)
 		auto& d = mDisplayFrame[i];
 
 		d.name.Load(&file);
-
+		d.nameEng.Load(&file);
 	}
 	//last
 }
