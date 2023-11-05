@@ -1376,6 +1376,7 @@ PmxFile::PmxFile(const char* filepath)
 		auto& r = mRigitbody[i];
 
 		r.name.Load(&file);
+		r.nameEng.Load(&file);
 	}
 
 	//last

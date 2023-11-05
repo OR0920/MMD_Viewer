@@ -976,6 +976,7 @@ namespace MMDsdkTest
 				auto& r1 = pmx.GetRigitbody(0);
 
 				Assert::IsTrue(strCmpFortest(GetText(r1.name), L"“ª", r1.name.GetLength()));
+				Assert::IsTrue(r1.nameEng.GetLength() == 0);
 			}
 		}
 
