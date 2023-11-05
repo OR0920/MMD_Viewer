@@ -942,6 +942,7 @@ namespace MMDsdk
 			~DisplayFrame();
 		};
 		const DisplayFrame& GetDisplayFrame(const int32_t i) const;
+		const int32_t GetLastDisplayFrameID() const;
 
 		//last
 

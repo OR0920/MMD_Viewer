@@ -2068,5 +2068,10 @@ const PmxFile::DisplayFrame& PmxFile::GetDisplayFrame(const int32_t i) const
 	return mDisplayFrame[i];
 }
 
+const int32_t PmxFile::GetLastDisplayFrameID() const
+{
+	return mDisplayFrameCount - 1;
+}
+
 //last
 
