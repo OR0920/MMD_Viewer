@@ -390,7 +390,7 @@ namespace MMDsdk
 		struct Rigitbody
 		{
 			TextBufferFixed<20> name = {};
-			uint16_t relationshipBoneIndex = 0;
+			uint16_t relationshipBoneID = 0;
 			uint8_t groupIndex = 0;
 			// 衝突対象のオブジェクト
 			// エディタ上では「非衝突対象」を選択するチェックボックスが表示されている
@@ -957,6 +957,7 @@ namespace MMDsdk
 		{
 			TextBufferVariable name = {};
 			TextBufferVariable nameEng = {};
+			int32_t relationshipBoneID = -1;
 		};
 		const Rigitbody& GetRigitbody(const int32_t i) const;
 

@@ -242,12 +242,12 @@ namespace MMDsdkTest
 
 			auto& body0 = pmd.GetRigitbody(0);
 			Assert::IsTrue(strCmpFortest(GetText(body0.name), "頭", body0.name.GetLength()));
-			Assert::IsTrue(body0.relationshipBoneIndex == 3);
+			Assert::IsTrue(body0.relationshipBoneID == 3);
 			Assert::IsTrue(body0.groupIndex == 0);
 			Assert::IsTrue(body0.groupTarget == 0b1111111111111111);
 			Assert::IsTrue(body0.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_SPHERE);
 			Assert::IsTrue(FloatEqual(body0.shapeW, 1.6f));
-			auto& relBone0 = pmd.GetBone(body0.relationshipBoneIndex);
+			auto& relBone0 = pmd.GetBone(body0.relationshipBoneID);
 			Assert::IsTrue(FloatEqual(body0.position.x + relBone0.headPos.x, 0.1f));
 			Assert::IsTrue(FloatEqual(body0.position.y + relBone0.headPos.y, 18.3985f));
 			Assert::IsTrue(FloatEqual(body0.position.z + relBone0.headPos.z, 0.2f));
@@ -263,14 +263,14 @@ namespace MMDsdkTest
 
 			auto& bodyL = pmd.GetRigitbody(pmd.GetLastRigitbodyID());
 			Assert::IsTrue(strCmpFortest(GetText(bodyL.name), "ネクタイ3", bodyL.name.GetLength()));
-			Assert::IsTrue(bodyL.relationshipBoneIndex == 8);
+			Assert::IsTrue(bodyL.relationshipBoneID == 8);
 			Assert::IsTrue(bodyL.groupIndex == 05);
 			Assert::IsTrue(bodyL.groupTarget == 0b1111111111011111);
 			Assert::IsTrue(bodyL.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_BOX);
 			Assert::IsTrue(FloatEqual(bodyL.shapeW, 0.3f));
 			Assert::IsTrue(FloatEqual(bodyL.shapeH, 0.9f));
 			Assert::IsTrue(FloatEqual(bodyL.shapeD, 0.2f));
-			auto& relBoneL = pmd.GetBone(bodyL.relationshipBoneIndex);
+			auto& relBoneL = pmd.GetBone(bodyL.relationshipBoneID);
 			Assert::IsTrue(FloatEqual(bodyL.position.x + relBoneL.headPos.x, 0.f));
 			Assert::IsTrue(FloatEqual(bodyL.position.y + relBoneL.headPos.y, 11.97617f));
 			Assert::IsTrue(FloatEqual(bodyL.position.z + relBoneL.headPos.z, -1.37111f));
@@ -977,7 +977,10 @@ namespace MMDsdkTest
 
 				Assert::IsTrue(strCmpFortest(GetText(r1.name), L"頭", r1.name.GetLength()));
 				Assert::IsTrue(r1.nameEng.GetLength() == 0);
+				Assert::IsTrue(r1.relationshipBoneID == 6);
 			}
+
+			//last
 		}
 
 		// ボーンモーフ読み込みテスト(最初のモデルには存在しなかったため他モデルで検証)

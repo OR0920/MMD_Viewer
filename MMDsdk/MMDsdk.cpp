@@ -332,7 +332,7 @@ PmdFile::PmdFile(const char* filepath)
 	{
 		auto& r = mRigitbody[i];
 		file.ReadArray(const_cast<char*>(&r.name.GetFirstChar()), r.name.GetLength());
-		file.Read(r.relationshipBoneIndex);
+		file.Read(r.relationshipBoneID);
 		file.Read(r.groupIndex);
 		file.Read(r.groupTarget);
 		file.Read(r.shapeType);
@@ -953,7 +953,7 @@ inline const float3 DegreeToRagianFloat3(float3 f3)
 void PmdFile::Rigitbody::DebugOut() const
 {
 	DebugOutString(GetText(name));
-	DebugOutParamI(relationshipBoneIndex);
+	DebugOutParamI(relationshipBoneID);
 	DebugOutParamI(groupIndex);
 	DebugOutParamBin(groupTarget, 16);
 	DebugOutParamI(shapeType);
