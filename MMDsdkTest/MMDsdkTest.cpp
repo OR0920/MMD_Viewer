@@ -929,6 +929,7 @@ namespace MMDsdkTest
 				{
 					auto& fe0 = d0.GetFrameElement(0);
 					Assert::IsTrue(fe0.elementType == PmxFile::DisplayFrame::FrameElement::FrameElementType::FET_BONE);
+					Assert::IsTrue(fe0.objectID == 0);
 				}
 			}
 		}

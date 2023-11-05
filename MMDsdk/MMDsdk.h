@@ -824,7 +824,7 @@ namespace MMDsdk
 			// グループモーフのオフセットデータ
 			struct GroupOffs
 			{
-				int32_t morphID = 0;
+				int32_t morphID = -1;
 				float morphRatio = 0.f;
 				void DebugOut() const;
 			};
@@ -832,7 +832,7 @@ namespace MMDsdk
 			// 頂点モーフのオフセットデータ
 			struct VertexOffs
 			{
-				int32_t vertexID = 0;
+				int32_t vertexID = -1;
 				float3 offsPos = {};
 				void DebugOut() const;
 			};
@@ -840,7 +840,7 @@ namespace MMDsdk
 			// ボーンモーフのオフセットデータ
 			struct BoneOffs
 			{
-				int32_t boneID = 0;
+				int32_t boneID = -1;
 				float3 offsPos = {};
 				float4 offsRotQ = {};
 				void DebugOut() const;
@@ -849,7 +849,7 @@ namespace MMDsdk
 			// UVモーフのオフセットデータ
 			struct UV_Offs
 			{
-				int32_t vertexID = 0;
+				int32_t vertexID = -1;
 				// 通常のUVの場合、z, w成分は使用しないが、データ上存在
 				float4 uv = {};
 				void DebugOut() const;
@@ -858,7 +858,7 @@ namespace MMDsdk
 			// マテリアルモーフのオフセットデータ
 			struct MaterialOffs
 			{
-				int32_t materialID = {};
+				int32_t materialID = -1;
 				enum OffsType : uint8_t
 				{
 					OT_MUL = 0,
@@ -930,6 +930,7 @@ namespace MMDsdk
 					FET_MORPH = 1,
 					FET_NONE
 				} elementType = FET_NONE;
+				int32_t objectID = 99;
 			};
 		private:
 			FrameElement* frameElement = nullptr;
