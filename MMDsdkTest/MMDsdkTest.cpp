@@ -243,7 +243,7 @@ namespace MMDsdkTest
 			auto& body0 = pmd.GetRigitbody(0);
 			Assert::IsTrue(strCmpFortest(GetText(body0.name), "頭", body0.name.GetLength()));
 			Assert::IsTrue(body0.relationshipBoneID == 3);
-			Assert::IsTrue(body0.groupIndex == 0);
+			Assert::IsTrue(body0.group == 0);
 			Assert::IsTrue(body0.groupTarget == 0b1111111111111111);
 			Assert::IsTrue(body0.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_SPHERE);
 			Assert::IsTrue(FloatEqual(body0.shapeW, 1.6f));
@@ -264,7 +264,7 @@ namespace MMDsdkTest
 			auto& bodyL = pmd.GetRigitbody(pmd.GetLastRigitbodyID());
 			Assert::IsTrue(strCmpFortest(GetText(bodyL.name), "ネクタイ3", bodyL.name.GetLength()));
 			Assert::IsTrue(bodyL.relationshipBoneID == 8);
-			Assert::IsTrue(bodyL.groupIndex == 05);
+			Assert::IsTrue(bodyL.group == 05);
 			Assert::IsTrue(bodyL.groupTarget == 0b1111111111011111);
 			Assert::IsTrue(bodyL.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_BOX);
 			Assert::IsTrue(FloatEqual(bodyL.shapeW, 0.3f));
@@ -973,11 +973,12 @@ namespace MMDsdkTest
 
 			Assert::IsTrue(pmx.GetRigitbodyCount() == 41);
 			{
-				auto& r1 = pmx.GetRigitbody(0);
+				auto& r0 = pmx.GetRigitbody(0);
 
-				Assert::IsTrue(strCmpFortest(GetText(r1.name), L"頭", r1.name.GetLength()));
-				Assert::IsTrue(r1.nameEng.GetLength() == 0);
-				Assert::IsTrue(r1.relationshipBoneID == 6);
+				Assert::IsTrue(strCmpFortest(GetText(r0.name), L"頭", r0.name.GetLength()));
+				Assert::IsTrue(r0.nameEng.GetLength() == 0);
+				Assert::IsTrue(r0.relationshipBoneID == 6);
+				Assert::IsTrue(r0.group == 1);
 			}
 
 			//last
@@ -1001,7 +1002,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(FloatEqual(offs0.boneOffs.offsPos.x, 0.f));
 				Assert::IsTrue(FloatEqual(offs0.boneOffs.offsPos.y, 0.f));
 				Assert::IsTrue(FloatEqual(offs0.boneOffs.offsPos.z, 0.f));
-				
+
 				MathUtil::Vector q = MathUtil::Vector::GenerateRotationQuaternionFromEuler(-9.945973f, -65.5116f, -30.5824f);
 
 				Assert::IsTrue(FloatEqual(offs0.boneOffs.offsRotQ.x, q.GetFloat4().x));

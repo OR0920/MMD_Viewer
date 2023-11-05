@@ -191,7 +191,7 @@ namespace MMDsdk
 				MEE_NONE = 99,
 			} edgeFlag = MEE_NONE;
 
-			uint32_t vertexCount=0;
+			uint32_t vertexCount = 0;
 			TextBufferFixed<20> texturePath = {};
 
 			// ライブラリが使用する関数
@@ -391,7 +391,7 @@ namespace MMDsdk
 		{
 			TextBufferFixed<20> name = {};
 			uint16_t relationshipBoneID = 0;
-			uint8_t groupIndex = 0;
+			uint8_t group = 0;
 			// 衝突対象のオブジェクト
 			// エディタ上では「非衝突対象」を選択するチェックボックスが表示されている
 			// 16~5,4,3,2,1 の順に並んでおり、
@@ -628,7 +628,7 @@ namespace MMDsdk
 			TextBufferVariable nameEng = {};
 
 			float4 diffuse = {};
-			float3 specular={};
+			float3 specular = {};
 			float specularity = 0.f;
 			float3 ambient = {};
 			// 背面を描画するか
@@ -665,7 +665,7 @@ namespace MMDsdk
 				TM_SHARED = 1,
 				TM_NONE,
 			} toonMode = TM_NONE;
-			int32_t toonTextureID =0;
+			int32_t toonTextureID = 0;
 			TextBufferVariable memo = {};
 			int32_t vertexCount = 0;
 
@@ -730,7 +730,7 @@ namespace MMDsdk
 				// 接続先が座標オフセットの場合　0x0001 == true
 				float3 positionOffs = {};
 				// 接続先がボーンの場合 0x0001 == false
-				int32_t linkDestBoneID ;
+				int32_t linkDestBoneID;
 			};
 
 			struct AddData
@@ -958,6 +958,7 @@ namespace MMDsdk
 			TextBufferVariable name = {};
 			TextBufferVariable nameEng = {};
 			int32_t relationshipBoneID = -1;
+			uint8_t group = 0;
 		};
 		const Rigitbody& GetRigitbody(const int32_t i) const;
 

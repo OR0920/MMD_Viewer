@@ -333,7 +333,7 @@ PmdFile::PmdFile(const char* filepath)
 		auto& r = mRigitbody[i];
 		file.ReadArray(const_cast<char*>(&r.name.GetFirstChar()), r.name.GetLength());
 		file.Read(r.relationshipBoneID);
-		file.Read(r.groupIndex);
+		file.Read(r.group);
 		file.Read(r.groupTarget);
 		file.Read(r.shapeType);
 		file.Read(r.shapeW);
@@ -954,7 +954,7 @@ void PmdFile::Rigitbody::DebugOut() const
 {
 	DebugOutString(GetText(name));
 	DebugOutParamI(relationshipBoneID);
-	DebugOutParamI(groupIndex);
+	DebugOutParamI(group);
 	DebugOutParamBin(groupTarget, 16);
 	DebugOutParamI(shapeType);
 	DebugOutParam(shapeW);
@@ -1359,7 +1359,7 @@ PmxFile::PmxFile(const char* filepath)
 	for (int i = 0; i < mDisplayFrameCount; ++i)
 	{
 		auto& d = mDisplayFrame[i];
-		
+
 		d.name.Load(&file);
 		d.nameEng.Load(&file);
 		file.Read(d.type);
