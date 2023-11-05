@@ -953,6 +953,11 @@ namespace MMDsdk
 
 		// „‘Ìƒf[ƒ^
 		const int32_t& GetRigitbodyCount() const;
+		struct Rigitbody
+		{
+			TextBufferVariable name = {};
+		};
+		const Rigitbody& GetRigitbody(const int32_t i) const;
 
 		//last
 

@@ -2144,5 +2144,10 @@ const int32_t& PmxFile::GetRigitbodyCount() const
 	return mRigitbodyCount;
 }
 
+const PmxFile::Rigitbody& PmxFile::GetRigitbody(const int32_t i) const
+{
+	return {};
+}
+
 //last
 

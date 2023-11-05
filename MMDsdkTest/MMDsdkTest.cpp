@@ -972,7 +972,11 @@ namespace MMDsdkTest
 			// 剛体情報読み込みテスト
 
 			Assert::IsTrue(pmx.GetRigitbodyCount() == 41);
+			{
+				auto& r1 = pmx.GetRigitbody(0);
 
+				Assert::IsTrue(strCmpFortest(GetText(r1.name), L"頭", r1.name.GetLength()));
+			}
 		}
 
 		// ボーンモーフ読み込みテスト(最初のモデルには存在しなかったため他モデルで検証)
