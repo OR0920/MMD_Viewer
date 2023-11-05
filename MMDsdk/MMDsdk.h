@@ -930,7 +930,7 @@ namespace MMDsdk
 					FET_MORPH = 1,
 					FET_NONE
 				} elementType = FET_NONE;
-				int32_t objectID = 99;
+				int32_t objectID = -1;
 			};
 		private:
 			FrameElement* frameElement = nullptr;
@@ -938,7 +938,7 @@ namespace MMDsdk
 
 			const FrameElement& GetFrameElement(const int32_t i) const;
 
-			void LoadFrameElement(void* _file);
+			void LoadFrameElement(void* _file, const size_t boneIDsize, const size_t morphIDsize);
 			~DisplayFrame();
 		};
 		const DisplayFrame& GetDisplayFrame(const int32_t i) const;

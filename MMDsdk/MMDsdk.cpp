@@ -1363,7 +1363,7 @@ PmxFile::PmxFile(const char* filepath)
 		d.nameEng.Load(&file);
 		file.Read(d.type);
 		file.Read(d.frameElementCount);
-		d.LoadFrameElement(&file);
+		d.LoadFrameElement(&file, mHeader.boneIDsize, mHeader.morphIDsize);
 	}
 	//last
 }
@@ -2032,17 +2032,28 @@ const PmxFile::DisplayFrame::FrameElement& PmxFile::DisplayFrame::GetFrameElemen
 	return frameElement[i];
 }
 
-void PmxFile::DisplayFrame::LoadFrameElement(void* _file)
+void PmxFile::DisplayFrame::LoadFrameElement(void* _file, const size_t boneIDsize, const size_t morphIDsize)
 {
 	auto& file = GetFile(_file);
-	frameElement = new FrameElement[frameElementCount];
+	frameElement = new FrameElement[frameElementCount]{};
 	for (int i = 0; i < frameElementCount; ++i)
 	{
 		auto& fe = frameElement[i];
-		DebugOutParamI(fe.elementType);
 		file.Read(fe.elementType);
-		DebugMessage("read element type");
-		DebugOutParamI(fe.elementType);
+		DebugOutParamBin(fe.objectID, 32);
+		switch (fe.elementType)
+		{
+		case FrameElement::FrameElementType::FET_BONE:
+			LoadID_AsInt32(file, fe.objectID, boneIDsize);
+			break;
+		case FrameElement::FrameElementType::FET_MORPH:
+			LoadID_AsInt32(file, fe.objectID, morphIDsize);
+			break;
+		default:
+			break;
+		}
+		DebugOutParamBin(fe.objectID, 32);
+
 	}
 }
 
