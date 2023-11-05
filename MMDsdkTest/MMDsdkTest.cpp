@@ -875,7 +875,7 @@ namespace MMDsdkTest
 
 			//最後の要素の読み込みテスト
 			{
-				auto& mphL = pmx.GetMorph(132);
+				auto& mphL = pmx.GetMorph(pmx.GetLastMorphID());
 
 				Assert::IsTrue(strCmpFortest(GetText(mphL.name), L"エッジ太さ", mphL.name.GetLength()));
 				Assert::IsTrue(mphL.nameEng.GetLength() == 0);

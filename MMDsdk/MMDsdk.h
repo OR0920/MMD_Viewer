@@ -905,6 +905,7 @@ namespace MMDsdk
 			void DebugOut(bool isOutOffsData) const;
 		};
 		const Morph& GetMorph(const int32_t i) const;
+		const int32_t GetLastMorphID() const;
 		void DebugOutMorph(const int32_t i, bool isOutOffsData) const;
 		void DebugOutAllMorph(bool isOutOffsData) const;
 
@@ -943,6 +944,7 @@ namespace MMDsdk
 		};
 		const DisplayFrame& GetDisplayFrame(const int32_t i) const;
 		const int32_t GetLastDisplayFrameID() const;
+
 
 		//last
 

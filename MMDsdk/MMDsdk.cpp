@@ -2001,6 +2001,10 @@ const PmxFile::Morph& PmxFile::GetMorph(const int32_t i) const
 	return mMorph[i];
 }
 
+const int32_t PmxFile::GetLastMorphID() const
+{
+	return mMorphCount - 1;
+}
 
 void PmxFile::DebugOutMorph(const int32_t i, bool isOutVertexData) const
 {
