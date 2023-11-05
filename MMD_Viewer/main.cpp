@@ -22,14 +22,12 @@ const char* testModelFilePath[] =
 	"Model/PMD/弱音ハク.pmd",
 	
 	"Model/PMD/巡音ルカ.pmd",
-	"D:/_3DModel/MikuMikuDance_v932x64/MikuMikuDance_v932x64/UserFile/Model/Test/初音ミクVer2.pmd",
-	"D:/_3DModel/MikuMikuDance_v932x64/MikuMikuDance_v932x64/UserFile/Model/Test/初音ミクVer2NotEng.pmd",
 	"Model/PMD/初音ミクVer2.pmd",
-	"D:/_3DModel/かばんちゃん/かばんちゃん/かばんちゃん.pmx",
+	"Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx",
 	
-	"D:/_3DModel/ハシビロコウ/ハシビロコウ.pmx",
-	"D:/_3DModel/キョウシュウエリアver1.0/キョウシュウエリア/1話ゲートのみ.pmx",
-	"C:/Users/onory/Downloads/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx"
+	"Model/PMX/ハシビロコウ/ハシビロコウ.pmx",
+	"Model/PMX/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx",
+	"Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/1話ゲートのみ.pmx"
 };
 
 
@@ -37,7 +35,6 @@ void LoadAndCout(const char* filepath)
 {
 	MMDsdk::PmxFile model(filepath);
 	model.GetHeader().DebugOut();
-	model.DebugOutAllDisplayFrame();
 }
 
 int main()
@@ -48,7 +45,7 @@ int main()
 	auto filepathCount = sizeof(testModelFilePath) / sizeof(testModelFilePath[0]);
 	for (int i = 0; i < filepathCount; ++i)
 	{
-		//LoadAndCout(testModelFilePath[i]);
+		LoadAndCout(testModelFilePath[i]);
 	}
 
 	MMDsdk::PmxFile kaban(testModelFilePath[10]);
