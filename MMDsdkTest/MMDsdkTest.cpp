@@ -932,6 +932,24 @@ namespace MMDsdkTest
 					Assert::IsTrue(fe0.objectID == 0);
 				}
 			}
+			{
+				auto& d1 = pmx.GetDisplayFrame(1);
+
+				Assert::IsTrue(strCmpFortest(GetText(d1.name), L"Root", d1.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(d1.nameEng), L"Root", d1.nameEng.GetLength()));
+				Assert::IsTrue(d1.type == PmxFile::DisplayFrame::DisplayFrameType::DFT_SPECIAL);
+				Assert::IsTrue(d1.frameElementCount == 130);
+				{
+					auto& fe0 = d1.GetFrameElement(0);
+					Assert::IsTrue(fe0.elementType == PmxFile::DisplayFrame::FrameElement::FrameElementType::FET_MORPH);
+					Assert::IsTrue(fe0.objectID == 0);
+				}
+				{
+					auto& fe0 = d1.GetFrameElement(d1.frameElementCount - 1);
+					Assert::IsTrue(fe0.elementType == PmxFile::DisplayFrame::FrameElement::FrameElementType::FET_MORPH);
+					Assert::IsTrue(fe0.objectID == 132);
+				}
+			}
 		}
 
 		// ボーンモーフ読み込みテスト(最初のモデルには存在しなかったため他モデルで検証)
