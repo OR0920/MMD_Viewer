@@ -1355,7 +1355,7 @@ PmxFile::PmxFile(const char* filepath)
 	// 表示枠データの読み込み
 	file.Read(mDisplayFrameCount);
 	mDisplayFrame = new DisplayFrame[mDisplayFrameCount]{};
-	for (int i = 0; i < 1; ++i)
+	for (int i = 0; i < 2; ++i)
 	{
 		auto& d = mDisplayFrame[i];
 		

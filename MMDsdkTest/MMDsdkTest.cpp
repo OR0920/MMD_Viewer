@@ -935,8 +935,8 @@ namespace MMDsdkTest
 			{
 				auto& d1 = pmx.GetDisplayFrame(1);
 
-				Assert::IsTrue(strCmpFortest(GetText(d1.name), L"Root", d1.name.GetLength()));
-				Assert::IsTrue(strCmpFortest(GetText(d1.nameEng), L"Root", d1.nameEng.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(d1.name), L"Х\По", d1.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(d1.nameEng), L"Exp", d1.nameEng.GetLength()));
 				Assert::IsTrue(d1.type == PmxFile::DisplayFrame::DisplayFrameType::DFT_SPECIAL);
 				Assert::IsTrue(d1.frameElementCount == 130);
 				{
