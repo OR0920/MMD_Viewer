@@ -37,8 +37,7 @@ void LoadAndCout(const char* filepath)
 {
 	MMDsdk::PmxFile model(filepath);
 	model.GetHeader().DebugOut();
-	//model.DebugOutAllBone();
-	//model.DebugOutVertex(0);
+	model.DebugOutAllDisplayFrame();
 }
 
 int main()
@@ -49,13 +48,11 @@ int main()
 	auto filepathCount = sizeof(testModelFilePath) / sizeof(testModelFilePath[0]);
 	for (int i = 0; i < filepathCount; ++i)
 	{
-	//	LoadAndCout(testModelFilePath[i]);
+		LoadAndCout(testModelFilePath[i]);
 	}
 
 	MMDsdk::PmxFile kaban(testModelFilePath[10]);
-	//MMDsdk::PmxFile miku(testModelFilePath[13]);
-
-	
+	kaban.DebugOutAllDisplayFrame();
 
 	//DebugOutParam(kaban.GetMaterialCount());
 	//kaban.DebugOutAllTexturePath();

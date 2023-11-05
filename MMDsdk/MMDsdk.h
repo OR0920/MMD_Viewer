@@ -939,13 +939,17 @@ namespace MMDsdk
 
 			const FrameElement& GetFrameElement(const int32_t i) const;
 
+
+			// ライブラリが使用する関数
 			void LoadFrameElement(void* _file, const size_t boneID_Size, const size_t morphID_Size);
 			~DisplayFrame();
+
+			void DebugOut() const;
 		};
 		const DisplayFrame& GetDisplayFrame(const int32_t i) const;
 		const int32_t GetLastDisplayFrameID() const;
-
-
+		void DebugOutDisplayFrame(const int32_t i) const;
+		void DebugOutAllDisplayFrame() const;
 		//last
 
 	private:

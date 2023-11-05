@@ -1523,7 +1523,7 @@ void PmxFile::DebugOutVertex(const int32_t i) const
 void PmxFile::DebugOutAllVertex() const
 {
 #ifdef _DEBUG
-	for (int32_t i = 0; i < mVertexCount; ++i)
+	for (int i = 0; i < mVertexCount; ++i)
 	{
 		DebugOutVertex(i);
 	}
@@ -1654,7 +1654,7 @@ void PmxFile::DebugOutMaterial(const int32_t i) const
 void PmxFile::DebugOutAllMaterial() const
 {
 #ifdef _DEBUG
-	for (int32_t i = 0; i < mMaterialCount; ++i)
+	for (int i = 0; i < mMaterialCount; ++i)
 	{
 		DebugOutMaterial(i);
 	}
@@ -2015,7 +2015,7 @@ void PmxFile::DebugOutMorph(const int32_t i, bool isOutVertexData) const
 void PmxFile::DebugOutAllMorph(bool isOutVertexData) const
 {
 #ifdef _DEBUG
-	for (uint16_t i = 0; i < mMorphCount; ++i)
+	for (int i = 0; i < mMorphCount; ++i)
 	{
 		DebugOutMorph(i, isOutVertexData);
 	}
@@ -2064,6 +2064,45 @@ PmxFile::DisplayFrame::~DisplayFrame()
 	SafeDeleteArray(&frameElement);
 }
 
+void PmxFile::DisplayFrame::DebugOut() const
+{
+#ifdef _DEBUG
+	DebugMessageWide(GetText(name));
+	DebugMessageWide(GetText(nameEng));
+	switch (type)
+	{
+	case MMDsdk::PmxFile::DisplayFrame::DFT_NORMAL:
+		DebugMessage("type = DFT_NORMAL");
+		break;
+	case MMDsdk::PmxFile::DisplayFrame::DFT_SPECIAL:
+		DebugMessage("type = DFT_SPECIAL");
+		break;
+	case MMDsdk::PmxFile::DisplayFrame::DFT_NONE:
+		break;
+	default:
+		break;
+	}
+	for (int i = 0; i < frameElementCount; ++i)
+	{
+		auto& fe = GetFrameElement(i);
+		DebugMessage("FrameElement [" << i << "]");
+		switch (fe.elementType)
+		{
+		case FrameElement::FrameElementType::FET_BONE:
+			DebugMessage("elementType = FET_BONE");
+			DebugOutParamI(fe.objectID);
+			break;
+		case FrameElement::FrameElementType::FET_MORPH:
+			DebugMessage("elementType = FET_MORPH");
+			DebugOutParamI(fe.objectID);
+			break;
+		default:
+			break;
+		}
+	}
+#endif // _DEBUG
+}
+
 const PmxFile::DisplayFrame& PmxFile::GetDisplayFrame(const int32_t i) const
 {
 	NO_REF(i);
@@ -2076,6 +2115,24 @@ const int32_t PmxFile::GetLastDisplayFrameID() const
 {
 	return mDisplayFrameCount - 1;
 }
+
+
+void PmxFile::DebugOutDisplayFrame(const int32_t i) const
+{
+	DebugMessage("DisplayFrame [" << i << "]");
+	GetDisplayFrame(i).DebugOut();
+}
+
+void PmxFile::DebugOutAllDisplayFrame() const
+{
+#ifdef _DEBUG
+	for (int i = 0; i < mDisplayFrameCount; ++i)
+	{
+		DebugOutDisplayFrame(i);
+	}
+#endif // _DEBUG
+}
+
 
 //last
 
