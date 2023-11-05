@@ -52,12 +52,10 @@ int main()
 	//	LoadAndCout(testModelFilePath[i]);
 	}
 
-	DebugMessage("branchtest");
-
-	//MMDsdk::PmxFile kaban(testModelFilePath[10]);
+	MMDsdk::PmxFile kaban(testModelFilePath[10]);
 	//MMDsdk::PmxFile miku(testModelFilePath[13]);
 
-	//kaban.DebugOutAllMorph(true);
+	
 
 	//DebugOutParam(kaban.GetMaterialCount());
 	//kaban.DebugOutAllTexturePath();

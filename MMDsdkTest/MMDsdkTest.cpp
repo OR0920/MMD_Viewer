@@ -923,6 +923,7 @@ namespace MMDsdkTest
 				auto& d0 = pmx.GetDisplayFrame(0);
 
 				Assert::IsTrue(strCmpFortest(GetText(d0.name), L"Root", d0.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(d0.nameEng), L"Root", d0.nameEng.GetLength()));
 			}
 		}
 

@@ -914,6 +914,7 @@ namespace MMDsdk
 		struct DisplayFrame
 		{
 			TextBufferVariable name = {};
+			TextBufferVariable nameEng = {};
 		};
 		const DisplayFrame& GetDisplayFrame(const int32_t i) const;
 
