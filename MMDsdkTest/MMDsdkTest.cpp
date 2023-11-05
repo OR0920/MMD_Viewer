@@ -968,6 +968,11 @@ namespace MMDsdkTest
 					Assert::IsTrue(fe0.objectID == 60);
 				}
 			}
+
+			// 剛体情報読み込みテスト
+
+			Assert::IsTrue(pmx.GetRigitbodyCount() == 41);
+
 		}
 
 		// ボーンモーフ読み込みテスト(最初のモデルには存在しなかったため他モデルで検証)

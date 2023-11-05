@@ -2133,6 +2133,10 @@ void PmxFile::DebugOutAllDisplayFrame() const
 #endif // _DEBUG
 }
 
+const int32_t& PmxFile::GetRigitbodyCount() const
+{
+	return 0;
+}
 
 //last
 

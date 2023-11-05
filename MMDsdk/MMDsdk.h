@@ -950,6 +950,10 @@ namespace MMDsdk
 		const int32_t GetLastDisplayFrameID() const;
 		void DebugOutDisplayFrame(const int32_t i) const;
 		void DebugOutAllDisplayFrame() const;
+
+		// „‘Ìƒf[ƒ^
+		const int32_t& GetRigitbodyCount() const;
+
 		//last
 
 	private:
