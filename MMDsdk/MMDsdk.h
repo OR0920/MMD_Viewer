@@ -921,6 +921,7 @@ namespace MMDsdk
 				DFT_SPECIAL = 1,
 				DFT_NONE
 			} type = DFT_NONE;
+			int32_t frameElementCount = 0;
 		};
 		const DisplayFrame& GetDisplayFrame(const int32_t i) const;
 
