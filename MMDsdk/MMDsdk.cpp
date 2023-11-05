@@ -1377,6 +1377,7 @@ PmxFile::PmxFile(const char* filepath)
 
 		r.name.Load(&file);
 		r.nameEng.Load(&file);
+		LoadID_AsInt32(file, r.relationshipBoneID, mHeader.boneID_Size);
 	}
 
 	//last
