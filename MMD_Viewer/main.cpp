@@ -48,11 +48,11 @@ int main()
 	auto filepathCount = sizeof(testModelFilePath) / sizeof(testModelFilePath[0]);
 	for (int i = 0; i < filepathCount; ++i)
 	{
-		LoadAndCout(testModelFilePath[i]);
+		//LoadAndCout(testModelFilePath[i]);
 	}
 
 	MMDsdk::PmxFile kaban(testModelFilePath[10]);
-	kaban.DebugOutAllDisplayFrame();
+	//kaban.DebugOutAllDisplayFrame();
 
 	//DebugOutParam(kaban.GetMaterialCount());
 	//kaban.DebugOutAllTexturePath();

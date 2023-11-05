@@ -1377,6 +1377,10 @@ PmxFile::PmxFile(const char* filepath)
 		r.name.Load(&file);
 		r.nameEng.Load(&file);
 		LoadID_AsInt32(file, r.relationshipBoneID, mHeader.boneID_Size);
+		DebugOutParamBin(r.group, 8);
+		file.Read(r.group);
+		DebugOutParamBin(r.group, 8);
+		DebugOutParamI(r.group);
 	}
 
 	//last

@@ -978,7 +978,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(strCmpFortest(GetText(r0.name), L"“ª", r0.name.GetLength()));
 				Assert::IsTrue(r0.nameEng.GetLength() == 0);
 				Assert::IsTrue(r0.relationshipBoneID == 6);
-				Assert::IsTrue(r0.group == 1);
+				Assert::IsTrue(r0.group == 0);
 			}
 
 			//last

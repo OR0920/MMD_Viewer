@@ -391,6 +391,7 @@ namespace MMDsdk
 		{
 			TextBufferFixed<20> name = {};
 			uint16_t relationshipBoneID = 0;
+			// グループの番号　グループ1 = 0, グループ16 = 15,
 			uint8_t group = 0;
 			// 衝突対象のオブジェクト
 			// エディタ上では「非衝突対象」を選択するチェックボックスが表示されている
