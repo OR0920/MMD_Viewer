@@ -1137,7 +1137,8 @@ PmxFile::PmxFile(const char* filepath)
 	mMorphCount(0),
 	mMorph(nullptr),
 	mDisplayFrameCount(0),
-	mDisplayFrame(nullptr)
+	mDisplayFrame(nullptr),
+	mRigitbodyCount(0)
 	//last
 {
 	FileReadBin file(filepath);
@@ -1365,6 +1366,11 @@ PmxFile::PmxFile(const char* filepath)
 		file.Read(d.frameElementCount);
 		d.LoadFrameElement(&file, mHeader.boneID_Size, mHeader.morphID_Size);
 	}
+
+	// çÑëÃÇÃì«Ç›çûÇ›
+	file.Read(mRigitbodyCount);
+
+
 	//last
 }
 
@@ -2135,7 +2141,7 @@ void PmxFile::DebugOutAllDisplayFrame() const
 
 const int32_t& PmxFile::GetRigitbodyCount() const
 {
-	return 0;
+	return mRigitbodyCount;
 }
 
 //last
