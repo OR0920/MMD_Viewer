@@ -349,8 +349,8 @@ namespace MMDsdkTest
 	TEST_CLASS(PmxReadTest)
 	{
 	public:
-		const char* testPmxModelPath = "D:/_3DModel/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
-		const char* testPmxModelPath2 = "C:/Users/onory/Downloads/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx";
+		const char* testPmxModelPath = "Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
+		const char* testPmxModelPath2 = "Test/Model/PMX/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx";
 
 
 		TEST_METHOD(ReadPmx)
