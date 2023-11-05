@@ -922,6 +922,18 @@ namespace MMDsdk
 				DFT_NONE
 			} type = DFT_NONE;
 			int32_t frameElementCount = 0;
+			struct FrameElement
+			{
+				enum FrameElementType : uint8_t
+				{
+					FET_BONE = 0,
+					FET_MORPH = 1,
+					FET_NONE
+				} elementType = FET_NONE;
+			};
+
+
+			const FrameElement& GetFrameElement(const int32_t i) const;
 		};
 		const DisplayFrame& GetDisplayFrame(const int32_t i) const;
 

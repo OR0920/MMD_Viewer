@@ -2023,6 +2023,11 @@ const int32_t& PmxFile::GetDisplayFrameCount() const
 	return mDisplayFrameCount;
 }
 
+const PmxFile::DisplayFrame::FrameElement& PmxFile::DisplayFrame::GetFrameElement(const int32_t i) const
+{
+	return {};
+}
+
 const PmxFile::DisplayFrame& PmxFile::GetDisplayFrame(const int32_t i) const
 {
 	NO_REF(i);

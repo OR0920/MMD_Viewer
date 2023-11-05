@@ -926,6 +926,10 @@ namespace MMDsdkTest
 				Assert::IsTrue(strCmpFortest(GetText(d0.nameEng), L"Root", d0.nameEng.GetLength()));
 				Assert::IsTrue(d0.type == PmxFile::DisplayFrame::DisplayFrameType::DFT_SPECIAL);
 				Assert::IsTrue(d0.frameElementCount == 1);
+				{
+					auto& fe0 = d0.GetFrameElement(0);
+					Assert::IsTrue(fe0.elementType == PmxFile::DisplayFrame::FrameElement::FrameElementType::FET_BONE);
+				}
 			}
 		}
 
