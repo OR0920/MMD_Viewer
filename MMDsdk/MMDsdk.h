@@ -915,6 +915,12 @@ namespace MMDsdk
 		{
 			TextBufferVariable name = {};
 			TextBufferVariable nameEng = {};
+			enum DisplayFrameType : uint8_t
+			{
+				DFT_NORMAL = 0,
+				DFT_SPECIAL = 1,
+				DFT_NONE
+			} type = DFT_NONE;
 		};
 		const DisplayFrame& GetDisplayFrame(const int32_t i) const;
 
