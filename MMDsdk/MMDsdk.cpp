@@ -1361,6 +1361,7 @@ PmxFile::PmxFile(const char* filepath)
 
 		d.name.Load(&file);
 		d.nameEng.Load(&file);
+		file.Read(d.type);
 	}
 	//last
 }
