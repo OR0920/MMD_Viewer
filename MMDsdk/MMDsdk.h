@@ -540,12 +540,12 @@ namespace MMDsdk
 				INIT = 0xff
 			} encode = INIT;
 			uint8_t additionalUVcount = 0;
-			uint8_t vertexIDsize = 0;
-			uint8_t textureIDsize = 0;
-			uint8_t materialIDsize = 0;
-			uint8_t boneIDsize = 0;
-			uint8_t morphIDsize = 0;
-			uint8_t rigitbodyIDsize = 0;
+			uint8_t vertexID_Size = 0;
+			uint8_t textureID_Size = 0;
+			uint8_t materialID_Size = 0;
+			uint8_t boneID_Size = 0;
+			uint8_t morphID_Size = 0;
+			uint8_t rigitbodyID_Size = 0;
 
 			struct ModelInfo
 			{
@@ -597,7 +597,7 @@ namespace MMDsdk
 
 			// ライブラリ側が呼び出す関数
 			void LoadAddtionalUV(void* _file, const int32_t addtionalUVCount);
-			void LoadBoneIDAndWeight(void* _file, const uint8_t boneIDsize);
+			void LoadBoneIDAndWeight(void* _file, const uint8_t boneID_Size);
 			void DebugOut() const;
 		};
 		const Vertex& GetVertex(const int32_t i) const;
@@ -780,7 +780,7 @@ namespace MMDsdk
 
 
 			// ライブラリ側が使用する関数
-			void LoadIK_Link(void* file, const size_t boneIDsize);
+			void LoadIK_Link(void* file, const size_t boneID_Size);
 			~Bone();
 
 			void DebugOut() const;
@@ -938,7 +938,7 @@ namespace MMDsdk
 
 			const FrameElement& GetFrameElement(const int32_t i) const;
 
-			void LoadFrameElement(void* _file, const size_t boneIDsize, const size_t morphIDsize);
+			void LoadFrameElement(void* _file, const size_t boneID_Size, const size_t morphID_Size);
 			~DisplayFrame();
 		};
 		const DisplayFrame& GetDisplayFrame(const int32_t i) const;

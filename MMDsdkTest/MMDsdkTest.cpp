@@ -364,12 +364,12 @@ namespace MMDsdkTest
 				Assert::IsTrue(h.fileConfigLength == 8);
 				Assert::IsTrue(h.encode == PmxFile::Header::UTF16);
 				Assert::IsTrue(h.additionalUVcount == 0);
-				Assert::IsTrue(h.vertexIDsize == 2);
-				Assert::IsTrue(h.textureIDsize == 1);
-				Assert::IsTrue(h.materialIDsize == 1);
-				Assert::IsTrue(h.boneIDsize == 2);
-				Assert::IsTrue(h.morphIDsize == 2);
-				Assert::IsTrue(h.rigitbodyIDsize == 1);
+				Assert::IsTrue(h.vertexID_Size == 2);
+				Assert::IsTrue(h.textureID_Size == 1);
+				Assert::IsTrue(h.materialID_Size == 1);
+				Assert::IsTrue(h.boneID_Size == 2);
+				Assert::IsTrue(h.morphID_Size == 2);
+				Assert::IsTrue(h.rigitbodyID_Size == 1);
 
 				Assert::IsTrue(strCmpFortest(GetText(h.modelInfoJp.modelName), L"‚©‚Î‚ñ‚¿‚á‚ñ", h.modelInfoJp.modelName.GetLength()));
 			}

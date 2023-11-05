@@ -1197,7 +1197,7 @@ PmxFile::PmxFile(const char* filepath)
 			v.LoadAddtionalUV(&file, mHeader.additionalUVcount);
 		}
 		file.Read(v.weightType);
-		v.LoadBoneIDAndWeight(&file, mHeader.boneIDsize);
+		v.LoadBoneIDAndWeight(&file, mHeader.boneID_Size);
 		file.Read(v.edgeRate);
 	}
 
@@ -1206,9 +1206,9 @@ PmxFile::PmxFile(const char* filepath)
 	mIndex = new int32_t[mIndexCount]{};
 	for (int i = 0; i < mIndexCount; ++i)
 	{
-		LoadID_AsInt32(file, mIndex[i], mHeader.vertexIDsize);
+		LoadID_AsInt32(file, mIndex[i], mHeader.vertexID_Size);
 	}
-	//file.ReadArray(mIndex, mIndexCount, mHeader.vertexIDsize);
+	//file.ReadArray(mIndex, mIndexCount, mHeader.vertexID_Size);
 
 	// テクスチャ読み込み
 	file.Read(mTextureCount);
@@ -1236,11 +1236,11 @@ PmxFile::PmxFile(const char* filepath)
 		file.Read(m.drawConfig);
 		file.Read(m.edgeColor);
 		file.Read(m.edgeSize);
-		LoadID_AsInt32(file, m.textureID, mHeader.textureIDsize);
-		LoadID_AsInt32(file, m.sphereTextureID, mHeader.textureIDsize);
+		LoadID_AsInt32(file, m.textureID, mHeader.textureID_Size);
+		LoadID_AsInt32(file, m.sphereTextureID, mHeader.textureID_Size);
 		file.Read(m.sphereMode);
 		file.Read(m.toonMode);
-		LoadID_AsInt32(file, m.toonTextureID, mHeader.textureIDsize);
+		LoadID_AsInt32(file, m.toonTextureID, mHeader.textureID_Size);
 		m.memo.Load(&file);
 		file.Read(m.vertexCount);
 	}
@@ -1254,12 +1254,12 @@ PmxFile::PmxFile(const char* filepath)
 		b.name.Load(&file);
 		b.nameEng.Load(&file);
 		file.Read(b.position);
-		LoadID_AsInt32(file, b.parentBoneID, mHeader.boneIDsize);
+		LoadID_AsInt32(file, b.parentBoneID, mHeader.boneID_Size);
 		file.Read(b.transformHierarchy);
 		file.Read(b.bc);
 		if (b.GetBoneConfig(Bone::BoneConfig::BC_IS_LINK_DEST_BY_BONE) == true)
 		{
-			LoadID_AsInt32(file, b.linkDestBoneID, mHeader.boneIDsize);
+			LoadID_AsInt32(file, b.linkDestBoneID, mHeader.boneID_Size);
 		}
 		else
 		{
@@ -1271,7 +1271,7 @@ PmxFile::PmxFile(const char* filepath)
 			(
 				file,
 				b.addRot.addPalentBoneID,
-				mHeader.boneIDsize
+				mHeader.boneID_Size
 			);
 			file.Read(b.addRot.addRatio);
 		}
@@ -1281,7 +1281,7 @@ PmxFile::PmxFile(const char* filepath)
 			(
 				file,
 				b.addMov.addPalentBoneID,
-				mHeader.boneIDsize
+				mHeader.boneID_Size
 			);
 			file.Read(b.addMov.addRatio);
 		}
@@ -1300,11 +1300,11 @@ PmxFile::PmxFile(const char* filepath)
 		}
 		if (b.GetBoneConfig(Bone::BoneConfig::BC_IK) == true)
 		{
-			LoadID_AsInt32(file, b.ikTargetBoneID, mHeader.boneIDsize);
+			LoadID_AsInt32(file, b.ikTargetBoneID, mHeader.boneID_Size);
 			file.Read(b.ikLoopCount);
 			file.Read(b.ikRotateLimit);
 			file.Read(b.ikLinkCount);
-			b.LoadIK_Link(&file, mHeader.boneIDsize);
+			b.LoadIK_Link(&file, mHeader.boneID_Size);
 		}
 	}
 
@@ -1326,23 +1326,23 @@ PmxFile::PmxFile(const char* filepath)
 		switch (mph.typeEX)
 		{
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_GROUP:
-			mph.LoadOffsData(&file, mHeader.morphIDsize);
+			mph.LoadOffsData(&file, mHeader.morphID_Size);
 			break;
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_VERTEX:
-			mph.LoadOffsData(&file, mHeader.vertexIDsize);
+			mph.LoadOffsData(&file, mHeader.vertexID_Size);
 			break;
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_BONE:
-			mph.LoadOffsData(&file, mHeader.boneIDsize);
+			mph.LoadOffsData(&file, mHeader.boneID_Size);
 			break;
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_UV:
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_ADDTIONAL_UV_1:
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_ADDTIONAL_UV_2:
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_ADDTIONAL_UV_3:
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_ADDTIONAL_UV_4:
-			mph.LoadOffsData(&file, mHeader.vertexIDsize);
+			mph.LoadOffsData(&file, mHeader.vertexID_Size);
 			break;
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_MATERIAL:
-			mph.LoadOffsData(&file, mHeader.materialIDsize);
+			mph.LoadOffsData(&file, mHeader.materialID_Size);
 			break;
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_NONE:
 			break;
@@ -1363,7 +1363,7 @@ PmxFile::PmxFile(const char* filepath)
 		d.nameEng.Load(&file);
 		file.Read(d.type);
 		file.Read(d.frameElementCount);
-		d.LoadFrameElement(&file, mHeader.boneIDsize, mHeader.morphIDsize);
+		d.LoadFrameElement(&file, mHeader.boneID_Size, mHeader.morphID_Size);
 	}
 	//last
 }
@@ -1396,12 +1396,12 @@ void PmxFile::Header::DebugOut() const
 	DebugOutParam(version);
 	DebugOutParamI(encode);
 	DebugOutParamI(additionalUVcount);
-	DebugOutParamI(vertexIDsize);
-	DebugOutParamI(textureIDsize);
-	DebugOutParamI(materialIDsize);
-	DebugOutParamI(boneIDsize);
-	DebugOutParamI(morphIDsize);
-	DebugOutParamI(rigitbodyIDsize);
+	DebugOutParamI(vertexID_Size);
+	DebugOutParamI(textureID_Size);
+	DebugOutParamI(materialID_Size);
+	DebugOutParamI(boneID_Size);
+	DebugOutParamI(morphID_Size);
+	DebugOutParamI(rigitbodyID_Size);
 	DebugMessageNewLine();
 	DebugMessage("/////////////////////////////////////////////////");
 	DebugMessageNewLine();
@@ -1444,29 +1444,29 @@ void PmxFile::Vertex::LoadAddtionalUV(void* _file, const int32_t addtionalUVCoun
 	file.ReadArray(addtionalUV, addtionalUVCount);
 }
 
-void PmxFile::Vertex::LoadBoneIDAndWeight(void* _file, const uint8_t boneIDsize)
+void PmxFile::Vertex::LoadBoneIDAndWeight(void* _file, const uint8_t boneID_Size)
 {
 	auto& file = GetFile(_file);
 	switch (weightType)
 	{
 	case MMDsdk::PmxFile::Vertex::BDEF1:
-		LoadID_AsInt32(file, boneID[0], boneIDsize);
-		//file.Read(boneID[0], boneIDsize);
+		LoadID_AsInt32(file, boneID[0], boneID_Size);
+		//file.Read(boneID[0], boneID_Size);
 		weight[0] = 1.f;
 		break;
 	case MMDsdk::PmxFile::Vertex::BDEF2:
-		LoadID_AsInt32(file, boneID[0], boneIDsize);
-		LoadID_AsInt32(file, boneID[1], boneIDsize);
+		LoadID_AsInt32(file, boneID[0], boneID_Size);
+		LoadID_AsInt32(file, boneID[1], boneID_Size);
 		file.Read(weight[0]);
 		weight[1] = 1 - weight[0];
 		break;
 	case MMDsdk::PmxFile::Vertex::BDEF4:
-		for (int i = 0; i < 4; ++i)	LoadID_AsInt32(file, boneID[i], boneIDsize);
+		for (int i = 0; i < 4; ++i)	LoadID_AsInt32(file, boneID[i], boneID_Size);
 		for (int i = 0; i < 4; ++i)	file.Read(weight[i]);
 		break;
 	case MMDsdk::PmxFile::Vertex::SDEF:
-		LoadID_AsInt32(file, boneID[0], boneIDsize);
-		LoadID_AsInt32(file, boneID[1], boneIDsize);
+		LoadID_AsInt32(file, boneID[0], boneID_Size);
+		LoadID_AsInt32(file, boneID[1], boneID_Size);
 		file.Read(weight[0]);
 		weight[1] = 1 - weight[0];
 		file.Read(sdefC);
@@ -1678,14 +1678,14 @@ const PmxFile::Bone::IK_Link& PmxFile::Bone::GetIK_Link(const int32_t i) const
 	return ikLink[i];
 }
 
-void PmxFile::Bone::LoadIK_Link(void* _file, const size_t boneIDsize)
+void PmxFile::Bone::LoadIK_Link(void* _file, const size_t boneID_Size)
 {
 	auto& file = GetFile(_file);
 	ikLink = new IK_Link[ikLinkCount]{};
 	for (int i = 0; i < ikLinkCount; ++i)
 	{
 		auto& ikl = ikLink[i];
-		LoadID_AsInt32(file, ikl.linkBoneID, boneIDsize);
+		LoadID_AsInt32(file, ikl.linkBoneID, boneID_Size);
 		file.Read(ikl.rotLimitConfig);
 		if (ikl.rotLimitConfig == IK_Link::IK_RLC_ON)
 		{
@@ -2032,7 +2032,7 @@ const PmxFile::DisplayFrame::FrameElement& PmxFile::DisplayFrame::GetFrameElemen
 	return frameElement[i];
 }
 
-void PmxFile::DisplayFrame::LoadFrameElement(void* _file, const size_t boneIDsize, const size_t morphIDsize)
+void PmxFile::DisplayFrame::LoadFrameElement(void* _file, const size_t boneID_Size, const size_t morphID_Size)
 {
 	auto& file = GetFile(_file);
 	frameElement = new FrameElement[frameElementCount]{};
@@ -2040,19 +2040,17 @@ void PmxFile::DisplayFrame::LoadFrameElement(void* _file, const size_t boneIDsiz
 	{
 		auto& fe = frameElement[i];
 		file.Read(fe.elementType);
-		DebugOutParamBin(fe.objectID, 32);
 		switch (fe.elementType)
 		{
 		case FrameElement::FrameElementType::FET_BONE:
-			LoadID_AsInt32(file, fe.objectID, boneIDsize);
+			LoadID_AsInt32(file, fe.objectID, boneID_Size);
 			break;
 		case FrameElement::FrameElementType::FET_MORPH:
-			LoadID_AsInt32(file, fe.objectID, morphIDsize);
+			LoadID_AsInt32(file, fe.objectID, morphID_Size);
 			break;
 		default:
 			break;
 		}
-		DebugOutParamBin(fe.objectID, 32);
 
 	}
 }
