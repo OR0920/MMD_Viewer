@@ -1317,7 +1317,6 @@ PmxFile::PmxFile(const char* filepath)
 	{
 		auto& mph = mMorph[i];
 		mph.name.Load(&file);
-		DebugMessageWide(GetText(mph.name));
 		mph.nameEng.Load(&file);
 		file.Read(mph.type);
 		file.Read(mph.typeEX);
