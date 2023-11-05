@@ -920,7 +920,9 @@ namespace MMDsdkTest
 			// 表示枠読み込みテスト
 			Assert::IsTrue(pmx.GetDisplayFrameCount() == 12);
 			{
-			
+				auto& d0 = pmx.GetDisplayFrame(0);
+
+				Assert::IsTrue(strCmpFortest(GetText(d0.name), L"Root", d0.name.GetLength()));
 			}
 		}
 

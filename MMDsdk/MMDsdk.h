@@ -911,7 +911,11 @@ namespace MMDsdk
 
 		// 表示枠データ
 		const int32_t& GetDisplayFrameCount() const;
-
+		struct DisplayFrame
+		{
+			TextBufferVariable name = {};
+		};
+		const DisplayFrame& GetDisplayFrame(const int32_t i) const;
 
 		//last
 

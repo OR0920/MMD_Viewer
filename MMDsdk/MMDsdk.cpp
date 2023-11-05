@@ -2013,5 +2013,10 @@ const int32_t& PmxFile::GetDisplayFrameCount() const
 	return mDisplayFrameCount;
 }
 
+const PmxFile::DisplayFrame& PmxFile::GetDisplayFrame(const int32_t i) const
+{
+	return {};
+}
+
 //last
 
