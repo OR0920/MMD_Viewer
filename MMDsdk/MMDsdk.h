@@ -944,6 +944,7 @@ namespace MMDsdk
 		Morph* mMorph;
 
 		int32_t mDisplayFrameCount;
+		DisplayFrame* mDisplayFrame;
 		//last
 	};
 

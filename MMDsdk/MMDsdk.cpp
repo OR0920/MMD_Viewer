@@ -1136,7 +1136,8 @@ PmxFile::PmxFile(const char* filepath)
 	mBone(nullptr),
 	mMorphCount(0),
 	mMorph(nullptr),
-	mDisplayFrameCount(0)
+	mDisplayFrameCount(0),
+	mDisplayFrame(nullptr)
 	//last
 {
 	FileReadBin file(filepath);
@@ -1353,13 +1354,19 @@ PmxFile::PmxFile(const char* filepath)
 
 	// 表示枠データの読み込み
 	file.Read(mDisplayFrameCount);
+	mDisplayFrame = new DisplayFrame[mDisplayFrameCount]{};
+	for (int i = 0; i < 1; ++i)
+	{
+		auto& d = mDisplayFrame[i];
 
-
+		d.name.Load(&file);
+	}
 	//last
 }
 
 PmxFile::~PmxFile()
 {
+	SafeDeleteArray(&mDisplayFrame);
 	SafeDeleteArray(&mMorph);
 	SafeDeleteArray(&mBone);
 	SafeDeleteArray(&mMaterial);
@@ -2015,7 +2022,10 @@ const int32_t& PmxFile::GetDisplayFrameCount() const
 
 const PmxFile::DisplayFrame& PmxFile::GetDisplayFrame(const int32_t i) const
 {
-	return {};
+	NO_REF(i);
+	NO_DATA(mDisplayFrame, mDisplayFrameCount);
+	IS_OUT_OF_RANGE(mDisplayFrame, i, mDisplayFrameCount);
+	return mDisplayFrame[i];
 }
 
 //last
