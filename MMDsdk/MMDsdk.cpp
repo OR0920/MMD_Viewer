@@ -1138,7 +1138,8 @@ PmxFile::PmxFile(const char* filepath)
 	mMorph(nullptr),
 	mDisplayFrameCount(0),
 	mDisplayFrame(nullptr),
-	mRigitbodyCount(0)
+	mRigitbodyCount(0),
+	mRigitbody(nullptr)
 	//last
 {
 	FileReadBin file(filepath);
@@ -1369,13 +1370,20 @@ PmxFile::PmxFile(const char* filepath)
 
 	// çÑëÃÇÃì«Ç›çûÇ›
 	file.Read(mRigitbodyCount);
+	mRigitbody = new Rigitbody[mRigitbodyCount];
+	for (int i = 0; i < 1; ++i)
+	{
+		auto& r = mRigitbody[i];
 
+		r.name.Load(&file);
+	}
 
 	//last
 }
 
 PmxFile::~PmxFile()
 {
+	SafeDeleteArray(&mRigitbody);
 	SafeDeleteArray(&mDisplayFrame);
 	SafeDeleteArray(&mMorph);
 	SafeDeleteArray(&mBone);
@@ -2146,7 +2154,10 @@ const int32_t& PmxFile::GetRigitbodyCount() const
 
 const PmxFile::Rigitbody& PmxFile::GetRigitbody(const int32_t i) const
 {
-	return {};
+	NO_REF(i);
+	NO_DATA(mRigitbody, mRigitbodyCount);
+	IS_OUT_OF_RANGE(mRigitbody, i, mRigitbodyCount);
+	return mRigitbody[i];
 }
 
 //last

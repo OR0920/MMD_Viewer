@@ -989,6 +989,7 @@ namespace MMDsdk
 		DisplayFrame* mDisplayFrame;
 
 		int32_t mRigitbodyCount;
+		Rigitbody* mRigitbody;
 
 		//last
 	};
