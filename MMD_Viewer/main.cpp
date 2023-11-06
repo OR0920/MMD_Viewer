@@ -21,17 +21,64 @@ const char* testModelFilePath[] =
 	"Test/Model/PMD/弱音ハク.pmd",
 	"Test/Model/PMD/巡音ルカ.pmd",
 	"Test/Model/PMD/初音ミクVer2.pmd",
-	"Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx",
-	"Test/Model/PMX/ハシビロコウ/ハシビロコウ.pmx",
-	"Test/Model/PMX/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx",
+	//"Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx",
+	//"Test/Model/PMX/ハシビロコウ/ハシビロコウ.pmx",
+	//"Test/Model/PMX/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx"
 	//"Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/1話ゲートのみ.pmx"
 };
 
 
 void LoadAndCout(const char* filepath)
 {
-	MMDsdk::PmxFile model(filepath);
-	model.GetHeader().DebugOut();
+	MMDsdk::PmdFile model(filepath);
+	//DebugMessage(GetText(model.GetToonTexturePath(0)));
+
+	for (int k = 0; k < model.GetMaterialCount(); ++k)
+	{
+		if (model.GetMaterial(k).texturePath.GetFirstChar() != '\0')
+		{
+			model.DebugOutMaterial(k);
+			auto& texpath = model.GetMaterial(k).texturePath;
+			DebugOutString(GetText(texpath));
+			int slashCount = 0;
+			for (int i = 0; filepath[i] != '\0'; ++i)
+			{
+				if (filepath[i] == '/')
+				{
+					++slashCount;
+				}
+			}
+			int slashCount2 = 0;
+			char* modelAssetPath = nullptr;
+			for (int i = 0; filepath[i] != '\0'; ++i)
+			{
+				//DebugOutArray(filepath, i);
+				if (filepath[i] == '/')
+				{
+					++slashCount2;
+					if (slashCount == slashCount2)
+					{
+						// 添え字から文字列長さを求める。1始まりに修正
+						int dirLength = i + 1;
+						modelAssetPath = new char[dirLength + texpath.GetLength()];
+						for (int j = 0; j < dirLength; ++j)
+						{
+							modelAssetPath[j] = filepath[j];
+						}
+						for (int j = 0; j < texpath.GetLength(); ++j)
+						{
+							modelAssetPath[j + dirLength] = (GetText(texpath))[j];
+						}
+						break;
+					}
+				}
+			}
+			DebugMessage(modelAssetPath);
+			FileReadBin file(modelAssetPath);
+
+			SafeDeleteArray(&modelAssetPath);
+		}
+	}
 }
 
 int main()
@@ -45,7 +92,7 @@ int main()
 		LoadAndCout(testModelFilePath[i]);
 	}
 
-	MMDsdk::PmxFile kaban(testModelFilePath[10]);
+	//MMDsdk::PmxFile kaban(testModelFilePath[10]);
 	//kaban.DebugOutAllDisplayFrame();
 
 	//DebugOutParam(kaban.GetMaterialCount());
