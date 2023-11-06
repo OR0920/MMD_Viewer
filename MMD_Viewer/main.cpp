@@ -33,51 +33,52 @@ void LoadAndCout(const char* filepath)
 	MMDsdk::PmdFile model(filepath);
 	//DebugMessage(GetText(model.GetToonTexturePath(0)));
 
-	for (int k = 0; k < model.GetMaterialCount(); ++k)
+	for (int k = 0; k < 10; ++k)
 	{
-		if (model.GetMaterial(k).texturePath.GetFirstChar() != '\0')
+		auto& texpath = model.GetToonTexturePath(k);
+		
+		DebugOutString(GetText(texpath));
+		
+		int slashCount = 0;
+		for (int i = 0; filepath[i] != '\0'; ++i)
 		{
-			model.DebugOutMaterial(k);
-			auto& texpath = model.GetMaterial(k).texturePath;
-			DebugOutString(GetText(texpath));
-			int slashCount = 0;
-			for (int i = 0; filepath[i] != '\0'; ++i)
+			if (filepath[i] == '/')
 			{
-				if (filepath[i] == '/')
-				{
-					++slashCount;
-				}
+				++slashCount;
 			}
-			int slashCount2 = 0;
-			char* modelAssetPath = nullptr;
-			for (int i = 0; filepath[i] != '\0'; ++i)
-			{
-				//DebugOutArray(filepath, i);
-				if (filepath[i] == '/')
-				{
-					++slashCount2;
-					if (slashCount == slashCount2)
-					{
-						// “Y‚¦Žš‚©‚ç•¶Žš—ñ’·‚³‚ð‹‚ß‚éB1Žn‚Ü‚è‚ÉC³
-						int dirLength = i + 1;
-						modelAssetPath = new char[dirLength + texpath.GetLength()];
-						for (int j = 0; j < dirLength; ++j)
-						{
-							modelAssetPath[j] = filepath[j];
-						}
-						for (int j = 0; j < texpath.GetLength(); ++j)
-						{
-							modelAssetPath[j + dirLength] = (GetText(texpath))[j];
-						}
-						break;
-					}
-				}
-			}
-			DebugMessage(modelAssetPath);
-			FileReadBin file(modelAssetPath);
-
-			SafeDeleteArray(&modelAssetPath);
 		}
+
+		int slashCount2 = 0;
+		char* modelAssetPath = nullptr;
+		
+		for (int i = 0; filepath[i] != '\0'; ++i)
+		{
+			//DebugOutArray(filepath, i);
+			if (filepath[i] == '/')
+			{
+				++slashCount2;
+				if (slashCount == slashCount2)
+				{
+					// “Y‚¦Žš‚©‚ç•¶Žš—ñ’·‚³‚ð‹‚ß‚éB1Žn‚Ü‚è‚ÉC³
+					int dirLength = i + 1;
+					modelAssetPath = new char[dirLength + texpath.GetLength()];
+					for (int j = 0; j < dirLength; ++j)
+					{
+						modelAssetPath[j] = filepath[j];
+					}
+					for (int j = 0; j < texpath.GetLength(); ++j)
+					{
+						modelAssetPath[j + dirLength] = (GetText(texpath))[j];
+					}
+					break;
+				}
+			}
+		}
+		
+		DebugMessage(modelAssetPath);
+		FileReadBin file(modelAssetPath);
+
+		SafeDeleteArray(&modelAssetPath);
 	}
 }
 
