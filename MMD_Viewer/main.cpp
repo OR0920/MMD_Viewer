@@ -13,21 +13,19 @@ using namespace System;
 
 const char* testModelFilePath[] =
 {
-	"Model/PMD/MEIKO.pmd",
+	"../x64/Debug/Test/Model/PMD/MEIKO.pmd",
 
-	"Model/PMD/カイト.pmd",
-	"Model/PMD/ダミーボーン.pmd",
-	"Model/PMD/鏡音リン.pmd",
-	"Model/PMD/鏡音レン.pmd",
-	"Model/PMD/弱音ハク.pmd",
-	
-	"Model/PMD/巡音ルカ.pmd",
-	"Model/PMD/初音ミクVer2.pmd",
-	"Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx",
-	
-	"Model/PMX/ハシビロコウ/ハシビロコウ.pmx",
-	"Model/PMX/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx",
-	"Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/1話ゲートのみ.pmx"
+	"../x64/Debug/Test/Model/PMD/カイト.pmd",
+	"../x64/Debug/Test/Model/PMD/ダミーボーン.pmd",
+	"../x64/Debug/Test/Model/PMD/鏡音リン.pmd",
+	"../x64/Debug/Test/Model/PMD/鏡音レン.pmd",
+	"../x64/Debug/Test/Model/PMD/弱音ハク.pmd",
+	"../x64/Debug/Test/Model/PMD/巡音ルカ.pmd",
+	"../x64/Debug/Test/Model/PMD/初音ミクVer2.pmd",
+	"../x64/Debug/Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx",
+	"../x64/Debug/Test/Model/PMX/ハシビロコウ/ハシビロコウ.pmx",
+	"../x64/Debug/Test/Model/PMX/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx",
+	//"Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/1話ゲートのみ.pmx"
 };
 
 
