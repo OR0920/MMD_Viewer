@@ -362,7 +362,7 @@ namespace MMDsdkTest
 
 				Assert::IsTrue(FloatEqual(h.version, 2.f));
 				Assert::IsTrue(h.fileConfigLength == 8);
-				Assert::IsTrue(h.encode == PmxFile::Header::UTF16);
+				Assert::IsTrue(h.encode == UTF16);
 				Assert::IsTrue(h.additionalUVcount == 0);
 				Assert::IsTrue(h.vertexID_Size == 2);
 				Assert::IsTrue(h.textureID_Size == 1);
@@ -371,7 +371,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(h.morphID_Size == 2);
 				Assert::IsTrue(h.rigitbodyID_Size == 1);
 
-				Assert::IsTrue(strCmpFortest(GetText(h.modelInfoJp.modelName), L"かばんちゃん", h.modelInfoJp.modelName.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(h.modelInfoJp.modelName), "かばんちゃん", h.modelInfoJp.modelName.GetLength()));
 			}
 
 			// 頂点データ読み込みテスト

@@ -2,6 +2,8 @@
 #include"MMDsdk.h"
 #include"System.h"
 
+#include<Windows.h>
+
 #ifdef _DEBUG
 // pmxファイル専用 頂点以外、-1を非参照値として記録する
 #define NO_REF(i) if (i == -1)\
@@ -61,7 +63,35 @@ void TextBufferVariable::Load(void* _file)
 	auto& file = GetFile(_file);
 	file.Read(mLength);
 	mStr = new char[mLength] {};
+	//for (int i = 0; i < mLength; ++i)
+	//{
+	//	DebugOutArrayBin(mStr, i, 8);
+	//	DebugMessageNewLine();
+	//}
 	file.ReadArray(mStr, mLength);
+
+}
+
+void TextBufferVariable::Load(void* _file, EncodeType encode)
+{
+	// 2重にロードさせない
+	if (mStr != nullptr)
+	{
+		DebugMessage("This Buffer is Already Loaded");
+		return;
+	}
+
+	auto& file = GetFile(_file);
+	file.Read(mLength);
+
+	char* s16 = new char[mLength + 2] {'\0'};
+	file.ReadArray(s16, mLength);
+		
+	auto bytesize = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, NULL, 0, NULL, NULL);
+	mStr = new char[bytesize] {};
+	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1,(LPSTR)mStr, bytesize, NULL, NULL);
+	
+	SafeDeleteArray(&s16);
 }
 
 const int TextBufferVariable::GetLength() const
@@ -1212,10 +1242,12 @@ PmxFile::PmxFile(const char* filepath)
 	file.Read(mHeader.fileConfigLength);
 	file.Read(mHeader.encode, mHeader.fileConfigLength);
 
-	mHeader.modelInfoJp.modelName.Load(&file);
+	mHeader.modelInfoJp.modelName.Load(&file, mHeader.encode);
 	mHeader.modelInfoEng.modelName.Load(&file);
 	mHeader.modelInfoJp.comment.Load(&file);
 	mHeader.modelInfoEng.comment.Load(&file);
+
+	mHeader.DebugOut();
 
 	// 頂点読み込み
 	file.Read(mVertexCount);
@@ -1233,7 +1265,10 @@ PmxFile::PmxFile(const char* filepath)
 		file.Read(v.weightType);
 		v.LoadBoneIDAndWeight(&file, mHeader.boneID_Size);
 		file.Read(v.edgeRate);
+
 	}
+
+	GetVertex(GetLastVertexID()).DebugOut();
 
 	// インデックス読み込み
 	file.Read(mIndexCount);
@@ -1417,6 +1452,7 @@ PmxFile::PmxFile(const char* filepath)
 		DebugOutParamI(r.group);
 	}
 
+	DebugMessageNewLine();
 	//last
 }
 
@@ -1439,7 +1475,7 @@ void PmxFile::Header::DebugOut() const
 {
 	DebugMessage("PMXFile /////////////////////////////////////////");
 	DebugMessage("<<<<ModelName>>>");
-	DebugMessageWide(GetText(modelInfoJp.modelName));
+	DebugMessage(GetText(modelInfoJp.modelName));
 	DebugMessage("<<<<ModelName Eng>>>");
 	DebugMessageWide(GetText(modelInfoEng.modelName));
 	DebugMessageNewLine();

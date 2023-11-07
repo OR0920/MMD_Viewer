@@ -27,6 +27,13 @@ namespace MMDsdk
 		float w = 0.f;
 	};
 
+	enum EncodeType : uint8_t
+	{
+		UTF16 = 0,
+		UTF8 = 1,
+		INIT = 0xff
+	};
+
 	// テキスト取得マクロ
 #define GetText(textBuffer) &textBuffer.GetFirstChar()
 
@@ -38,6 +45,7 @@ namespace MMDsdk
 		TextBufferVariable(); ~TextBufferVariable();
 
 		void Load(void* _file);
+		void Load(void* _file, EncodeType encode);
 
 		const int GetLength() const;
 		// 文字列取得 
@@ -598,12 +606,7 @@ namespace MMDsdk
 		{
 			float version = 0.f;
 			uint8_t fileConfigLength = 0;
-			enum EncodeType : uint8_t
-			{
-				UTF16 = 0,
-				UTF8 = 1,
-				INIT = 0xff
-			} encode = INIT;
+			EncodeType encode = EncodeType::INIT;
 			uint8_t additionalUVcount = 0;
 			uint8_t vertexID_Size = 0;
 			uint8_t textureID_Size = 0;
