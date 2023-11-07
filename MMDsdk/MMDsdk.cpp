@@ -2234,6 +2234,9 @@ const int32_t& PmxFile::GetRigitbodyCount() const
 	return mRigitbodyCount;
 }
 
+PmxFile::Rigitbody::Rigitbody() {}
+PmxFile::Rigitbody::~Rigitbody() {}
+
 const PmxFile::Rigitbody& PmxFile::GetRigitbody(const int32_t i) const
 {
 	NO_REF(i);

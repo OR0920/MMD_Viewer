@@ -1090,6 +1090,12 @@ namespace MMDsdk
 			TextBufferVariable nameEng = {};
 			int32_t relationshipBoneID = -1;
 			uint8_t group = 0;
+
+
+			Rigitbody(); ~Rigitbody();
+		private:
+			Rigitbody(const Rigitbody&);
+			const Rigitbody& operator=(const Rigitbody&) const;
 		};
 		const Rigitbody& GetRigitbody(const int32_t i) const;
 
