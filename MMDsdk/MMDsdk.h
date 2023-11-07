@@ -263,7 +263,7 @@ namespace MMDsdk
 			void DebugOut() const;
 			Bone(); ~Bone();
 		private:
-			Bone(Bone&);
+			Bone(const Bone&);
 			const Bone& operator=(const Bone&) const;
 		};
 		const Bone& GetBone(const uint16_t i) const;
@@ -357,7 +357,7 @@ namespace MMDsdk
 
 				MorphData(); ~MorphData();
 			private:
-				MorphData(MorphData&);
+				MorphData(const MorphData&);
 				const MorphData& operator=(const MorphData&) const;
 			} *morphData = nullptr;
 
@@ -378,7 +378,7 @@ namespace MMDsdk
 			void DebugOut(bool isOutVertexData = false) const;
 			Morph(); ~Morph();
 		private:
-			Morph(Morph&);
+			Morph(const Morph&);
 			const Morph& operator=(const Morph&) const;
 		};
 		//i = 0はbase
@@ -419,8 +419,8 @@ namespace MMDsdk
 			void DebugOut() const;
 			BoneForDisplay(); ~BoneForDisplay();
 		private:
-			BoneForDisplay(BoneForDisplay&);
-			const BoneForDisplay& operator=(BoneForDisplay&) const;
+			BoneForDisplay(const BoneForDisplay&);
+			const BoneForDisplay& operator=(const BoneForDisplay&) const;
 		};
 		const BoneForDisplay& GetBoneForDisplay(const uint32_t i) const;
 		const uint32_t GetLastBoneForDisplayID() const;
@@ -484,7 +484,7 @@ namespace MMDsdk
 			void DebugOut() const;
 			Rigitbody(); ~Rigitbody();
 		private:
-			Rigitbody(Rigitbody&);
+			Rigitbody(const Rigitbody&);
 			const Rigitbody& operator=(const Rigitbody&) const;
 		};
 		const Rigitbody& GetRigitbody(const uint32_t i) const;
@@ -521,7 +521,7 @@ namespace MMDsdk
 			void DebugOut() const;
 			Joint(); ~Joint();
 		private:
-			Joint(Joint&);
+			Joint(const Joint&);
 			const Joint& operator=(const Joint&) const;
 		};
 		const Joint& GetJoint(const uint32_t i) const;
@@ -615,7 +615,7 @@ namespace MMDsdk
 
 				ModelInfo(); ~ModelInfo();
 			private:
-				ModelInfo(ModelInfo&);
+				ModelInfo(const ModelInfo&);
 				const ModelInfo& operator=(const ModelInfo&) const;
 			} modelInfoJp = {};
 
@@ -624,7 +624,7 @@ namespace MMDsdk
 			void DebugOut() const;
 			Header(); ~Header();
 		private:
-			Header(Header&);
+			Header(const Header&);
 			const Header& operator=(const Header&) const;
 		};
 		const Header& GetHeader() const;
@@ -672,7 +672,7 @@ namespace MMDsdk
 			void DebugOut() const;
 			Vertex(); ~Vertex();
 		private:
-			Vertex(Vertex&);
+			Vertex(const Vertex&);
 			const Vertex& operator=(const Vertex&) const;
 		};
 		const Vertex& GetVertex(const int32_t i) const;
@@ -752,7 +752,7 @@ namespace MMDsdk
 			void DebugOut() const;
 			Material(); ~Material();
 		private:
-			Material(Material&);
+			Material(const Material&);
 			const Material& operator=(const Material&) const;
 		};
 		const Material& GetMaterial(const int32_t i) const;
@@ -819,7 +819,7 @@ namespace MMDsdk
 
 				AddData(); ~AddData();
 			private:
-				AddData(AddData&);
+				AddData(const AddData&);
 				const AddData& operator=(const AddData&) const;
 			} addRot = {}, addMov = {};
 
@@ -850,7 +850,7 @@ namespace MMDsdk
 
 				IK_Link(); ~IK_Link();
 			private:
-				IK_Link(IK_Link&);
+				IK_Link(const IK_Link&);
 				const IK_Link& operator=(const IK_Link&) const;
 			};
 		private:
@@ -874,7 +874,7 @@ namespace MMDsdk
 			void DebugOut() const;
 			Bone(); ~Bone();
 		private:
-			Bone(Bone&);
+			Bone(const Bone&);
 			const Bone& operator=(const Bone&) const;
 		};
 		const Bone& GetBone(const int32_t i) const;
@@ -919,6 +919,11 @@ namespace MMDsdk
 				int32_t morphID = -1;
 				float morphRatio = 0.f;
 				void DebugOut() const;
+
+				GroupOffs(); ~GroupOffs();
+			private:
+				GroupOffs(const GroupOffs&);
+				const GroupOffs& operator=(const GroupOffs&) const;
 			};
 
 			// 頂点モーフのオフセットデータ
@@ -927,6 +932,11 @@ namespace MMDsdk
 				int32_t vertexID = -1;
 				float3 offsPos = {};
 				void DebugOut() const;
+
+				VertexOffs(); ~VertexOffs();
+			private:
+				VertexOffs(const VertexOffs&);
+				const VertexOffs& operator=(const VertexOffs&) const;
 			};
 
 			// ボーンモーフのオフセットデータ
@@ -936,6 +946,11 @@ namespace MMDsdk
 				float3 offsPos = {};
 				float4 offsRotQ = {};
 				void DebugOut() const;
+
+				BoneOffs(); ~BoneOffs();
+			private:
+				BoneOffs(const BoneOffs&);
+				const BoneOffs& operator=(const BoneOffs&) const;
 			};
 
 			// UVモーフのオフセットデータ
@@ -945,6 +960,11 @@ namespace MMDsdk
 				// 通常のUVの場合、z, w成分は使用しないが、データ上存在
 				float4 uv = {};
 				void DebugOut() const;
+
+				UV_Offs(); ~UV_Offs();
+			private:
+				UV_Offs(const UV_Offs&);
+				const UV_Offs& operator=(const UV_Offs) const;
 			};
 
 			// マテリアルモーフのオフセットデータ
@@ -968,6 +988,11 @@ namespace MMDsdk
 				float4 toonTextureScale = {};
 
 				void DebugOut() const;
+
+				MaterialOffs(); ~MaterialOffs();
+			private:
+				MaterialOffs(const MaterialOffs&);
+				const MaterialOffs& operator=(const MaterialOffs&) const;
 			};
 
 			// オフセットデータを格納する共用体
@@ -979,6 +1004,11 @@ namespace MMDsdk
 				BoneOffs boneOffs;
 				UV_Offs uvOffs;
 				MaterialOffs materialOffs = {};
+
+				MorphOffsData(); ~MorphOffsData();
+			private:
+				MorphOffsData(const MorphOffsData&);
+				const MorphOffsData& operator=(const MorphOffsData&) const;
 			};
 
 		private:
@@ -992,9 +1022,12 @@ namespace MMDsdk
 
 			// ライブラリ側が使用する関数
 			void LoadOffsData(void* _file, const size_t idByteSize);
-			~Morph();
-
 			void DebugOut(bool isOutOffsData) const;
+
+			Morph(); ~Morph();
+		private:
+			Morph(const Morph&);
+			const Morph& operator=(const Morph&) const;
 		};
 		const Morph& GetMorph(const int32_t i) const;
 		const int32_t GetLastMorphID() const;

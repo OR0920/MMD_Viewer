@@ -1855,11 +1855,17 @@ void PmxFile::Morph::GroupOffs::DebugOut() const
 	DebugOutParam(morphRatio);
 }
 
+PmxFile::Morph::GroupOffs::GroupOffs() {}
+PmxFile::Morph::GroupOffs::~GroupOffs() {}
+
 void PmxFile::Morph::VertexOffs::DebugOut() const
 {
 	DebugOutParamI(vertexID);
 	DebugOutFloat3(offsPos);
 }
+
+PmxFile::Morph::VertexOffs::VertexOffs() {}
+PmxFile::Morph::VertexOffs::~VertexOffs() {}
 
 void PmxFile::Morph::BoneOffs::DebugOut() const
 {
@@ -1868,11 +1874,17 @@ void PmxFile::Morph::BoneOffs::DebugOut() const
 	DebugOutFloat4(offsRotQ);
 }
 
+PmxFile::Morph::BoneOffs::BoneOffs() {}
+PmxFile::Morph::BoneOffs::~BoneOffs() {}
+
 void PmxFile::Morph::UV_Offs::DebugOut() const
 {
 	DebugOutParamI(vertexID);
 	DebugOutFloat4(uv);
 }
+
+PmxFile::Morph::UV_Offs::UV_Offs() {}
+PmxFile::Morph::UV_Offs::~UV_Offs() {}
 
 void PmxFile::Morph::MaterialOffs::DebugOut() const
 {
@@ -1902,6 +1914,11 @@ void PmxFile::Morph::MaterialOffs::DebugOut() const
 	DebugOutFloat4(toonTextureScale);
 }
 
+PmxFile::Morph::MaterialOffs::MaterialOffs() {}
+PmxFile::Morph::MaterialOffs::~MaterialOffs() {}
+
+PmxFile::Morph::MorphOffsData::MorphOffsData() {}
+PmxFile::Morph::MorphOffsData::~MorphOffsData() {}
 
 const PmxFile::Morph::MorphOffsData& PmxFile::Morph::GetMorphOffsData(const int32_t i) const
 {
@@ -1966,11 +1983,6 @@ void PmxFile::Morph::LoadOffsData(void* _file, const size_t idByteSize)
 	}
 }
 
-
-PmxFile::Morph::~Morph()
-{
-	SafeDeleteArray(&morphOffsData);
-}
 
 
 void PmxFile::Morph::DebugOut(bool isOutOffsData) const
@@ -2064,6 +2076,14 @@ void PmxFile::Morph::DebugOut(bool isOutOffsData) const
 	}
 #endif // _DEBUG
 }
+
+
+PmxFile::Morph::Morph() {}
+PmxFile::Morph::~Morph()
+{
+	SafeDeleteArray(&morphOffsData);
+}
+
 
 const PmxFile::Morph& PmxFile::GetMorph(const int32_t i) const
 {
