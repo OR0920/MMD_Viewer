@@ -45,13 +45,9 @@ int main()
 		LoadAndCout(testModelFilePath[i]);
 	}
 
-	{
-		//MMDsdk::TextBufferFixed<20> a;
-		{
-			MMDsdk::PmdFile model(testModelFilePath[0]);
-			auto& a = model.GetIKData(0);
-		}
-	}
+	MMDsdk::PmdFile a(testModelFilePath[0]);
+
+	auto& b = a;
 
 	//kaban.DebugOutAllDisplayFrame();
 

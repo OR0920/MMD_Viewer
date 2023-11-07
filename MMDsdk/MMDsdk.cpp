@@ -155,7 +155,6 @@ PmdFile::PmdFile(const char* filepath)
 
 	//’¸“_‚Ì“Ç‚İ‚İ
 	file.Read(mVertexCount);
-	DebugOutParamI(mVertexCount);
 	mVertex = new Vertex[mVertexCount]{};
 	for (uint16_t i = 0; i < mVertexCount; ++i)
 	{
@@ -891,6 +890,9 @@ void PmdFile::BoneForDisplay::DebugOut() const
 	DebugMessageNewLine();
 }
 
+PmdFile::BoneForDisplay::BoneForDisplay() {}
+PmdFile::BoneForDisplay::~BoneForDisplay() {}
+
 const PmdFile::BoneForDisplay& PmdFile::GetBoneForDisplay(const uint32_t i) const
 {
 	NO_DATA(mBoneForDisplay, mBoneForDisplayCount);
@@ -992,6 +994,9 @@ void PmdFile::Rigitbody::DebugOut() const
 	DebugMessageNewLine();
 }
 
+PmdFile::Rigitbody::Rigitbody() {}
+PmdFile::Rigitbody::~Rigitbody() {}
+
 const PmdFile::Rigitbody& PmdFile::GetRigitbody(const uint32_t i) const
 {
 	NO_DATA(mRigitbody, mRigitbodyCount);
@@ -1048,6 +1053,9 @@ void PmdFile::Joint::DebugOut() const
 
 	DebugMessageNewLine();
 }
+
+PmdFile::Joint::Joint() {}
+PmdFile::Joint::~Joint() {}
 
 const PmdFile::Joint& PmdFile::GetJoint(const uint32_t i) const
 {

@@ -67,7 +67,7 @@ vmdの読み込み
 
 		ExStructName(); ~ExStructName(); コンストラクタ・デストラクタを末尾に宣言する
 	private:
-		内部でnewを行う場合、コピーを禁止する
+		特に理由がない限り、コピーは禁止する
 		ExStructName(ExStructName&);
 		const ExStructName& operator=(ExStructName&) const;
 	}
@@ -82,7 +82,7 @@ vmdの読み込み
 
 		データは基本的に公開しない　公開する場合は原則、構造体を使用する
 	private:
-		内部でnewを行う場合、コピーを禁止する
+		特に理由がない場合、コピーは禁止
 		ExClassName(const ExClassName&);
 		const ExClassName& opeartor=(const ExClassName&) const;
 	};	

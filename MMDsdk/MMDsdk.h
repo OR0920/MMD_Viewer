@@ -411,6 +411,10 @@ namespace MMDsdk
 			uint8_t boneDisplayFrameIndex = 0;
 
 			void DebugOut() const;
+			BoneForDisplay(); ~BoneForDisplay();
+		private:
+			BoneForDisplay(BoneForDisplay&);
+			const BoneForDisplay& operator=(BoneForDisplay&) const;
 		};
 		const BoneForDisplay& GetBoneForDisplay(const uint32_t i) const;
 		const uint32_t GetLastBoneForDisplayID() const;
@@ -472,6 +476,10 @@ namespace MMDsdk
 			} type = RT_NONE;
 
 			void DebugOut() const;
+			Rigitbody(); ~Rigitbody();
+		private:
+			Rigitbody(Rigitbody&);
+			const Rigitbody& operator=(const Rigitbody&) const;
 		};
 		const Rigitbody& GetRigitbody(const uint32_t i) const;
 		const uint32_t GetLastRigitbodyID() const;
@@ -505,6 +513,10 @@ namespace MMDsdk
 
 
 			void DebugOut() const;
+			Joint(); ~Joint();
+		private:
+			Joint(Joint&);
+			const Joint& operator=(const Joint&) const;
 		};
 		const Joint& GetJoint(const uint32_t i) const;
 		const uint32_t GetLastJointID() const;
@@ -518,6 +530,7 @@ namespace MMDsdk
 		//既定のコンストラクタ、コピーコンストラクタ呼び出し禁止
 		//必ずファイル名を指定して生成すること
 		PmdFile(); PmdFile(const PmdFile& copy);
+		const PmdFile& operator=(const PmdFile&) const;
 
 		//　各種データ実態
 		Header mHeader;
