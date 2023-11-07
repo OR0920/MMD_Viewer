@@ -63,7 +63,7 @@ namespace MMDsdk
 	class TextBufferFixed
 	{
 	public:
-		
+
 		const int GetLength() const
 		{
 			return mLength;
@@ -618,8 +618,9 @@ namespace MMDsdk
 				ModelInfo(ModelInfo&);
 				const ModelInfo& operator=(const ModelInfo&) const;
 			} modelInfoJp = {};
+
 			ModelInfo modelInfoEng = {};
-			
+
 			void DebugOut() const;
 			Header(); ~Header();
 		private:
@@ -669,6 +670,10 @@ namespace MMDsdk
 			void LoadAddtionalUV(void* _file, const int32_t addtionalUVCount);
 			void LoadBoneIDAndWeight(void* _file, const uint8_t boneID_Size);
 			void DebugOut() const;
+			Vertex(); ~Vertex();
+		private:
+			Vertex(Vertex&);
+			const Vertex& operator=(const Vertex&) const;
 		};
 		const Vertex& GetVertex(const int32_t i) const;
 		const int32_t GetLastVertexID() const;
@@ -745,6 +750,10 @@ namespace MMDsdk
 
 			// ライブラリ側が使用する関数
 			void DebugOut() const;
+			Material(); ~Material();
+		private:
+			Material(Material&);
+			const Material& operator=(const Material&) const;
 		};
 		const Material& GetMaterial(const int32_t i) const;
 		const int32_t GetLastMaterialID() const;
@@ -807,7 +816,12 @@ namespace MMDsdk
 			{
 				int32_t addPalentBoneID = -1;
 				float addRatio = 0.f;
-			} addRot, addMov;
+
+				AddData(); ~AddData();
+			private:
+				AddData(AddData&);
+				const AddData& operator=(const AddData&) const;
+			} addRot = {}, addMov = {};
 
 			float3 axisDirection = {};
 
@@ -833,6 +847,11 @@ namespace MMDsdk
 				} rotLimitConfig = IK_RLC_NONE;
 				float3 lowerLimit = {};
 				float3 upperLimit = {};
+
+				IK_Link(); ~IK_Link();
+			private:
+				IK_Link(IK_Link&);
+				const IK_Link& operator=(const IK_Link&) const;
 			};
 		private:
 			// IKリンクデータ本体の可変長配列
@@ -851,9 +870,12 @@ namespace MMDsdk
 
 			// ライブラリ側が使用する関数
 			void LoadIK_Link(void* file, const size_t boneID_Size);
-			~Bone();
 
 			void DebugOut() const;
+			Bone(); ~Bone();
+		private:
+			Bone(Bone&);
+			const Bone& operator=(const Bone&) const;
 		};
 		const Bone& GetBone(const int32_t i) const;
 		const int32_t GetLastBoneID() const;

@@ -1560,6 +1560,9 @@ void PmxFile::Vertex::DebugOut() const
 	DebugMessageNewLine();
 }
 
+PmxFile::Vertex::Vertex() {}
+PmxFile::Vertex::~Vertex() {}
+
 const PmxFile::Vertex& PmxFile::GetVertex(const int32_t i) const
 {
 	NO_DATA(mVertex, mVertexCount);
@@ -1689,6 +1692,9 @@ void PmxFile::Material::DebugOut() const
 	DebugMessageNewLine();
 }
 
+PmxFile::Material::Material() {}
+PmxFile::Material::~Material() {}
+
 const PmxFile::Material& PmxFile::GetMaterial(const int32_t i) const
 {
 	NO_REF(i);
@@ -1724,6 +1730,12 @@ const int32_t& PmxFile::GetBoneCount() const
 	return mBoneCount;
 }
 
+PmxFile::Bone::AddData::AddData() {}
+PmxFile::Bone::AddData::~AddData() {}
+
+PmxFile::Bone::IK_Link::IK_Link() {}
+PmxFile::Bone::IK_Link::~IK_Link() {}
+
 bool PmxFile::Bone::GetBoneConfig(BoneConfig bitFlag) const
 {
 	return bc & bitFlag;
@@ -1751,12 +1763,6 @@ void PmxFile::Bone::LoadIK_Link(void* _file, const size_t boneID_Size)
 			file.Read(ikl.upperLimit);
 		}
 	}
-}
-
-PmxFile::Bone::~Bone()
-{
-	//DebugMessage("pmx bone deleted");
-	SafeDeleteArray(&ikLink);
 }
 
 void PmxFile::Bone::DebugOut() const
@@ -1797,6 +1803,14 @@ void PmxFile::Bone::DebugOut() const
 		DebugOutFloat3(ikl.upperLimit);
 	}
 #endif // _DEBUG
+}
+
+PmxFile::Bone::Bone() {}
+
+PmxFile::Bone::~Bone()
+{
+	//DebugMessage("pmx bone deleted");
+	SafeDeleteArray(&ikLink);
 }
 
 const PmxFile::Bone& PmxFile::GetBone(const int32_t i) const
