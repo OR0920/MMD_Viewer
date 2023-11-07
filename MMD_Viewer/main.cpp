@@ -13,14 +13,14 @@ using namespace System;
 
 const char* testModelFilePath[] =
 {
-	"Test/Model/PMD/MEIKO.pmd",
-	"Test/Model/PMD/カイト.pmd",
-	"Test/Model/PMD/ダミーボーン.pmd",
-	"Test/Model/PMD/鏡音リン.pmd",
-	"Test/Model/PMD/鏡音レン.pmd",
-	"Test/Model/PMD/弱音ハク.pmd",
-	"Test/Model/PMD/巡音ルカ.pmd",
-	"Test/Model/PMD/初音ミクVer2.pmd",
+	//"Test/Model/PMD/MEIKO.pmd",
+	//"Test/Model/PMD/カイト.pmd",
+	//"Test/Model/PMD/ダミーボーン.pmd",
+	//"Test/Model/PMD/鏡音リン.pmd",
+	//"Test/Model/PMD/鏡音レン.pmd",
+	//"Test/Model/PMD/弱音ハク.pmd",
+	//"Test/Model/PMD/巡音ルカ.pmd",
+	//"Test/Model/PMD/初音ミクVer2.pmd",
 	"Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx",
 	"Test/Model/PMX/ハシビロコウ/ハシビロコウ.pmx",
 	"Test/Model/PMX/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx",
@@ -32,7 +32,51 @@ void LoadAndCout(const char* filepath)
 {
 	MMDsdk::PmxFile model(filepath);
 	model.GetHeader().DebugOut();
+
+	int slashCount = 0;
+	for (int i = 0; filepath[i] != '\0'; ++i)
+	{
+		if (filepath[i] == '/') ++slashCount;
+	}
+
+	int dirPathSize = 0;
+	for (dirPathSize = 0; filepath[dirPathSize] != '\0'; ++dirPathSize)
+	{
+		if (slashCount == 0)
+		{
+			break;
+		}
+		if (filepath[dirPathSize] == '/')
+		{
+			--slashCount;			
+		}
+	}
+
+	for (int j = 0; j < model.GetTextureCount(); ++j)
+	{
+		auto& textureFileName = model.GetTexturePath(j);
+		auto texPathLength = dirPathSize + textureFileName.GetLength();
+		char* texPath = new char[texPathLength] {'\0'};
+
+		for (int i = 0; i < dirPathSize; ++i)
+		{
+			texPath[i] = filepath[i];
+		}
+		for (int i = 0; i < textureFileName.GetLength(); ++i)
+		{
+			texPath[i + dirPathSize] = (GetText(textureFileName))[i];
+		}
+
+		DebugMessage(texPath);
+
+		FileReadBin texture(texPath);
+
+		SafeDeleteArray(&texPath);
+	}
+	
+
 }
+
 
 int main()
 {

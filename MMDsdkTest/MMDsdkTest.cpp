@@ -505,17 +505,17 @@ namespace MMDsdkTest
 
 			// テクスチャ読み込みテスト
 			Assert::IsTrue(pmx.GetTextureCount() == 6);
-			Assert::IsTrue(strCmpFortest(GetText(pmx.GetTexturePath(0)), L"hair.png", pmx.GetTexturePath(0).GetLength()));
+			Assert::IsTrue(strCmpFortest(GetText(pmx.GetTexturePath(0)), "hair.png", pmx.GetTexturePath(0).GetLength()));
 
 
-			Assert::IsTrue(strCmpFortest(GetText(pmx.GetTexturePath(pmx.GetLastTextureID())), L"k拡張.png", pmx.GetTexturePath(pmx.GetLastTextureID()).GetLength()));
+			Assert::IsTrue(strCmpFortest(GetText(pmx.GetTexturePath(pmx.GetLastTextureID())), "k拡張.png", pmx.GetTexturePath(pmx.GetLastTextureID()).GetLength()));
 
 			// マテリアル読み込み
 			Assert::IsTrue(pmx.GetMaterialCount() == 42);
 			Assert::IsTrue(pmx.GetLastMaterialID() == pmx.GetMaterialCount() - 1);
 			{
 				auto& m0 = pmx.GetMaterial(0);
-				Assert::IsTrue(strCmpFortest(GetText(m0.name), L"後髪", m0.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(m0.name), "後髪", m0.name.GetLength()));
 				Assert::IsTrue(m0.nameEng.GetLength() == 0);
 				Assert::IsTrue(FloatEqual(m0.diffuse.x, 1.f));
 				Assert::IsTrue(FloatEqual(m0.diffuse.y, 1.f));
@@ -548,7 +548,7 @@ namespace MMDsdkTest
 			}
 			{
 				auto& mL = pmx.GetMaterial(pmx.GetLastMaterialID());
-				Assert::IsTrue(strCmpFortest(GetText(mL.name), L"ガラス", mL.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(mL.name), "ガラス", mL.name.GetLength()));
 				Assert::IsTrue(mL.nameEng.GetLength() == 0);
 				Assert::IsTrue(FloatEqual(mL.diffuse.x, 1.f));
 				Assert::IsTrue(FloatEqual(mL.diffuse.y, 1.f));

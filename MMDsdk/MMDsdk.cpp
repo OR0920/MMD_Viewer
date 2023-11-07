@@ -1243,11 +1243,9 @@ PmxFile::PmxFile(const char* filepath)
 	file.Read(mHeader.encode, mHeader.fileConfigLength);
 
 	mHeader.modelInfoJp.modelName.Load(&file, mHeader.encode);
-	mHeader.modelInfoEng.modelName.Load(&file);
-	mHeader.modelInfoJp.comment.Load(&file);
-	mHeader.modelInfoEng.comment.Load(&file);
-
-	mHeader.DebugOut();
+	mHeader.modelInfoEng.modelName.Load(&file, mHeader.encode);
+	mHeader.modelInfoJp.comment.Load(&file, mHeader.encode);
+	mHeader.modelInfoEng.comment.Load(&file, mHeader.encode);
 
 	// 頂点読み込み
 	file.Read(mVertexCount);
@@ -1265,10 +1263,7 @@ PmxFile::PmxFile(const char* filepath)
 		file.Read(v.weightType);
 		v.LoadBoneIDAndWeight(&file, mHeader.boneID_Size);
 		file.Read(v.edgeRate);
-
 	}
-
-	GetVertex(GetLastVertexID()).DebugOut();
 
 	// インデックス読み込み
 	file.Read(mIndexCount);
@@ -1285,7 +1280,7 @@ PmxFile::PmxFile(const char* filepath)
 
 	for (int i = 0; i < mTextureCount; ++i)
 	{
-		mTexturePath[i].Load(&file);
+		mTexturePath[i].Load(&file, mHeader.encode);
 	}
 
 	//DebugOutAllTexturePath();
@@ -1296,8 +1291,8 @@ PmxFile::PmxFile(const char* filepath)
 	for (int i = 0; i < mMaterialCount; ++i)
 	{
 		auto& m = mMaterial[i];
-		m.name.Load(&file);
-		m.nameEng.Load(&file);
+		m.name.Load(&file, mHeader.encode);
+		m.nameEng.Load(&file, mHeader.encode);
 		file.Read(m.diffuse);
 		file.Read(m.specular);
 		file.Read(m.specularity);
@@ -1310,7 +1305,7 @@ PmxFile::PmxFile(const char* filepath)
 		file.Read(m.sphereMode);
 		file.Read(m.toonMode);
 		LoadID_AsInt32(file, m.toonTextureID, mHeader.textureID_Size);
-		m.memo.Load(&file);
+		m.memo.Load(&file, mHeader.encode);
 		file.Read(m.vertexCount);
 	}
 
@@ -1477,13 +1472,13 @@ void PmxFile::Header::DebugOut() const
 	DebugMessage("<<<<ModelName>>>");
 	DebugMessage(GetText(modelInfoJp.modelName));
 	DebugMessage("<<<<ModelName Eng>>>");
-	DebugMessageWide(GetText(modelInfoEng.modelName));
+	DebugMessage(GetText(modelInfoEng.modelName));
 	DebugMessageNewLine();
 	DebugMessage("<<<<Comment>>>");
-	DebugMessageWide(GetText(modelInfoJp.comment));
+	DebugMessage(GetText(modelInfoJp.comment));
 	DebugMessageNewLine();
 	DebugMessage("<<<<Comment Eng>>>");
-	DebugMessageWide(GetText(modelInfoEng.comment));
+	DebugMessage(GetText(modelInfoEng.comment));
 	DebugMessageNewLine();
 	DebugOutParam(version);
 	DebugOutParamI(encode);
@@ -1682,7 +1677,7 @@ const int32_t PmxFile::GetLastTextureID() const
 void PmxFile::DebugOutTexturePath(const int32_t i) const
 {
 	DebugMessage("Texture [" << i << "]");
-	DebugMessageWide(GetText(GetTexturePath(i)));
+	DebugMessage(GetText(GetTexturePath(i)));
 	DebugMessageNewLine();
 }
 
@@ -1708,8 +1703,8 @@ bool PmxFile::Material::GetDrawConfig(DrawConfig bitflag) const
 
 void PmxFile::Material::DebugOut() const
 {
-	DebugMessageWide(GetText(name));
-	DebugMessageWide(GetText(nameEng));
+	DebugMessage(GetText(name));
+	DebugMessage(GetText(nameEng));
 	DebugOutFloat4(diffuse);
 	DebugOutFloat3(specular);
 	DebugOutParam(specularity);
@@ -1723,7 +1718,7 @@ void PmxFile::Material::DebugOut() const
 	DebugOutParamI(toonMode);
 	DebugOutParamI(toonTextureID);
 	DebugMessage("<<< memo >>>");
-	DebugMessageWide(GetText(memo));
+	DebugMessage(GetText(memo));
 	DebugOutParamI(vertexCount / 3);
 	DebugMessageNewLine();
 }
