@@ -2120,6 +2120,9 @@ const int32_t& PmxFile::GetDisplayFrameCount() const
 	return mDisplayFrameCount;
 }
 
+PmxFile::DisplayFrame::FrameElement::FrameElement() {}
+PmxFile::DisplayFrame::FrameElement::~FrameElement() {}
+
 const PmxFile::DisplayFrame::FrameElement& PmxFile::DisplayFrame::GetFrameElement(const int32_t i) const
 {
 	NO_REF(i);
@@ -2149,11 +2152,6 @@ void PmxFile::DisplayFrame::LoadFrameElement(void* _file, const size_t boneID_Si
 		}
 
 	}
-}
-
-PmxFile::DisplayFrame::~DisplayFrame()
-{
-	SafeDeleteArray(&frameElement);
 }
 
 void PmxFile::DisplayFrame::DebugOut() const
@@ -2193,6 +2191,12 @@ void PmxFile::DisplayFrame::DebugOut() const
 		}
 	}
 #endif // _DEBUG
+}
+
+PmxFile::DisplayFrame::DisplayFrame() {}
+PmxFile::DisplayFrame::~DisplayFrame()
+{
+	SafeDeleteArray(&frameElement);
 }
 
 const PmxFile::DisplayFrame& PmxFile::GetDisplayFrame(const int32_t i) const

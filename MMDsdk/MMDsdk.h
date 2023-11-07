@@ -1057,6 +1057,11 @@ namespace MMDsdk
 					FET_NONE
 				} elementType = FET_NONE;
 				int32_t objectID = -1;
+
+				FrameElement(); ~FrameElement();
+			private:
+				FrameElement(FrameElement&);
+				const FrameElement& operator=(const FrameElement&) const;
 			};
 		private:
 			FrameElement* frameElement = nullptr;
@@ -1064,12 +1069,13 @@ namespace MMDsdk
 
 			const FrameElement& GetFrameElement(const int32_t i) const;
 
-
 			// ライブラリが使用する関数
 			void LoadFrameElement(void* _file, const size_t boneID_Size, const size_t morphID_Size);
-			~DisplayFrame();
-
 			void DebugOut() const;
+			DisplayFrame(); ~DisplayFrame();
+		private:
+			DisplayFrame(const DisplayFrame&);
+			const DisplayFrame& operator=(const DisplayFrame&) const;
 		};
 		const DisplayFrame& GetDisplayFrame(const int32_t i) const;
 		const int32_t GetLastDisplayFrameID() const;
