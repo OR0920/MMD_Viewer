@@ -48,8 +48,8 @@ int main()
 	{
 		//MMDsdk::TextBufferFixed<20> a;
 		{
-			MMDsdk::PmdFile kaban(testModelFilePath[10]);
-			auto a = kaban.GetHeader().modelInfoJP.modelName;
+			MMDsdk::PmdFile model(testModelFilePath[0]);
+			auto& a = model.GetIKData(0);
 		}
 	}
 

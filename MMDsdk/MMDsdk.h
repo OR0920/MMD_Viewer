@@ -63,6 +63,7 @@ namespace MMDsdk
 	class TextBufferFixed
 	{
 	public:
+		
 		const int GetLength() const
 		{
 			return mLength;
@@ -127,6 +128,11 @@ namespace MMDsdk
 
 			// ライブラリが使用する関数
 			void DebugOut() const;
+			Header(); ~Header();
+		private:
+			// コピー禁止
+			Header(const Header&);
+			const Header& operator=(const Header&) const;
 		};
 		const Header& GetHeader() const;
 		void DebugOutHeader() const;
@@ -159,6 +165,10 @@ namespace MMDsdk
 			// ライブラリが使用する関数
 			void LoadBoneID(void* _file);
 			void DebugOut() const;
+			Vertex(); ~Vertex();
+		private:
+			Vertex(const Vertex&);
+			const Vertex& operator=(const Vertex&) const;
 		};
 		const Vertex& GetVertex(const uint32_t i) const;
 		const uint32_t GetLastVertexID() const;
@@ -200,6 +210,10 @@ namespace MMDsdk
 
 			// ライブラリが使用する関数
 			void DebugOut() const;
+			Material(); ~Material();
+		private:
+			Material(const Material&);
+			const Material& operator=(const Material&) const;
 		};
 		const Material& GetMaterial(const uint32_t i) const;
 		const uint32_t GetLastMaterialID() const;
@@ -241,6 +255,10 @@ namespace MMDsdk
 
 			// ライブラリが使用する関数
 			void DebugOut() const;
+			Bone(); ~Bone();
+		private:
+			Bone(Bone&);
+			const Bone& operator=(const Bone&) const;
 		};
 		const Bone& GetBone(const uint16_t i) const;
 		const uint32_t GetLastBoneID() const;
@@ -249,7 +267,7 @@ namespace MMDsdk
 
 		//ikデータ
 		const uint16_t& GetIKCount() const;
-		struct IKData
+		struct IK_Data
 		{
 			uint16_t ikBoneIndex = 0;
 			uint16_t ikTargetBoneIndex = 0;
@@ -268,14 +286,16 @@ namespace MMDsdk
 
 			// ライブラリが使用する関数
 
-			// 可変長配列のロード用関数、デストラクタ
+			// 可変長配列のロード用関数、コンストラクタ　デストラクタ
 			// ユーザー側から呼び出すことはない
 			void LoadIkChildBoneID(void* _file);
-			~IKData();
-
 			void DebugOut() const;
+			IK_Data(); ~IK_Data();
+		private:
+			IK_Data(const IK_Data&);
+			const IK_Data& operator=(const IK_Data&) const;
 		};
-		const IKData& GetIKData(const uint16_t i) const;
+		const IK_Data& GetIKData(const uint16_t i) const;
 		const uint16_t GetLastIKDataID() const;
 		void DebugOutIKData(const uint16_t i) const;
 		void DebugOutAllIK() const;
@@ -306,18 +326,33 @@ namespace MMDsdk
 			{
 				uint32_t baseIndex = 0;
 				float3 offsPosition = {};
+
+				MorphOffsData(); ~MorphOffsData();
+			private:
+				MorphOffsData(MorphOffsData&);
+				const MorphOffsData& operator=(const MorphOffsData&) const;
 			};
 			struct MorphBaseData
 			{
 				uint32_t index = 0;
 				float3 positon = {};
+
+				MorphBaseData(); ~MorphBaseData();
+			private:
+				MorphBaseData(MorphBaseData&);
+				const MorphBaseData& operator=(const MorphBaseData&) const;
 			};
 		private:
 			//可変長配列　:　要素数　vertexCount
 			union MorphData
 			{
-				MorphBaseData base;
+				MorphBaseData base = {};
 				MorphOffsData offs;
+
+				MorphData(); ~MorphData();
+			private:
+				MorphData(MorphData&);
+				const MorphData& operator=(const MorphData&) const;
 			} *morphData = nullptr;
 
 		public:
@@ -332,11 +367,13 @@ namespace MMDsdk
 			// ライブラリが使用する関数
 			// 可変長配列のロード用関数
 			void LoadSkinVertex(void* _file);
-			~Morph();
-
 
 			// デバッグ出力　内部に長めの可変長配列を持つため、表示するかを選ぶ
 			void DebugOut(bool isOutVertexData = false) const;
+			Morph(); ~Morph();
+		private:
+			Morph(Morph&);
+			const Morph& operator=(const Morph&) const;
 		};
 		//i = 0はbase
 		const Morph& GetMorph(const uint16_t i) const;
@@ -498,7 +535,7 @@ namespace MMDsdk
 		Bone* mBone;
 
 		uint16_t mIKCount;
-		IKData* mIK;
+		IK_Data* mIK;
 
 		uint16_t mMorphCount;
 		Morph* mMorph;

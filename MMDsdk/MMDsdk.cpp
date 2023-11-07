@@ -84,7 +84,7 @@ const char& TextBufferVariable::GetFirstChar() const
 
 PmdFile::PmdFile(const char* filepath)
 	:
-	mHeader({}),
+	mHeader(),
 	mVertexCount(0),
 	mVertex(nullptr),
 	mIndexCount(0),
@@ -211,7 +211,7 @@ PmdFile::PmdFile(const char* filepath)
 
 	//IKデータ読み込み
 	file.Read(mIKCount);
-	mIK = new IKData[mIKCount]{};
+	mIK = new IK_Data[mIKCount];
 	for (uint32_t i = 0; i < mIKCount; ++i)
 	{
 		auto& ik = mIK[i];
@@ -414,6 +414,9 @@ void PmdFile::Header::DebugOut() const
 #endif // _DEBUG
 }
 
+PmdFile::Header::Header() {}
+PmdFile::Header::~Header() {}
+
 const PmdFile::Header& PmdFile::GetHeader() const
 {
 	return mHeader;
@@ -453,6 +456,9 @@ void PmdFile::Vertex::DebugOut() const
 	DebugOutParamI(edgeFlag);
 	DebugMessageNewLine();
 }
+
+PmdFile::Vertex::Vertex() {}
+PmdFile::Vertex::~Vertex() {}
 
 const PmdFile::Vertex& PmdFile::GetVertex(const uint32_t i) const
 {
@@ -534,6 +540,9 @@ void PmdFile::Material::DebugOut() const
 	DebugMessageNewLine();
 }
 
+PmdFile::Material::Material() {}
+PmdFile::Material::~Material() {}
+
 const PmdFile::Material& PmdFile::GetMaterial(const uint32_t i) const
 {
 	NO_DATA(mMaterial, mMaterialCount);
@@ -579,6 +588,9 @@ void PmdFile::Bone::DebugOut() const
 	DebugMessageNewLine();
 }
 
+PmdFile::Bone::Bone() {}
+PmdFile::Bone::~Bone() {}
+
 const PmdFile::Bone& PmdFile::GetBone(const uint16_t i) const
 {
 	NO_DATA(mBone, mBoneCount);
@@ -612,28 +624,23 @@ const uint16_t& PmdFile::GetIKCount() const
 	return mIKCount;
 }
 
-const uint16_t& PmdFile::IKData::GetIkChildBoneID(const int i) const
+const uint16_t& PmdFile::IK_Data::GetIkChildBoneID(const int i) const
 {
 	NO_DATA(ikChildBoneIndexArray, ikChainCount);
 	IS_OUT_OF_RANGE(ikChildBoneIndexArray, i, ikChainCount);
 	return ikChildBoneIndexArray[i];
 }
 
-void PmdFile::IKData::LoadIkChildBoneID(void* _file)
+void PmdFile::IK_Data::LoadIkChildBoneID(void* _file)
 {
 	// 汎用ポインタをキャスト
 	auto& file = GetFile(_file);
 	// 配列データ読み込み
-	ikChildBoneIndexArray = new uint16_t[ikChainCount]{};
+	ikChildBoneIndexArray = new uint16_t[ikChainCount];
 	file.ReadArray(ikChildBoneIndexArray, ikChainCount);
 }
 
-PmdFile::IKData::~IKData()
-{
-	SafeDeleteArray(&ikChildBoneIndexArray);
-}
-
-void PmdFile::IKData::DebugOut() const
+void PmdFile::IK_Data::DebugOut() const
 {
 	DebugOutParamI(ikBoneIndex);
 	DebugOutParamI(ikTargetBoneIndex);
@@ -647,7 +654,13 @@ void PmdFile::IKData::DebugOut() const
 	DebugMessageNewLine();
 }
 
-const PmdFile::IKData& PmdFile::GetIKData(const uint16_t i) const
+PmdFile::IK_Data::IK_Data() {}
+PmdFile::IK_Data::~IK_Data()
+{
+	SafeDeleteArray(&ikChildBoneIndexArray);
+}
+
+const PmdFile::IK_Data& PmdFile::GetIKData(const uint16_t i) const
 {
 	NO_DATA(mIK, mIKCount);
 	IS_OUT_OF_RANGE(mIK, i, mIKCount);
@@ -685,6 +698,14 @@ const uint16_t PmdFile::GetMorphCountNotIncludeBase() const
 	return mMorphCount - 1;
 }
 
+PmdFile::Morph::MorphOffsData::MorphOffsData() {}
+PmdFile::Morph::MorphOffsData::~MorphOffsData() {}
+PmdFile::Morph::MorphBaseData::MorphBaseData() {}
+PmdFile::Morph::MorphBaseData::~MorphBaseData() {}
+
+PmdFile::Morph::MorphData::MorphData() {}
+PmdFile::Morph::MorphData::~MorphData() {}
+
 const PmdFile::Morph::MorphBaseData& PmdFile::Morph::GetMorphBaseData(const int i) const
 {
 	NO_DATA(morphData, offsCount);
@@ -705,11 +726,6 @@ void PmdFile::Morph::LoadSkinVertex(void* _file)
 	auto& file = GetFile(_file);
 	morphData = new MorphData[offsCount]{};
 	file.ReadArray(morphData, offsCount);
-}
-
-PmdFile::Morph::~Morph()
-{
-	SafeDeleteArray(&morphData);
 }
 
 void PmdFile::Morph::DebugOut(bool isOutVertexData) const
@@ -742,6 +758,11 @@ void PmdFile::Morph::DebugOut(bool isOutVertexData) const
 #endif // _DEBUG
 }
 
+PmdFile::Morph::Morph() {}
+PmdFile::Morph::~Morph()
+{
+	SafeDeleteArray(&morphData);
+}
 
 const PmdFile::Morph& PmdFile::GetMorph(const uint16_t i) const
 {

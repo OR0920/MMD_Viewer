@@ -23,3 +23,66 @@ vmdの読み込み
 レンダリングエンジンの設計、作成
 
 モデルビューワの開発
+
+<コーディング規約>
+
+基本
+	キャメル方式を採用する
+		単語の区切りで大文字にする。
+		略称などで大文字が連続する場合
+		_で区切る
+
+		exsampleVariableName;
+		ExsampleFunctionName();
+		exsampleID_Name;
+
+	列挙子
+		enum EnumTypeName : 型を明示
+		{
+			EXSAMPLE_ENUM_NAME_1 = 値を明示,
+			EXSAMPLE_ENUM_NAME_2 = 値を明示,
+			EXSAMPLE_ENUM_NAME_NONE 初期化用の値。最後尾に固定
+		};
+		EnumTypeName enumExsample = EXSAMPLE_ENUM_NAME_NONE;
+
+クラス・構造体の宣言
+	クラス、構造体は基本文法は同じだが、役割が異なるため、次のように区別を行う
+	構造体	:データを公開する際に使用する
+	クラス	:データを隠ぺいする際に使用する
+
+	struct ExStructName
+	{ 
+
+		exData = 0; データメンバを先頭に宣言する 初期化は宣言部で明記する
+
+	private:	配列は隔離する
+		T exArray[];
+		T* exV_Array;
+	public:
+		読み込み用の構造体の場合、ハードディスク上のレイアウトを厳守する
+
+
+		void ExMethod();	メソッドはデータの後に宣言する。
+							データを公開することが目的のため、最小限にとどめる
+
+		ExStructName(); ~ExStructName(); コンストラクタ・デストラクタを末尾に宣言する
+	private:
+		内部でnewを行う場合、コピーを禁止する
+		ExStructName(ExStructName&);
+		const ExStructName& operator=(ExStructName&) const;
+	}
+
+	class ExClassName
+	{
+	public:
+		ExClassName(); ~ExClassName();		コンストラクタ、デストラクタを先頭に宣言　
+											初期化はコンストラクタの実装部に記述する
+
+		void ExsampleMethod() const; インターフェイスを宣言する
+
+		データは基本的に公開しない　公開する場合は原則、構造体を使用する
+	private:
+		内部でnewを行う場合、コピーを禁止する
+		ExClassName(const ExClassName&);
+		const ExClassName& opeartor=(const ExClassName&) const;
+	};	
