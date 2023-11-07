@@ -48,6 +48,10 @@ namespace MMDsdk
 		// (&instance.GetFirstChar())[instance.GetLength()] <- –œŽ€
 		const char& GetFirstChar() const;
 	private:
+		// “à•”‚Ånew‚ðs‚¤‚½‚ßŠu—£
+		TextBufferVariable(const TextBufferVariable&);
+		const TextBufferVariable& operator=(const TextBufferVariable&) const;
+
 		int mLength;
 		char* mStr;
 	};

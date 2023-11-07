@@ -1123,7 +1123,7 @@ void LoadID_AsInt32(FileReadBin& file, int32_t& buf, const size_t idByteSize)
 
 PmxFile::PmxFile(const char* filepath)
 	:
-	mHeader({}),
+	mHeader(),
 	mVertexCount(0),
 	mVertex(nullptr),
 	mIndexCount(0),

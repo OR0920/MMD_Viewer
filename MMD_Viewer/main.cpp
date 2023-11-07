@@ -45,7 +45,14 @@ int main()
 		LoadAndCout(testModelFilePath[i]);
 	}
 
-	MMDsdk::PmxFile kaban(testModelFilePath[10]);
+	{
+		//MMDsdk::TextBufferFixed<20> a;
+		{
+			MMDsdk::PmdFile kaban(testModelFilePath[10]);
+			auto a = kaban.GetHeader().modelInfoJP.modelName;
+		}
+	}
+
 	//kaban.DebugOutAllDisplayFrame();
 
 	//DebugOutParam(kaban.GetMaterialCount());
