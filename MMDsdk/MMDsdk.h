@@ -63,6 +63,7 @@ namespace MMDsdk
 	class TextBufferFixed
 	{
 	public:
+		TextBufferFixed() {} ~TextBufferFixed() {}
 
 		const int GetLength() const
 		{
@@ -80,6 +81,9 @@ namespace MMDsdk
 			return mStr[0];
 		}
 	private:
+		TextBufferFixed(TextBufferFixed&);
+		const TextBufferFixed& operator=(const TextBufferFixed&) const;
+
 		const int mLength = size;
 		char mStr[size]{ '\0' };
 	};
@@ -1104,6 +1108,7 @@ namespace MMDsdk
 	private:
 		// デフォルト、コピー禁止
 		PmxFile(); PmxFile(const PmxFile& copy);
+		const PmxFile& operator=(const PmxFile&) const;
 
 		Header mHeader;
 
