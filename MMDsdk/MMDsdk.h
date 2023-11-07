@@ -119,6 +119,12 @@ namespace MMDsdk
 			{
 				TextBufferFixed<20> modelName = {};
 				TextBufferFixed<256> comment = {};
+
+				ModelInfo(); ~ModelInfo();
+			private:
+				ModelInfo(ModelInfo&);
+				const ModelInfo& operator=(ModelInfo&) const;
+
 			} modelInfoJP = {};
 
 			// 拡張機能(1)　英語対応状況　英語モデル名
@@ -606,10 +612,19 @@ namespace MMDsdk
 			{
 				TextBufferVariable modelName = {};
 				TextBufferVariable comment = {};
+
+				ModelInfo(); ~ModelInfo();
+			private:
+				ModelInfo(ModelInfo&);
+				const ModelInfo& operator=(const ModelInfo&) const;
 			} modelInfoJp = {};
 			ModelInfo modelInfoEng = {};
-
+			
 			void DebugOut() const;
+			Header(); ~Header();
+		private:
+			Header(Header&);
+			const Header& operator=(const Header&) const;
 		};
 		const Header& GetHeader() const;
 

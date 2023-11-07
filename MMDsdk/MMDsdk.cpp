@@ -392,6 +392,9 @@ PmdFile::~PmdFile()
 	SafeDeleteArray(&mVertex);
 }
 
+PmdFile::Header::ModelInfo::ModelInfo() {}
+PmdFile::Header::ModelInfo::~ModelInfo() {}
+
 // コンソール出力関数、内部にif, forなどが入る場合は、デバッグ時のみ実装
 void PmdFile::Header::DebugOut() const
 {
@@ -1429,6 +1432,9 @@ PmxFile::~PmxFile()
 	SafeDeleteArray(&mVertex);
 }
 
+PmxFile::Header::ModelInfo::ModelInfo() {}
+PmxFile::Header::ModelInfo::~ModelInfo() {}
+
 void PmxFile::Header::DebugOut() const
 {
 	DebugMessage("PMXFile /////////////////////////////////////////");
@@ -1457,6 +1463,8 @@ void PmxFile::Header::DebugOut() const
 	DebugMessageNewLine();
 }
 
+PmxFile::Header::Header() {}
+PmxFile::Header::~Header() {}
 
 const PmxFile::Header& PmxFile::GetHeader() const
 {
