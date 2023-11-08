@@ -2357,6 +2357,40 @@ const int32_t& PmxFile::GetJointCount() const
 	return mJointCount;
 }
 
+void PmxFile::Joint::DebugOut() const
+{
+	DebugOutString(GetText(name));
+	DebugOutString(GetText(nameEng));
+
+	switch (type)
+	{
+	case MMDsdk::PmxFile::Joint::JT_SPRING_6_DOF:
+		DebugMessage("type = JointType::JT_SPRING_6_DOF");
+		break;
+	case MMDsdk::PmxFile::Joint::JT_NONE:
+		break;
+	default:
+		break;
+	}
+
+	DebugOutParamI(rigitbodyIndexA);
+	DebugOutParamI(rigitbodyIndexB);
+
+	DebugOutFloat3(position);
+	DebugOutFloat3(rotation);
+
+	DebugOutFloat3(posLowerLimit);
+	DebugOutFloat3(posUpperLimit);
+
+	DebugOutFloat3(RadianToDegreeFloat3(rotLowerLimit));
+	DebugOutFloat3(RadianToDegreeFloat3(rotUpperLimit));
+
+	DebugOutFloat3(springPos);
+	DebugOutFloat3(springRot);
+
+	DebugMessageNewLine();
+}
+
 PmxFile::Joint::Joint() {};
 PmxFile::Joint::~Joint() {};
 
@@ -2371,6 +2405,43 @@ const PmxFile::Joint& PmxFile::GetJoint(const int32_t i) const
 const int32_t PmxFile::GetLastJointID() const
 {
 	return mJointCount - 1;
+}
+
+
+void PmxFile::DebugOutJoint(const int32_t i) const
+{
+	DebugMessage("Joint [" << i << "]");
+	GetJoint(i).DebugOut();
+}
+
+void PmxFile::DebugOutAllJoint() const
+{
+#ifdef _DEBUG
+	for (int32_t i = 0; i < mJointCount; ++i)
+	{
+		DebugOutJoint(i);
+	}
+#endif // _DEBUG
+}
+
+
+void PmxFile::DebugOutAllData() const
+{
+	GetHeader().DebugOut();
+	DebugOutParamI(mVertexCount);
+	DebugOutAllVertex();
+	DebugOutParamI(mIndexCount);
+	DebugOutAllIndexData();
+	DebugOutParamI(mMaterialCount);
+	DebugOutAllMaterial();
+	DebugOutParamI(mBoneCount);
+	DebugOutAllBone();
+	DebugOutParamI(mMorphCount);
+	DebugOutAllMorph(true);
+	DebugOutParamI(mRigitbodyCount);
+	DebugOutAllRigitbody();
+	DebugOutParamI(mJointCount);
+	DebugOutAllJoint();
 }
 
 //last

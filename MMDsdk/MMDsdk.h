@@ -1159,6 +1159,7 @@ namespace MMDsdk
 			float3 springPos = { 3.f };
 			float3 springRot = { 3.f };
 
+			void DebugOut() const;
 			Joint(); ~Joint();
 		private:
 			Joint(const Joint&);
@@ -1166,6 +1167,10 @@ namespace MMDsdk
 		};
 		const Joint& GetJoint(const int32_t i) const;
 		const int32_t GetLastJointID() const;
+		void DebugOutJoint(const int32_t i) const;
+		void DebugOutAllJoint() const;
+
+		void DebugOutAllData() const;
 
 		//last
 

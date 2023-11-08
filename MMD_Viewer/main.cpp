@@ -20,11 +20,11 @@ const char* testModelFilePath[] =
 	//"Test/Model/PMD/鏡音レン.pmd",
 	//"Test/Model/PMD/弱音ハク.pmd",
 	//"Test/Model/PMD/巡音ルカ.pmd",
-	//"Test / Model / PMD / 初音ミクVer2.pmd",
+	"Test/Model/PMD/初音ミクVer2.pmd",
 	"Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx",
 	"Test/Model/PMX/ハシビロコウ/ハシビロコウ.pmx",
 	"Test/Model/PMX/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx",
-	//"Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/1話ゲートのみ.pmx"
+	"Test/Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/1話ゲートのみ.pmx"
 };
 
 const auto kabanPath = "Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
@@ -32,48 +32,47 @@ const auto mikuPath = "Test/Model/PMD/初音ミクVer2.pmd";
 void LoadAndCout(const char* filepath)
 {
 	MMDsdk::PmxFile model(filepath);
-	model.GetHeader().DebugOut();
+	
+	//int slashCount = 0;
+	//for (int i = 0; filepath[i] != '\0'; ++i)
+	//{
+	//	if (filepath[i] == '/') ++slashCount;
+	//}
 
-	int slashCount = 0;
-	for (int i = 0; filepath[i] != '\0'; ++i)
-	{
-		if (filepath[i] == '/') ++slashCount;
-	}
+	//int dirPathSize = 0;
+	//for (dirPathSize = 0; filepath[dirPathSize] != '\0'; ++dirPathSize)
+	//{
+	//	if (slashCount == 0)
+	//	{
+	//		break;
+	//	}
+	//	if (filepath[dirPathSize] == '/')
+	//	{
+	//		--slashCount;			
+	//	}
+	//}
 
-	int dirPathSize = 0;
-	for (dirPathSize = 0; filepath[dirPathSize] != '\0'; ++dirPathSize)
-	{
-		if (slashCount == 0)
-		{
-			break;
-		}
-		if (filepath[dirPathSize] == '/')
-		{
-			--slashCount;			
-		}
-	}
+	//for (int j = 0; j < model.GetTextureCount(); ++j)
+	//{
+	//	auto& textureFileName = model.GetTexturePath(j);
+	//	auto texPathLength = (dirPathSize + textureFileName.GetLength());
+	//	char* texPath = new char[texPathLength] {'\0'};
 
-	for (int j = 0; j < model.GetTextureCount(); ++j)
-	{
-		auto& textureFileName = model.GetTexturePath(j);
-		auto texPathLength = (dirPathSize + textureFileName.GetLength());
-		char* texPath = new char[texPathLength] {'\0'};
+	//	for (int i = 0; i < dirPathSize; ++i)
+	//	{
+	//		texPath[i] = filepath[i];
+	//	}
+	//	for (int i = 0; i < textureFileName.GetLength(); ++i)
+	//	{
+	//		texPath[i + dirPathSize] = (GetText(textureFileName))[i];
+	//	}
 
-		for (int i = 0; i < dirPathSize; ++i)
-		{
-			texPath[i] = filepath[i];
-		}
-		for (int i = 0; i < textureFileName.GetLength(); ++i)
-		{
-			texPath[i + dirPathSize] = (GetText(textureFileName))[i];
-		}
+	//	DebugMessage(texPath);
 
-		DebugMessage(texPath);
+	//	FileReadBin texture(texPath);
 
-		FileReadBin texture(texPath);
-
-		SafeDeleteArray(&texPath);
-	}
+	//	SafeDeleteArray(&texPath);
+	//}
 	
 
 }
@@ -87,18 +86,19 @@ int main()
 	auto filepathCount = sizeof(testModelFilePath) / sizeof(testModelFilePath[0]);
 	for (int i = 0; i < filepathCount; ++i)
 	{
-		//LoadAndCout(testModelFilePath[i]);
+		LoadAndCout(testModelFilePath[i]);
 	}
 
-	MMDsdk::PmxFile kaban(kabanPath);
-	
-	kaban.DebugOutRigitbody(18);
-	kaban.DebugOutBone(kaban.GetRigitbody(18).relationshipBoneID);
-	MMDsdk::PmdFile miku(mikuPath);
-	miku.DebugOutRigitbody(0);
-	miku.DebugOutBone(miku.GetRigitbody(0).relationshipBoneID);
-	miku.DebugOutRigitbody(miku.GetLastRigitbodyID());
-	miku.DebugOutBone(miku.GetRigitbody(miku.GetLastRigitbodyID()).relationshipBoneID);
+	MMDsdk::PmxFile stage(testModelFilePath[filepathCount - 1]);
+	stage.DebugOutAllData();
+
+	//MMDsdk::PmxFile kaban(kabanPath);
+	//
+	//kaban.DebugOutAllJoint();
+
+	//MMDsdk::PmdFile miku(mikuPath);
+
+	//miku.DebugOutAllData();
 
 	//kaban.DebugOutAllDisplayFrame();
 
