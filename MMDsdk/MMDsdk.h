@@ -1107,6 +1107,8 @@ namespace MMDsdk
 			PmdFile::Rigitbody::RigitBodyShapeType shapeType 
 				= PmdFile::Rigitbody::RigitBodyShapeType::RST_NONE;
 
+
+
 			Rigitbody(); ~Rigitbody();
 		private:
 			Rigitbody(const Rigitbody&);

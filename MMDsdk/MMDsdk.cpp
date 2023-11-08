@@ -1441,7 +1441,7 @@ PmxFile::PmxFile(const char* filepath)
 		LoadID_AsInt32(file, r.relationshipBoneID, mHeader.boneID_Size);
 		file.Read(r.group);
 		file.Read(r.groupTarget);
-		
+		file.Read(r.shapeType);
 	}
 
 	DebugMessageNewLine();
