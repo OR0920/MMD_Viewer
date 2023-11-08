@@ -1469,6 +1469,7 @@ PmxFile::PmxFile(const char* filepath)
 		LoadID_AsInt32(file, j.rigitbodyIndexB, mHeader.rigitbodyID_Size);
 		file.Read(j.position);
 		file.Read(j.rotation);
+		file.Read(j.posLowerLimit);
 	}
 
 	DebugMessageNewLine();
