@@ -1473,6 +1473,8 @@ PmxFile::PmxFile(const char* filepath)
 		file.Read(j.posUpperLimit);
 		file.Read(j.rotLowerLimit);
 		file.Read(j.rotUpperLimit);
+		file.Read(j.springPos);
+		file.Read(j.springRot);
 	}
 
 	DebugMessageNewLine();

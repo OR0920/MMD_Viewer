@@ -1156,6 +1156,8 @@ namespace MMDsdk
 			float3 posUpperLimit = {};
 			float3 rotLowerLimit = {};
 			float3 rotUpperLimit = {};
+			float3 springPos = { 3.f };
+			float3 springRot = { 3.f };
 
 			Joint(); ~Joint();
 		private:
