@@ -1080,7 +1080,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(j0.nameEng.GetLength() == 0);
 				Assert::IsTrue(j0.type == PmxFile::Joint::JointType::JT_SPRING_6_DOF);
 				Assert::IsTrue(j0.rigitbodyIndexA == 0);
-
+				Assert::IsTrue(j0.rigitbodyIndexB == 1);
 			}
 			//last
 		}

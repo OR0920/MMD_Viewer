@@ -1148,6 +1148,7 @@ namespace MMDsdk
 			} type = JT_NONE;
 
 			int32_t rigitbodyIndexA = 99;
+			int32_t rigitbodyIndexB = 0;
 
 			Joint(); ~Joint();
 		private:
