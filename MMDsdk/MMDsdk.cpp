@@ -1470,6 +1470,9 @@ PmxFile::PmxFile(const char* filepath)
 		file.Read(j.position);
 		file.Read(j.rotation);
 		file.Read(j.posLowerLimit);
+		file.Read(j.posUpperLimit);
+		file.Read(j.rotLowerLimit);
+		file.Read(j.rotUpperLimit);
 	}
 
 	DebugMessageNewLine();

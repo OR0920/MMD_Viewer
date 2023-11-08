@@ -1152,7 +1152,10 @@ namespace MMDsdk
 
 			float3 position = {};
 			float3 rotation = {};
-			float3 posLowerLimit = { 5.f };
+			float3 posLowerLimit = {};
+			float3 posUpperLimit = {};
+			float3 rotLowerLimit = {};
+			float3 rotUpperLimit = {};
 
 			Joint(); ~Joint();
 		private:
