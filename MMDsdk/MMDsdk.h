@@ -1110,6 +1110,7 @@ namespace MMDsdk
 			float shapeW = 0.f;
 			float shapeH = 0.f;
 			float shapeD = 0.f;
+			// pmdと異なり、pmxエディタ上の値と同じ値が格納されている
 			float3 position = {};
 			float3 rotation = { 4.f };
 			float weight = 0.f;
@@ -1121,12 +1122,16 @@ namespace MMDsdk
 			PmdFile::Rigitbody::RigitBodyType type
 				= PmdFile::Rigitbody::RigitBodyType::RT_NONE;
 
+			void DebugOut() const;
 			Rigitbody(); ~Rigitbody();
 		private:
 			Rigitbody(const Rigitbody&);
 			const Rigitbody& operator=(const Rigitbody&) const;
 		};
 		const Rigitbody& GetRigitbody(const int32_t i) const;
+		const int32_t GetLastRigitbodyID() const;
+		void DebugOutRigitbody(const int32_t) const;
+		void DebugOutAllRigitbody() const;
 
 		//last
 

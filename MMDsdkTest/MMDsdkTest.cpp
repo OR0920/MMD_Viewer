@@ -983,10 +983,9 @@ namespace MMDsdkTest
 				Assert::IsTrue(r0.groupTarget == 0b1111'1111'1111'1111);
 				Assert::IsTrue(r0.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_SPHERE);
 				Assert::IsTrue(FloatEqual(r0.shapeW, 1.f));
-				auto& relBone0 = pmx.GetBone(r0.relationshipBoneID);
-				Assert::IsTrue(FloatEqual(r0.position.x + relBone0.positionOffs.x, 0.f));
-				Assert::IsTrue(FloatEqual(r0.position.y + relBone0.positionOffs.y, 15.62877f));
-				Assert::IsTrue(FloatEqual(r0.position.z + relBone0.positionOffs.z, -0.3113128f));
+				Assert::IsTrue(FloatEqual(r0.position.x, 0.f));
+				Assert::IsTrue(FloatEqual(r0.position.y, 15.62877f));
+				Assert::IsTrue(FloatEqual(r0.position.z, -0.3113128f));
 				Assert::IsTrue(FloatEqual(RadianToDegree(r0.rotation.x), 0.00f));
 				Assert::IsTrue(FloatEqual(RadianToDegree(r0.rotation.y), 0.00f));
 				Assert::IsTrue(FloatEqual(RadianToDegree(r0.rotation.z), 0.00f));
@@ -1000,10 +999,77 @@ namespace MMDsdkTest
 			{
 				// 回転が0でない剛体
 				//auto& r1 = pmx.GetRigitbody(1);
+				auto& r1 = pmx.GetRigitbody(1);
+
+				Assert::IsTrue(strCmpFortest(GetText(r1.name), "前髪", r1.name.GetLength()));
+				Assert::IsTrue(r1.nameEng.GetLength() == 0);
+				Assert::IsTrue(r1.relationshipBoneID == 94);
+				Assert::IsTrue(r1.group == 4);
+				Assert::IsTrue(r1.groupTarget == 0b1111'1111'1110'1111);
+				Assert::IsTrue(r1.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_CAPSULE);
+				Assert::IsTrue(FloatEqual(r1.shapeW, 0.199335f));
+				Assert::IsTrue(FloatEqual(r1.shapeH, 0.6f));
+				Assert::IsTrue(FloatEqual(r1.position.x , 0.224f));
+				Assert::IsTrue(FloatEqual(r1.position.y , 15.70385f));
+				Assert::IsTrue(FloatEqual(r1.position.z , -1.912162f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r1.rotation.x), 0.7588f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r1.rotation.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r1.rotation.z), 0.00f));
+				Assert::IsTrue(FloatEqual(r1.weight, 1.f));
+				Assert::IsTrue(FloatEqual(r1.positionDim, 0.95f));
+				Assert::IsTrue(FloatEqual(r1.rotationDim, 0.99f));
+				Assert::IsTrue(FloatEqual(r1.recoil, 0.f));
+				Assert::IsTrue(FloatEqual(r1.friction, 0.5f));
+				Assert::IsTrue(r1.type == PmdFile::Rigitbody::RigitBodyType::RT_RIGITBODY);
 			}
 			{
 				// 関連ボーンがオフセット位置を持つ場合
 				// auto& r18 = pmx.GetRigitbody(18);
+				auto& r18 = pmx.GetRigitbody(18);
+
+				Assert::IsTrue(strCmpFortest(GetText(r18.name), "帽子", r18.name.GetLength()));
+				Assert::IsTrue(r18.nameEng.GetLength() == 0);
+				Assert::IsTrue(r18.relationshipBoneID == 7);
+				Assert::IsTrue(r18.group == 1);
+				Assert::IsTrue(r18.groupTarget == 0b1111'1111'1111'1101);
+				Assert::IsTrue(r18.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_SPHERE);
+				Assert::IsTrue(FloatEqual(r18.shapeW, 1.f));
+				Assert::IsTrue(FloatEqual(r18.position.x, 0.32f));
+				Assert::IsTrue(FloatEqual(r18.position.y, 16.40877f));
+				Assert::IsTrue(FloatEqual(r18.position.z, -0.05131277f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r18.rotation.x), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r18.rotation.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r18.rotation.z), 0.00f));
+				Assert::IsTrue(FloatEqual(r18.weight, 1.f));
+				Assert::IsTrue(FloatEqual(r18.positionDim, 0.5f));
+				Assert::IsTrue(FloatEqual(r18.rotationDim, 0.5f));
+				Assert::IsTrue(FloatEqual(r18.recoil, 0.f));
+				Assert::IsTrue(FloatEqual(r18.friction, 0.5f));
+				Assert::IsTrue(r18.type == PmdFile::Rigitbody::RigitBodyType::RT_BONE_FOLLOW);
+			}
+			{
+				// 最後のデータ
+				auto& rL = pmx.GetRigitbody(pmx.GetLastRigitbodyID());
+
+				Assert::IsTrue(strCmpFortest(GetText(rL.name), "左羽元", rL.name.GetLength()));
+				Assert::IsTrue(rL.nameEng.GetLength() == 0);
+				Assert::IsTrue(rL.relationshipBoneID == 11);
+				Assert::IsTrue(rL.group == 4);
+				Assert::IsTrue(rL.groupTarget == 0b1111'1111'1100'1111);
+				Assert::IsTrue(rL.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_SPHERE);
+				Assert::IsTrue(FloatEqual(rL.shapeW, 0.2f));
+				Assert::IsTrue(FloatEqual(rL.position.x, 1.897798f));
+				Assert::IsTrue(FloatEqual(rL.position.y, 16.30588f));
+				Assert::IsTrue(FloatEqual(rL.position.z, -0.718574f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(rL.rotation.x), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(rL.rotation.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(rL.rotation.z), 0.00f));
+				Assert::IsTrue(FloatEqual(rL.weight, 1.f));
+				Assert::IsTrue(FloatEqual(rL.positionDim, 0.5f));
+				Assert::IsTrue(FloatEqual(rL.rotationDim, 0.5f));
+				Assert::IsTrue(FloatEqual(rL.recoil, 0.f));
+				Assert::IsTrue(FloatEqual(rL.friction, 0.5f));
+				Assert::IsTrue(rL.type == PmdFile::Rigitbody::RigitBodyType::RT_BONE_FOLLOW);
 			}
 
 			//last

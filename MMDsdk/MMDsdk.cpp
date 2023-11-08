@@ -1432,7 +1432,7 @@ PmxFile::PmxFile(const char* filepath)
 	// „‘Ì‚Ì“Ç‚İ‚İ
 	file.Read(mRigitbodyCount);
 	mRigitbody = new Rigitbody[mRigitbodyCount]{};
-	for (int i = 0; i < 1; ++i)
+	for (int i = 0; i < mRigitbodyCount; ++i)
 	{
 		auto& r = mRigitbody[i];
 
@@ -1841,6 +1841,7 @@ void PmxFile::Bone::DebugOut() const
 		DebugOutFloat3(ikl.lowerLimit);
 		DebugOutFloat3(ikl.upperLimit);
 	}
+	DebugMessageNewLine();
 #endif // _DEBUG
 }
 
@@ -2273,6 +2274,29 @@ const int32_t& PmxFile::GetRigitbodyCount() const
 	return mRigitbodyCount;
 }
 
+void PmxFile::Rigitbody::DebugOut() const
+{
+	DebugOutString(GetText(name));
+	DebugOutString(GetText(nameEng));
+	DebugOutParamI(relationshipBoneID);
+	DebugOutParamI(group);
+	DebugOutParamBin(groupTarget, 16);
+	DebugOutParamI(shapeType);
+	DebugOutParam(shapeW);
+	DebugOutParam(shapeH);
+	DebugOutParam(shapeD);
+	DebugOutFloat3(position);
+	DebugOutFloat3(RadianToDegreeFloat3(rotation));
+	DebugOutParam(weight);
+	DebugOutParam(positionDim);
+	DebugOutParam(rotationDim);
+	DebugOutParam(recoil);
+	DebugOutParam(friction);
+	DebugOutParamI(type);
+	DebugMessageNewLine();
+
+}
+
 PmxFile::Rigitbody::Rigitbody() {}
 PmxFile::Rigitbody::~Rigitbody() {}
 
@@ -2282,6 +2306,27 @@ const PmxFile::Rigitbody& PmxFile::GetRigitbody(const int32_t i) const
 	NO_DATA(mRigitbody, mRigitbodyCount);
 	IS_OUT_OF_RANGE(mRigitbody, i, mRigitbodyCount);
 	return mRigitbody[i];
+}
+
+const int32_t PmxFile::GetLastRigitbodyID() const
+{
+	return mRigitbodyCount - 1;
+}
+
+void PmxFile::DebugOutRigitbody(const int32_t i) const
+{
+	DebugMessage("Rigtbody [" << i << "]");
+	GetRigitbody(i).DebugOut();
+}
+
+void PmxFile::DebugOutAllRigitbody() const
+{
+#ifdef _DEBUG
+	for (uint32_t i = 0; i < mRigitbodyCount; ++i)
+	{
+		DebugOutRigitbody(i);
+	}
+#endif // _DEBUG
 }
 
 //last

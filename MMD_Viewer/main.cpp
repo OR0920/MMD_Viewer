@@ -20,14 +20,15 @@ const char* testModelFilePath[] =
 	//"Test/Model/PMD/鏡音レン.pmd",
 	//"Test/Model/PMD/弱音ハク.pmd",
 	//"Test/Model/PMD/巡音ルカ.pmd",
-	//"Test/Model/PMD/初音ミクVer2.pmd",
+	//"Test / Model / PMD / 初音ミクVer2.pmd",
 	"Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx",
 	"Test/Model/PMX/ハシビロコウ/ハシビロコウ.pmx",
 	"Test/Model/PMX/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx",
 	//"Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/1話ゲートのみ.pmx"
 };
 
-
+const auto kabanPath = "Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
+const auto mikuPath = "Test/Model/PMD/初音ミクVer2.pmd";
 void LoadAndCout(const char* filepath)
 {
 	MMDsdk::PmxFile model(filepath);
@@ -89,9 +90,15 @@ int main()
 		//LoadAndCout(testModelFilePath[i]);
 	}
 
-	MMDsdk::PmxFile a(testModelFilePath[0]);
-
+	MMDsdk::PmxFile kaban(kabanPath);
 	
+	kaban.DebugOutRigitbody(18);
+	kaban.DebugOutBone(kaban.GetRigitbody(18).relationshipBoneID);
+	MMDsdk::PmdFile miku(mikuPath);
+	miku.DebugOutRigitbody(0);
+	miku.DebugOutBone(miku.GetRigitbody(0).relationshipBoneID);
+	miku.DebugOutRigitbody(miku.GetLastRigitbodyID());
+	miku.DebugOutBone(miku.GetRigitbody(miku.GetLastRigitbodyID()).relationshipBoneID);
 
 	//kaban.DebugOutAllDisplayFrame();
 
