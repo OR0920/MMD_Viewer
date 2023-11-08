@@ -1112,6 +1112,7 @@ namespace MMDsdk
 			float shapeD = 0.f;
 			float3 position = {};
 			float3 rotation = { 4.f };
+			float weight = 3.f;
 
 			Rigitbody(); ~Rigitbody();
 		private:
