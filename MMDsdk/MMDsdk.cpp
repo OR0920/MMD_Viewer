@@ -1440,6 +1440,8 @@ PmxFile::PmxFile(const char* filepath)
 		r.nameEng.Load(&file, mHeader.encode);
 		LoadID_AsInt32(file, r.relationshipBoneID, mHeader.boneID_Size);
 		file.Read(r.group);
+		file.Read(r.groupTarget);
+		
 	}
 
 	DebugMessageNewLine();

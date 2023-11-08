@@ -1097,6 +1097,12 @@ namespace MMDsdk
 			TextBufferVariable nameEng = {};
 			int32_t relationshipBoneID = -1;
 			uint8_t group = 0;
+			// 衝突対象のオブジェクト
+			// エディタ上では「非衝突対象」を選択するチェックボックスが表示されている
+			// 16~5,4,3,2,1 の順に並んでおり、
+			// 例えばエディタ上で6番が非衝突としてチェックされている場合は
+			// 0x1111_1111_1101_1111 が格納される//
+			uint16_t groupTarget = 0;
 
 
 			Rigitbody(); ~Rigitbody();

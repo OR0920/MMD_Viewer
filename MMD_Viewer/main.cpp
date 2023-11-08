@@ -86,12 +86,12 @@ int main()
 	auto filepathCount = sizeof(testModelFilePath) / sizeof(testModelFilePath[0]);
 	for (int i = 0; i < filepathCount; ++i)
 	{
-		LoadAndCout(testModelFilePath[i]);
+		//LoadAndCout(testModelFilePath[i]);
 	}
 
-	MMDsdk::PmdFile a(testModelFilePath[0]);
+	MMDsdk::PmxFile a(testModelFilePath[0]);
 
-	auto& b = a;
+	
 
 	//kaban.DebugOutAllDisplayFrame();
 
