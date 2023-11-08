@@ -991,6 +991,11 @@ namespace MMDsdkTest
 				Assert::IsTrue(FloatEqual(RadianToDegree(r0.rotation.y), 0.00f));
 				Assert::IsTrue(FloatEqual(RadianToDegree(r0.rotation.z), 0.00f));
 				Assert::IsTrue(FloatEqual(r0.weight, 1.f));
+				Assert::IsTrue(FloatEqual(r0.positionDim, 0.5f));
+				Assert::IsTrue(FloatEqual(r0.rotationDim, 0.5f));
+				Assert::IsTrue(FloatEqual(r0.recoil, 0.f));
+				Assert::IsTrue(FloatEqual(r0.friction, 0.5f));
+
 
 			}
 			{

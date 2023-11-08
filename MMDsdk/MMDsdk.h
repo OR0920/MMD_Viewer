@@ -1113,6 +1113,10 @@ namespace MMDsdk
 			float3 position = {};
 			float3 rotation = { 4.f };
 			float weight = 0.f;
+			float positionDim = 0.f;
+			float rotationDim = 0.f;
+			float recoil = 0.f;
+			float friction = 0.f;
 
 			Rigitbody(); ~Rigitbody();
 		private:
