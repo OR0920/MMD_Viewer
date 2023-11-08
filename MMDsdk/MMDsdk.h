@@ -1107,7 +1107,9 @@ namespace MMDsdk
 			PmdFile::Rigitbody::RigitBodyShapeType shapeType 
 				= PmdFile::Rigitbody::RigitBodyShapeType::RST_NONE;
 
-
+			float shapeW = 0.f;
+			float shapeH = 0.f;
+			float shapeD = 0.f;
 
 			Rigitbody(); ~Rigitbody();
 		private:
