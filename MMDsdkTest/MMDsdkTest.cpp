@@ -1077,6 +1077,8 @@ namespace MMDsdkTest
 			{
 				auto& j0 = pmx.GetJoint(0);
 				Assert::IsTrue(strCmpFortest(GetText(j0.name), "‘O”¯", j0.name.GetLength()));
+				Assert::IsTrue(j0.nameEng.GetLength() == 0);
+				Assert::IsTrue(j0.type == PmxFile::Joint::JointType::JT_SPRING_6_DOF);
 			}
 			//last
 		}

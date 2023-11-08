@@ -6,13 +6,13 @@
 
 #ifdef _DEBUG
 // pmxファイル専用 頂点以外、-1を非参照値として記録する
-#define NO_REF(i) if (i == -1)\
+#define ID_IS_NO_REF(i) if (i == -1)\
 {\
 	DebugMessage("index " << i << " is no ref")\
 	return {};\
 }
 // データを持たない場合、初期化の値を返す
-#define NO_DATA(dataPtr, count)\
+#define ALLAY_HAS_NO_DATA(dataPtr, count)\
 if(dataPtr == nullptr || count == 0)\
 {\
 	DebugMessage(ToString(dataPtr) << " has No Data ! ")\
@@ -466,7 +466,7 @@ const uint32_t& PmdFile::GetVertexCount() const
 
 const uint16_t& PmdFile::Vertex::GetBoneID(const int i) const
 {
-	NO_DATA(boneID, 2);
+	ALLAY_HAS_NO_DATA(boneID, 2);
 	IS_OUT_OF_RANGE(boneID, i, 2);
 	return boneID[i];
 }
@@ -494,7 +494,7 @@ PmdFile::Vertex::~Vertex() {}
 
 const PmdFile::Vertex& PmdFile::GetVertex(const uint32_t i) const
 {
-	NO_DATA(mVertex, mVertexCount);
+	ALLAY_HAS_NO_DATA(mVertex, mVertexCount);
 	IS_OUT_OF_RANGE(mVertex, i, mVertexCount);
 	return mVertex[i];
 }
@@ -527,7 +527,7 @@ const uint32_t& PmdFile::GetIndexCount() const
 
 const uint16_t& PmdFile::GetIndex(const uint32_t i) const
 {
-	NO_DATA(mIndex, mIndexCount);
+	ALLAY_HAS_NO_DATA(mIndex, mIndexCount);
 	IS_OUT_OF_RANGE(mIndex, i, mIndexCount);
 	return mIndex[i];
 }
@@ -577,7 +577,7 @@ PmdFile::Material::~Material() {}
 
 const PmdFile::Material& PmdFile::GetMaterial(const uint32_t i) const
 {
-	NO_DATA(mMaterial, mMaterialCount);
+	ALLAY_HAS_NO_DATA(mMaterial, mMaterialCount);
 	IS_OUT_OF_RANGE(mMaterial, i, mMaterialCount);
 	return mMaterial[i];
 }
@@ -625,7 +625,7 @@ PmdFile::Bone::~Bone() {}
 
 const PmdFile::Bone& PmdFile::GetBone(const uint16_t i) const
 {
-	NO_DATA(mBone, mBoneCount);
+	ALLAY_HAS_NO_DATA(mBone, mBoneCount);
 	IS_OUT_OF_RANGE(mBone, i, mBoneCount);
 	return mBone[i];
 }
@@ -658,7 +658,7 @@ const uint16_t& PmdFile::GetIKCount() const
 
 const uint16_t& PmdFile::IK_Data::GetIkChildBoneID(const int i) const
 {
-	NO_DATA(ikChildBoneIndexArray, ikChainCount);
+	ALLAY_HAS_NO_DATA(ikChildBoneIndexArray, ikChainCount);
 	IS_OUT_OF_RANGE(ikChildBoneIndexArray, i, ikChainCount);
 	return ikChildBoneIndexArray[i];
 }
@@ -694,7 +694,7 @@ PmdFile::IK_Data::~IK_Data()
 
 const PmdFile::IK_Data& PmdFile::GetIKData(const uint16_t i) const
 {
-	NO_DATA(mIK, mIKCount);
+	ALLAY_HAS_NO_DATA(mIK, mIKCount);
 	IS_OUT_OF_RANGE(mIK, i, mIKCount);
 	return mIK[i];
 }
@@ -740,14 +740,14 @@ PmdFile::Morph::MorphData::~MorphData() {}
 
 const PmdFile::Morph::MorphBaseData& PmdFile::Morph::GetMorphBaseData(const int i) const
 {
-	NO_DATA(morphData, offsCount);
+	ALLAY_HAS_NO_DATA(morphData, offsCount);
 	IS_OUT_OF_RANGE(morphData, i, offsCount);
 	return morphData[i].base;
 }
 
 const PmdFile::Morph::MorphOffsData& PmdFile::Morph::GetMorphOffsData(const int i) const
 {
-	NO_DATA(morphData, offsCount);
+	ALLAY_HAS_NO_DATA(morphData, offsCount);
 	IS_OUT_OF_RANGE(morphData, i, offsCount);
 	return morphData[i].offs;
 }
@@ -798,7 +798,7 @@ PmdFile::Morph::~Morph()
 
 const PmdFile::Morph& PmdFile::GetMorph(const uint16_t i) const
 {
-	NO_DATA(mMorph, mMorphCount);
+	ALLAY_HAS_NO_DATA(mMorph, mMorphCount);
 	IS_OUT_OF_RANGE(mMorph, i, mMorphCount);
 	return mMorph[i];
 }
@@ -831,7 +831,7 @@ const uint8_t& PmdFile::GetMorphIndexForDisplayCount() const
 
 const uint16_t& PmdFile::GetMorphIndexForDisplay(const uint8_t i) const
 {
-	NO_DATA(mMorphForDisplay, mMorphForDisplayCount);
+	ALLAY_HAS_NO_DATA(mMorphForDisplay, mMorphForDisplayCount);
 	IS_OUT_OF_RANGE(mMorphForDisplay, i, mMorphForDisplayCount);
 	return mMorphForDisplay[i];
 }
@@ -876,7 +876,7 @@ const uint8_t& PmdFile::GetBoneNameForDisplayCount() const
 
 const TextBufferFixed<50>& PmdFile::GetBoneNameForDisplay(const uint8_t i) const
 {
-	NO_DATA(mBoneNameForDisplay, mBoneNameForDisplayCount);
+	ALLAY_HAS_NO_DATA(mBoneNameForDisplay, mBoneNameForDisplayCount);
 	IS_OUT_OF_RANGE(mBoneNameForDisplay, i, mBoneNameForDisplayCount);
 	return mBoneNameForDisplay[i];
 }
@@ -888,7 +888,7 @@ const uint8_t PmdFile::GetLastBoneNameForDisplayID() const
 
 const TextBufferFixed<50>& PmdFile::GetBoneNameForDisplayEng(const uint8_t i) const
 {
-	NO_DATA(mBoneNameForDisplayEng, mBoneNameForDisplayCount);
+	ALLAY_HAS_NO_DATA(mBoneNameForDisplayEng, mBoneNameForDisplayCount);
 	IS_OUT_OF_RANGE(mBoneNameForDisplayEng, i, mBoneNameForDisplayCount);
 	return mBoneNameForDisplayEng[i];
 }
@@ -928,7 +928,7 @@ PmdFile::BoneForDisplay::~BoneForDisplay() {}
 
 const PmdFile::BoneForDisplay& PmdFile::GetBoneForDisplay(const uint32_t i) const
 {
-	NO_DATA(mBoneForDisplay, mBoneForDisplayCount);
+	ALLAY_HAS_NO_DATA(mBoneForDisplay, mBoneForDisplayCount);
 	IS_OUT_OF_RANGE(mBoneForDisplay, i, mBoneForDisplayCount);
 	return mBoneForDisplay[i];
 }
@@ -1032,7 +1032,7 @@ PmdFile::Rigitbody::~Rigitbody() {}
 
 const PmdFile::Rigitbody& PmdFile::GetRigitbody(const uint32_t i) const
 {
-	NO_DATA(mRigitbody, mRigitbodyCount);
+	ALLAY_HAS_NO_DATA(mRigitbody, mRigitbodyCount);
 	IS_OUT_OF_RANGE(mRigitbody, i, mRigitbodyCount);
 	return mRigitbody[i];
 }
@@ -1092,7 +1092,7 @@ PmdFile::Joint::~Joint() {}
 
 const PmdFile::Joint& PmdFile::GetJoint(const uint32_t i) const
 {
-	NO_DATA(mJoint, mJointCount);
+	ALLAY_HAS_NO_DATA(mJoint, mJointCount);
 	IS_OUT_OF_RANGE(mJoint, i, mJointCount);
 	return mJoint[i];
 }
@@ -1463,6 +1463,7 @@ PmxFile::PmxFile(const char* filepath)
 	{
 		auto& j = mJoint[i];
 		j.name.Load(&file, mHeader.encode);
+		j.nameEng.Load(&file, mHeader.encode);
 	}
 
 	DebugMessageNewLine();
@@ -1615,7 +1616,7 @@ PmxFile::Vertex::~Vertex() {}
 
 const PmxFile::Vertex& PmxFile::GetVertex(const int32_t i) const
 {
-	NO_DATA(mVertex, mVertexCount);
+	ALLAY_HAS_NO_DATA(mVertex, mVertexCount);
 	IS_OUT_OF_RANGE(mVertex, i, mVertexCount);
 	return mVertex[i];
 }
@@ -1648,7 +1649,7 @@ const int32_t& PmxFile::GetIndexCount() const
 
 const int32_t& PmxFile::GetIndex(const int32_t i) const
 {
-	NO_DATA(mIndex, mIndexCount);
+	ALLAY_HAS_NO_DATA(mIndex, mIndexCount);
 	IS_OUT_OF_RANGE(mIndex, i, mIndexCount);
 	return mIndex[i];
 }
@@ -1682,8 +1683,8 @@ const int32_t& PmxFile::GetTextureCount() const
 
 const TextBufferVariable& PmxFile::GetTexturePath(const int32_t i) const
 {
-	NO_REF(i);
-	NO_DATA(mTexturePath, mTextureCount);
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mTexturePath, mTextureCount);
 	IS_OUT_OF_RANGE(mTexturePath, i, mTextureCount);
 	return mTexturePath[i];
 }
@@ -1747,8 +1748,8 @@ PmxFile::Material::~Material() {}
 
 const PmxFile::Material& PmxFile::GetMaterial(const int32_t i) const
 {
-	NO_REF(i);
-	NO_DATA(mMaterial, mMaterialCount);
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mMaterial, mMaterialCount);
 	IS_OUT_OF_RANGE(mMaterial, i, mMaterialCount);
 	return mMaterial[i];
 }
@@ -1793,7 +1794,7 @@ bool PmxFile::Bone::GetBoneConfig(BoneConfig bitFlag) const
 
 const PmxFile::Bone::IK_Link& PmxFile::Bone::GetIK_Link(const int32_t i) const
 {
-	NO_DATA(ikLink, ikLinkCount);
+	ALLAY_HAS_NO_DATA(ikLink, ikLinkCount);
 	IS_OUT_OF_RANGE(ikLink, i, ikLinkCount);
 	return ikLink[i];
 }
@@ -1866,8 +1867,8 @@ PmxFile::Bone::~Bone()
 
 const PmxFile::Bone& PmxFile::GetBone(const int32_t i) const
 {
-	NO_REF(i);
-	NO_DATA(mBone, mBoneCount);
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mBone, mBoneCount);
 	IS_OUT_OF_RANGE(mBone, i, mBoneCount);
 	return mBone[i];
 }
@@ -1973,8 +1974,8 @@ PmxFile::Morph::MorphOffsData::~MorphOffsData() {}
 
 const PmxFile::Morph::MorphOffsData& PmxFile::Morph::GetMorphOffsData(const int32_t i) const
 {
-	NO_REF(i);
-	NO_DATA(morphOffsData, offsCount);
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(morphOffsData, offsCount);
 	IS_OUT_OF_RANGE(morphOffsData, i, offsCount);
 	return morphOffsData[i];
 }
@@ -2138,8 +2139,8 @@ PmxFile::Morph::~Morph()
 
 const PmxFile::Morph& PmxFile::GetMorph(const int32_t i) const
 {
-	NO_REF(i);
-	NO_DATA(mMorph, mMorphCount);
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mMorph, mMorphCount);
 	IS_OUT_OF_RANGE(mMorph, i, mMorphCount);
 	return mMorph[i];
 }
@@ -2176,8 +2177,8 @@ PmxFile::DisplayFrame::FrameElement::~FrameElement() {}
 
 const PmxFile::DisplayFrame::FrameElement& PmxFile::DisplayFrame::GetFrameElement(const int32_t i) const
 {
-	NO_REF(i);
-	NO_DATA(frameElement, frameElementCount);
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(frameElement, frameElementCount);
 	IS_OUT_OF_RANGE(frameElement, i, frameElementCount);
 	return frameElement[i];
 }
@@ -2252,8 +2253,8 @@ PmxFile::DisplayFrame::~DisplayFrame()
 
 const PmxFile::DisplayFrame& PmxFile::GetDisplayFrame(const int32_t i) const
 {
-	NO_REF(i);
-	NO_DATA(mDisplayFrame, mDisplayFrameCount);
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mDisplayFrame, mDisplayFrameCount);
 	IS_OUT_OF_RANGE(mDisplayFrame, i, mDisplayFrameCount);
 	return mDisplayFrame[i];
 }
@@ -2313,8 +2314,8 @@ PmxFile::Rigitbody::~Rigitbody() {}
 
 const PmxFile::Rigitbody& PmxFile::GetRigitbody(const int32_t i) const
 {
-	NO_REF(i);
-	NO_DATA(mRigitbody, mRigitbodyCount);
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mRigitbody, mRigitbodyCount);
 	IS_OUT_OF_RANGE(mRigitbody, i, mRigitbodyCount);
 	return mRigitbody[i];
 }
@@ -2333,7 +2334,7 @@ void PmxFile::DebugOutRigitbody(const int32_t i) const
 void PmxFile::DebugOutAllRigitbody() const
 {
 #ifdef _DEBUG
-	for (uint32_t i = 0; i < mRigitbodyCount; ++i)
+	for (int32_t i = 0; i < mRigitbodyCount; ++i)
 	{
 		DebugOutRigitbody(i);
 	}
@@ -2350,8 +2351,9 @@ PmxFile::Joint::~Joint() {};
 
 const PmxFile::Joint& PmxFile::GetJoint(const int32_t i) const
 {
-	NO_REF(i);
-	NO_DATA(mJoint, mJointCount);
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mJoint, mJointCount);
+	IS_OUT_OF_RANGE(mJoint, i, mJointCount);
 	return mJoint[i];
 }
 

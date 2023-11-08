@@ -1104,7 +1104,7 @@ namespace MMDsdk
 			// 0x1111_1111_1101_1111 ‚ªŠi”[‚³‚ê‚é//
 			uint16_t groupTarget = 0;
 
-			PmdFile::Rigitbody::RigitBodyShapeType shapeType 
+			PmdFile::Rigitbody::RigitBodyShapeType shapeType
 				= PmdFile::Rigitbody::RigitBodyShapeType::RST_NONE;
 
 			float shapeW = 0.f;
@@ -1138,6 +1138,14 @@ namespace MMDsdk
 		struct Joint
 		{
 			TextBufferVariable name = {};
+			TextBufferVariable nameEng = {};
+
+			enum JointType : uint8_t
+			{
+				// PMX2.0‚Å‚Í1‚Â‚Ì‚Ý
+				JT_SPRING_6_DOF = 0,
+				JT_NONE
+			} type = JT_NONE;
 
 			Joint(); ~Joint();
 		private:
