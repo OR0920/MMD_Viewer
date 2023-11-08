@@ -980,6 +980,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(r0.relationshipBoneID == 6);
 				Assert::IsTrue(r0.group == 0);
 				Assert::IsTrue(r0.groupTarget == 0b1111'1111'1111'1111);
+				Assert::IsTrue(r0.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_SPHERE);
 			}
 
 			//last

@@ -1104,6 +1104,8 @@ namespace MMDsdk
 			// 0x1111_1111_1101_1111 ‚ªŠi”[‚³‚ê‚é//
 			uint16_t groupTarget = 0;
 
+			PmdFile::Rigitbody::RigitBodyShapeType shapeType 
+				= PmdFile::Rigitbody::RigitBodyShapeType::RST_NONE;
 
 			Rigitbody(); ~Rigitbody();
 		private:
