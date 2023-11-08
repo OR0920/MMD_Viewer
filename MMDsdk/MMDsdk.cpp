@@ -1467,6 +1467,7 @@ PmxFile::PmxFile(const char* filepath)
 		file.Read(j.type);
 		LoadID_AsInt32(file, j.rigitbodyIndexA, mHeader.rigitbodyID_Size);
 		LoadID_AsInt32(file, j.rigitbodyIndexB, mHeader.rigitbodyID_Size);
+		file.Read(j.position);
 	}
 
 	DebugMessageNewLine();
