@@ -684,7 +684,7 @@ namespace MMDsdkTest
 			{
 				auto& mph0 = pmx.GetMorph(0);
 
-				Assert::IsTrue(strCmpFortest(GetText(mph0.name), L"まばたき", mph0.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(mph0.name), "まばたき", mph0.name.GetLength()));
 				Assert::IsTrue(mph0.nameEng.GetLength() == 0);
 				Assert::IsTrue(mph0.type == PmdFile::Morph::MorphType::MT_EYE);
 				Assert::IsTrue(mph0.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_VERTEX);
@@ -709,7 +709,7 @@ namespace MMDsdkTest
 			{
 				auto& gMph = pmx.GetMorph(24);
 
-				Assert::IsTrue(strCmpFortest(GetText(gMph.name), L"ハート", gMph.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(gMph.name), "ハート", gMph.name.GetLength()));
 				Assert::IsTrue(gMph.nameEng.GetLength() == 0);
 				Assert::IsTrue(gMph.type == PmdFile::Morph::MorphType::MT_EYE);
 				Assert::IsTrue(gMph.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_GROUP);
@@ -730,7 +730,7 @@ namespace MMDsdkTest
 			{
 				auto& mMph = pmx.GetMorph(26);
 
-				Assert::IsTrue(strCmpFortest(GetText(mMph.name), L"ハイライト消失", mMph.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(mMph.name), "ハイライト消失", mMph.name.GetLength()));
 				Assert::IsTrue(mMph.nameEng.GetLength() == 0);
 				Assert::IsTrue(mMph.type == PmdFile::Morph::MorphType::MT_EYE);
 				Assert::IsTrue(mMph.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_MATERIAL);
@@ -772,7 +772,7 @@ namespace MMDsdkTest
 			{
 				auto& mMph2 = pmx.GetMorph(27);
 
-				Assert::IsTrue(strCmpFortest(GetText(mMph2.name), L"瞳AL発光", mMph2.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(mMph2.name), "瞳AL発光", mMph2.name.GetLength()));
 				Assert::IsTrue(mMph2.nameEng.GetLength() == 0);
 				Assert::IsTrue(mMph2.type == PmdFile::Morph::MorphType::MT_EYE);
 				Assert::IsTrue(mMph2.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_MATERIAL);
@@ -849,7 +849,7 @@ namespace MMDsdkTest
 			{
 				auto& uvMph = pmx.GetMorph(118);
 
-				Assert::IsTrue(strCmpFortest(GetText(uvMph.name), L"口内色", uvMph.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(uvMph.name), "口内色", uvMph.name.GetLength()));
 				Assert::IsTrue(uvMph.nameEng.GetLength() == 0);
 				Assert::IsTrue(uvMph.type == PmdFile::Morph::MorphType::MT_LIP);
 				Assert::IsTrue(uvMph.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_UV);
@@ -877,7 +877,7 @@ namespace MMDsdkTest
 			{
 				auto& mphL = pmx.GetMorph(pmx.GetLastMorphID());
 
-				Assert::IsTrue(strCmpFortest(GetText(mphL.name), L"エッジ太さ", mphL.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(mphL.name), "エッジ太さ", mphL.name.GetLength()));
 				Assert::IsTrue(mphL.nameEng.GetLength() == 0);
 				Assert::IsTrue(mphL.type == PmdFile::Morph::MorphType::MT_OTHER);
 				Assert::IsTrue(mphL.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_MATERIAL);
@@ -990,7 +990,7 @@ namespace MMDsdkTest
 			PmxFile pmx2(testPmxModelPath2);
 			auto& bMph = pmx2.GetMorph(49);
 
-			Assert::IsTrue(strCmpFortest(GetText(bMph.name), L"左手握り", bMph.name.GetLength()));
+			Assert::IsTrue(strCmpFortest(GetText(bMph.name), "左手握り", bMph.name.GetLength()));
 			Assert::IsTrue(bMph.nameEng.GetLength() == 0);
 			Assert::IsTrue(bMph.type == PmdFile::Morph::MorphType::MT_OTHER);
 			Assert::IsTrue(bMph.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_BONE);

@@ -1378,8 +1378,8 @@ PmxFile::PmxFile(const char* filepath)
 	for (int i = 0; i < mMorphCount; ++i)
 	{
 		auto& mph = mMorph[i];
-		mph.name.Load(&file);
-		mph.nameEng.Load(&file);
+		mph.name.Load(&file, mHeader.encode);
+		mph.nameEng.Load(&file, mHeader.encode);
 		file.Read(mph.type);
 		file.Read(mph.typeEX);
 		file.Read(mph.offsCount);
@@ -2019,8 +2019,8 @@ void PmxFile::Morph::LoadOffsData(void* _file, const size_t idByteSize)
 void PmxFile::Morph::DebugOut(bool isOutOffsData) const
 {
 #ifdef _DEBUG
-	DebugMessageWide(GetText(name));
-	DebugMessageWide(GetText(nameEng));
+	DebugMessage(GetText(name));
+	DebugMessage(GetText(nameEng));
 	switch (type)
 	{
 	case MMDsdk::PmdFile::Morph::MT_BASE:

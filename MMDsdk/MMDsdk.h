@@ -1038,8 +1038,8 @@ namespace MMDsdk
 		};
 		const Morph& GetMorph(const int32_t i) const;
 		const int32_t GetLastMorphID() const;
-		void DebugOutMorph(const int32_t i, bool isOutOffsData) const;
-		void DebugOutAllMorph(bool isOutOffsData) const;
+		void DebugOutMorph(const int32_t i, bool isOutOffsData = false) const;
+		void DebugOutAllMorph(bool isOutOffsData = false) const;
 
 
 		// 表示枠データ
