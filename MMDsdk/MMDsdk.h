@@ -1118,6 +1118,9 @@ namespace MMDsdk
 			float recoil = 0.f;
 			float friction = 0.f;
 
+			PmdFile::Rigitbody::RigitBodyType type
+				= PmdFile::Rigitbody::RigitBodyType::RT_NONE;
+
 			Rigitbody(); ~Rigitbody();
 		private:
 			Rigitbody(const Rigitbody&);

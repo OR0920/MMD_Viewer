@@ -995,8 +995,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(FloatEqual(r0.rotationDim, 0.5f));
 				Assert::IsTrue(FloatEqual(r0.recoil, 0.f));
 				Assert::IsTrue(FloatEqual(r0.friction, 0.5f));
-
-
+				Assert::IsTrue(r0.type == PmdFile::Rigitbody::RigitBodyType::RT_BONE_FOLLOW);
 			}
 			{
 				// âÒì]Ç™0Ç≈Ç»Ç¢çÑëÃ
