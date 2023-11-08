@@ -259,7 +259,7 @@ namespace MMDsdkTest
 			Assert::IsTrue(FloatEqual(body0.rotationDim, 0.f));
 			Assert::IsTrue(FloatEqual(body0.recoil, 0.f));
 			Assert::IsTrue(FloatEqual(body0.friction, 0.5f));
-			Assert::IsTrue(body0.type == PmdFile::Rigitbody::RigitBodyType::RT_BONE_FOLLOW);
+			Assert::IsTrue(body0.type == RigitbodyType::RT_BONE_FOLLOW);
 
 			auto& bodyL = pmd.GetRigitbody(pmd.GetLastRigitbodyID());
 			Assert::IsTrue(strCmpFortest(GetText(bodyL.name), "ネクタイ3", bodyL.name.GetLength()));
@@ -282,7 +282,7 @@ namespace MMDsdkTest
 			Assert::IsTrue(FloatEqual(bodyL.rotationDim, 2.f));
 			Assert::IsTrue(FloatEqual(bodyL.recoil, 0.f));
 			Assert::IsTrue(FloatEqual(bodyL.friction, 0.0f));
-			Assert::IsTrue(bodyL.type == PmdFile::Rigitbody::RigitBodyType::RT_RIGITBODY_WITH_BONE_OFFS);
+			Assert::IsTrue(bodyL.type == RigitbodyType::RT_RIGITBODY_WITH_BONE_OFFS);
 
 			// 物理演算ジョイントデータ
 			Assert::IsTrue(pmd.GetJointCount() == 27);
@@ -994,7 +994,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(FloatEqual(r0.rotationDim, 0.5f));
 				Assert::IsTrue(FloatEqual(r0.recoil, 0.f));
 				Assert::IsTrue(FloatEqual(r0.friction, 0.5f));
-				Assert::IsTrue(r0.type == PmdFile::Rigitbody::RigitBodyType::RT_BONE_FOLLOW);
+				Assert::IsTrue(r0.type == RigitbodyType::RT_BONE_FOLLOW);
 			}
 			{
 				// 回転が0でない剛体
@@ -1020,7 +1020,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(FloatEqual(r1.rotationDim, 0.99f));
 				Assert::IsTrue(FloatEqual(r1.recoil, 0.f));
 				Assert::IsTrue(FloatEqual(r1.friction, 0.5f));
-				Assert::IsTrue(r1.type == PmdFile::Rigitbody::RigitBodyType::RT_RIGITBODY);
+				Assert::IsTrue(r1.type == RigitbodyType::RT_RIGITBODY);
 			}
 			{
 				// 関連ボーンがオフセット位置を持つ場合
@@ -1045,7 +1045,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(FloatEqual(r18.rotationDim, 0.5f));
 				Assert::IsTrue(FloatEqual(r18.recoil, 0.f));
 				Assert::IsTrue(FloatEqual(r18.friction, 0.5f));
-				Assert::IsTrue(r18.type == PmdFile::Rigitbody::RigitBodyType::RT_BONE_FOLLOW);
+				Assert::IsTrue(r18.type == RigitbodyType::RT_BONE_FOLLOW);
 			}
 			{
 				// 最後のデータ
@@ -1069,7 +1069,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(FloatEqual(rL.rotationDim, 0.5f));
 				Assert::IsTrue(FloatEqual(rL.recoil, 0.f));
 				Assert::IsTrue(FloatEqual(rL.friction, 0.5f));
-				Assert::IsTrue(rL.type == PmdFile::Rigitbody::RigitBodyType::RT_BONE_FOLLOW);
+				Assert::IsTrue(rL.type == RigitbodyType::RT_BONE_FOLLOW);
 			}
 
 			Assert::IsTrue(pmx.GetJointCount() == 21);

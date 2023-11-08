@@ -53,6 +53,14 @@ namespace MMDsdk
 		RST_NONE,
 	};
 
+	enum RigitbodyType : uint8_t
+	{
+		RT_BONE_FOLLOW = 0,
+		RT_RIGITBODY = 1,
+		RT_RIGITBODY_WITH_BONE_OFFS = 2,
+		RT_NONE,
+	};
+
 	// テキスト取得マクロ
 #define GetText(textBuffer) &textBuffer.GetFirstChar()
 
@@ -474,6 +482,7 @@ namespace MMDsdk
 			uint16_t groupTarget = 0;
 
 			RigitbodyShapeType shapeType = RigitbodyShapeType::RST_NONE;
+
 			float shapeW = 0;
 			float shapeH = 0;
 			float shapeD = 0;
@@ -489,13 +498,8 @@ namespace MMDsdk
 			float rotationDim = 0.f;
 			float recoil = 0.f;
 			float friction = 0.f;
-			enum RigitBodyType : uint8_t
-			{
-				RT_BONE_FOLLOW = 0,
-				RT_RIGITBODY = 1,
-				RT_RIGITBODY_WITH_BONE_OFFS = 2,
-				RT_NONE,
-			} type = RT_NONE;
+			
+			RigitbodyType type = RigitbodyType::RT_NONE;
 
 			void DebugOut() const;
 			Rigitbody(); ~Rigitbody();
@@ -1108,8 +1112,7 @@ namespace MMDsdk
 			// 0x1111_1111_1101_1111 が格納される//
 			uint16_t groupTarget = 0;
 
-			RigitbodyShapeType shapeType
-				= RigitbodyShapeType::RST_NONE;
+			RigitbodyShapeType shapeType = RigitbodyShapeType::RST_NONE;
 
 			float shapeW = 0.f;
 			float shapeH = 0.f;
@@ -1123,8 +1126,7 @@ namespace MMDsdk
 			float recoil = 0.f;
 			float friction = 0.f;
 
-			PmdFile::Rigitbody::RigitBodyType type
-				= PmdFile::Rigitbody::RigitBodyType::RT_NONE;
+			RigitbodyType type = RigitbodyType::RT_NONE;
 
 			void DebugOut() const;
 			Rigitbody(); ~Rigitbody();
