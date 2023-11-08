@@ -1455,6 +1455,8 @@ PmxFile::PmxFile(const char* filepath)
 		file.Read(r.type);
 	}
 
+	file.Read(mJointCount);
+
 	DebugMessageNewLine();
 	//last
 }
