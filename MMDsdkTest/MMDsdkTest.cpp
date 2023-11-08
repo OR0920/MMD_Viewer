@@ -1081,6 +1081,9 @@ namespace MMDsdkTest
 				Assert::IsTrue(j0.type == PmxFile::Joint::JointType::JT_SPRING_6_DOF);
 				Assert::IsTrue(j0.rigitbodyIndexA == 0);
 				Assert::IsTrue(j0.rigitbodyIndexB == 1);
+				Assert::IsTrue(FloatEqual(j0.position.x, -1.6482f));
+				Assert::IsTrue(FloatEqual(j0.position.y, 19.6392f));
+				Assert::IsTrue(FloatEqual(j0.position.z, 1.4544f));
 			}
 			//last
 		}

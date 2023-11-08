@@ -1147,8 +1147,10 @@ namespace MMDsdk
 				JT_NONE
 			} type = JT_NONE;
 
-			int32_t rigitbodyIndexA = 99;
+			int32_t rigitbodyIndexA = 0;
 			int32_t rigitbodyIndexB = 0;
+
+			float3 position = {};
 
 			Joint(); ~Joint();
 		private:
