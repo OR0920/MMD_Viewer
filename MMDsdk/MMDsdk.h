@@ -1165,6 +1165,7 @@ namespace MMDsdk
 			const Joint& operator=(const Joint&) const;
 		};
 		const Joint& GetJoint(const int32_t i) const;
+		const int32_t GetLastJointID() const;
 
 		//last
 

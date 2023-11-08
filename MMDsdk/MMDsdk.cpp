@@ -1459,7 +1459,7 @@ PmxFile::PmxFile(const char* filepath)
 
 	file.Read(mJointCount);
 	mJoint = new Joint[mJointCount]{};
-	for (int i = 0; i < 1; ++i)
+	for (int i = 0; i < mJointCount; ++i)
 	{
 		auto& j = mJoint[i];
 		j.name.Load(&file, mHeader.encode);
@@ -2366,6 +2366,11 @@ const PmxFile::Joint& PmxFile::GetJoint(const int32_t i) const
 	ALLAY_HAS_NO_DATA(mJoint, mJointCount);
 	IS_OUT_OF_RANGE(mJoint, i, mJointCount);
 	return mJoint[i];
+}
+
+const int32_t PmxFile::GetLastJointID() const
+{
+	return mJointCount - 1;
 }
 
 //last

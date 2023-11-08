@@ -1108,7 +1108,72 @@ namespace MMDsdkTest
 			}
 			{
 				// 回転が0ではないデータ
-				// auto& j17 = pmx.GetJoint(17);
+				//auto& j17 = pmx.GetJoint(17);
+				auto& j17 = pmx.GetJoint(17);
+				Assert::IsTrue(strCmpFortest(GetText(j17.name), "右羽", j17.name.GetLength()));
+				Assert::IsTrue(j17.nameEng.GetLength() == 0);
+				Assert::IsTrue(j17.type == PmxFile::Joint::JointType::JT_SPRING_6_DOF);
+				Assert::IsTrue(j17.rigitbodyIndexA == 39);
+				Assert::IsTrue(j17.rigitbodyIndexB == 19);
+				Assert::IsTrue(FloatEqual(j17.position.x, -1.369087f));
+				Assert::IsTrue(FloatEqual(j17.position.y, 17.12843f));
+				Assert::IsTrue(FloatEqual(j17.position.z, -0.7528272f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotation.x), 35.5608f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotation.y), -6.899146f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotation.z), -11.75304f));
+				Assert::IsTrue(FloatEqual(j17.posLowerLimit.x, 0.f));
+				Assert::IsTrue(FloatEqual(j17.posLowerLimit.y, 0.f));
+				Assert::IsTrue(FloatEqual(j17.posLowerLimit.z, 0.f));
+				Assert::IsTrue(FloatEqual(j17.posUpperLimit.x, 0.00f));
+				Assert::IsTrue(FloatEqual(j17.posUpperLimit.y, 0.00f));
+				Assert::IsTrue(FloatEqual(j17.posUpperLimit.z, 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotLowerLimit.x), -20.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotLowerLimit.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotLowerLimit.z), -20.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotUpperLimit.x), 20.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotUpperLimit.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotUpperLimit.z), 20.00f));
+				Assert::IsTrue(FloatEqual(j17.springPos.x, 0.00f));
+				Assert::IsTrue(FloatEqual(j17.springPos.y, 0.00f));
+				Assert::IsTrue(FloatEqual(j17.springPos.z, 0.00f));
+				Assert::IsTrue(FloatEqual(j17.springRot.x, 1000.f));
+				Assert::IsTrue(FloatEqual(j17.springRot.y, 0.f));
+				Assert::IsTrue(FloatEqual(j17.springRot.z, 1000.f));
+
+			}
+			{
+				// 最後のデータ
+				auto& jL = pmx.GetJoint(pmx.GetLastJointID());
+				Assert::IsTrue(strCmpFortest(GetText(jL.name), "_左羽", jL.name.GetLength()));
+				Assert::IsTrue(jL.nameEng.GetLength() == 0);
+				Assert::IsTrue(jL.type == PmxFile::Joint::JointType::JT_SPRING_6_DOF);
+				Assert::IsTrue(jL.rigitbodyIndexA == 20);
+				Assert::IsTrue(jL.rigitbodyIndexB == 40);
+				Assert::IsTrue(FloatEqual(jL.position.x, 1.906998f));
+				Assert::IsTrue(FloatEqual(jL.position.y, 16.37108f));
+				Assert::IsTrue(FloatEqual(jL.position.z, -0.681774));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotation.x), 34.89104f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotation.y), -10.59537f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotation.z), -18.10878f));
+				Assert::IsTrue(FloatEqual(jL.posLowerLimit.x, 0.f));
+				Assert::IsTrue(FloatEqual(jL.posLowerLimit.y, 0.f));
+				Assert::IsTrue(FloatEqual(jL.posLowerLimit.z, 0.f));
+				Assert::IsTrue(FloatEqual(jL.posUpperLimit.x, 0.00f));
+				Assert::IsTrue(FloatEqual(jL.posUpperLimit.y, 0.00f));
+				Assert::IsTrue(FloatEqual(jL.posUpperLimit.z, 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotLowerLimit.x), -20.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotLowerLimit.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotLowerLimit.z), -20.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotUpperLimit.x), 20.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotUpperLimit.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotUpperLimit.z), 20.00f));
+				Assert::IsTrue(FloatEqual(jL.springPos.x, 0.00f));
+				Assert::IsTrue(FloatEqual(jL.springPos.y, 0.00f));
+				Assert::IsTrue(FloatEqual(jL.springPos.z, 0.00f));
+				Assert::IsTrue(FloatEqual(jL.springRot.x, 1000.f));
+				Assert::IsTrue(FloatEqual(jL.springRot.y, 0.f));
+				Assert::IsTrue(FloatEqual(jL.springRot.z, 1000.f));
+
 			}
 			//last
 		}
