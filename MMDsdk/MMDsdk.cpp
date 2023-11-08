@@ -1464,6 +1464,7 @@ PmxFile::PmxFile(const char* filepath)
 		auto& j = mJoint[i];
 		j.name.Load(&file, mHeader.encode);
 		j.nameEng.Load(&file, mHeader.encode);
+		file.Read(j.type);
 	}
 
 	DebugMessageNewLine();
