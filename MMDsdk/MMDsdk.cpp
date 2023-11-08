@@ -773,7 +773,7 @@ void PmdFile::Morph::DebugOut(bool isOutVertexData) const
 		{
 			auto& sv = morphData[i];
 			DebugMessage(ToString(morphData) << "[" << i << "]");
-			if (type == Morph::MT_BASE)
+			if (type == MorphType::MT_BASE)
 			{
 				DebugOutParamI(sv.base.index);
 				DebugOutFloat3(sv.base.positon);
@@ -2055,22 +2055,22 @@ void PmxFile::Morph::DebugOut(bool isOutOffsData) const
 	DebugMessage(GetText(nameEng));
 	switch (type)
 	{
-	case MMDsdk::PmdFile::Morph::MT_BASE:
+	case MorphType::MT_BASE:
 		DebugMessage(ToString(type) << " = MT_BASE");
 		break;
-	case MMDsdk::PmdFile::Morph::MT_EYEBROW:
+	case MorphType::MT_EYEBROW:
 		DebugMessage(ToString(type) << " = MT_EYEBROW");
 		break;
-	case MMDsdk::PmdFile::Morph::MT_EYE:
+	case MorphType::MT_EYE:
 		DebugMessage(ToString(type) << " = MT_EYE");
 		break;
-	case MMDsdk::PmdFile::Morph::MT_LIP:
+	case MorphType::MT_LIP:
 		DebugMessage(ToString(type) << " = MT_LIP");
 		break;
-	case MMDsdk::PmdFile::Morph::MT_OTHER:
+	case MorphType::MT_OTHER:
 		DebugMessage(ToString(type) << " = MT_OTHER");
 		break;
-	case MMDsdk::PmdFile::Morph::MT_NONE:
+	case MorphType::MT_NONE:
 		DebugMessage(ToString(type) << " = MT_NONE");
 		break;
 	default:

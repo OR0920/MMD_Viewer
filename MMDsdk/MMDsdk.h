@@ -34,6 +34,17 @@ namespace MMDsdk
 		INIT = 0xff
 	};
 
+	// 0：base、1：まゆ、2：目、3：リップ、4：その他
+	enum MorphType : uint8_t
+	{
+		MT_BASE = 0,
+		MT_EYEBROW = 1,
+		MT_EYE = 2,
+		MT_LIP = 3,
+		MT_OTHER = 4,
+		MT_NONE
+	};
+
 	// テキスト取得マクロ
 #define GetText(textBuffer) &textBuffer.GetFirstChar()
 
@@ -327,16 +338,7 @@ namespace MMDsdk
 			TextBufferFixed<20> name = {};
 			uint32_t offsCount = 0;
 
-			// 0：base、1：まゆ、2：目、3：リップ、4：その他
-			enum MorphType : uint8_t
-			{
-				MT_BASE = 0,
-				MT_EYEBROW = 1,
-				MT_EYE = 2,
-				MT_LIP = 3,
-				MT_OTHER = 4,
-				MT_NONE
-			} type = MT_NONE;
+			MorphType type = MorphType::MT_NONE;
 
 			// typeで変数の役割が異なる
 			// 構造は同じ //
@@ -896,7 +898,7 @@ namespace MMDsdk
 			TextBufferVariable name = {};
 			TextBufferVariable nameEng = {};
 			// pmd と共通
-			PmdFile::Morph::MorphType type = PmdFile::Morph::MorphType::MT_NONE;
+			MorphType type = MorphType::MT_NONE;
 			// pmx で追加
 			// グループモーフ　:2つ以上のモーフを同時行うモーフ
 			// 頂点モーフ　:頂点位置を変更するモーフpmdのモーフはすべてこれ
