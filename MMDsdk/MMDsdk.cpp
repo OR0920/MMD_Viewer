@@ -1422,8 +1422,8 @@ PmxFile::PmxFile(const char* filepath)
 	{
 		auto& d = mDisplayFrame[i];
 
-		d.name.Load(&file);
-		d.nameEng.Load(&file);
+		d.name.Load(&file, mHeader.encode);
+		d.nameEng.Load(&file, mHeader.encode);
 		file.Read(d.type);
 		file.Read(d.frameElementCount);
 		d.LoadFrameElement(&file, mHeader.boneID_Size, mHeader.morphID_Size);
@@ -2188,8 +2188,8 @@ void PmxFile::DisplayFrame::LoadFrameElement(void* _file, const size_t boneID_Si
 void PmxFile::DisplayFrame::DebugOut() const
 {
 #ifdef _DEBUG
-	DebugMessageWide(GetText(name));
-	DebugMessageWide(GetText(nameEng));
+	DebugMessage(GetText(name));
+	DebugMessage(GetText(nameEng));
 	switch (type)
 	{
 	case MMDsdk::PmxFile::DisplayFrame::DFT_NORMAL:

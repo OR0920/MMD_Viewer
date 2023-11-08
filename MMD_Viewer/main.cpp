@@ -33,7 +33,7 @@ void LoadAndCout(const char* filepath)
 	MMDsdk::PmxFile model(filepath);
 	model.GetHeader().DebugOut();
 
-	model.DebugOutAllMorph();
+	model.DebugOutAllDisplayFrame();
 
 	//int slashCount = 0;
 	//for (int i = 0; filepath[i] != '\0'; ++i)

@@ -922,8 +922,8 @@ namespace MMDsdkTest
 			{
 				auto& d0 = pmx.GetDisplayFrame(0);
 
-				Assert::IsTrue(strCmpFortest(GetText(d0.name), L"Root", d0.name.GetLength()));
-				Assert::IsTrue(strCmpFortest(GetText(d0.nameEng), L"Root", d0.nameEng.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(d0.name), "Root", d0.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(d0.nameEng), "Root", d0.nameEng.GetLength()));
 				Assert::IsTrue(d0.type == PmxFile::DisplayFrame::DisplayFrameType::DFT_SPECIAL);
 				Assert::IsTrue(d0.frameElementCount == 1);
 				{
@@ -935,8 +935,8 @@ namespace MMDsdkTest
 			{
 				auto& d1 = pmx.GetDisplayFrame(1);
 
-				Assert::IsTrue(strCmpFortest(GetText(d1.name), L"ï\èÓ", d1.name.GetLength()));
-				Assert::IsTrue(strCmpFortest(GetText(d1.nameEng), L"Exp", d1.nameEng.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(d1.name), "ï\èÓ", d1.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(d1.nameEng), "Exp", d1.nameEng.GetLength()));
 				Assert::IsTrue(d1.type == PmxFile::DisplayFrame::DisplayFrameType::DFT_SPECIAL);
 				Assert::IsTrue(d1.frameElementCount == 130);
 				{
@@ -953,7 +953,7 @@ namespace MMDsdkTest
 			{
 				auto& dL = pmx.GetDisplayFrame(pmx.GetLastDisplayFrameID());
 
-				Assert::IsTrue(strCmpFortest(GetText(dL.name), L"ÇªÇÃëº", dL.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(dL.name), "ÇªÇÃëº", dL.name.GetLength()));
 				Assert::IsTrue(dL.nameEng.GetLength() == 0);
 				Assert::IsTrue(dL.type == PmxFile::DisplayFrame::DisplayFrameType::DFT_NORMAL);
 				Assert::IsTrue(dL.frameElementCount == 47);
