@@ -33,48 +33,46 @@ void LoadAndCout(const char* filepath)
 	MMDsdk::PmxFile model(filepath);
 	model.GetHeader().DebugOut();
 
-	model.DebugOutAllDisplayFrame();
+	int slashCount = 0;
+	for (int i = 0; filepath[i] != '\0'; ++i)
+	{
+		if (filepath[i] == '/') ++slashCount;
+	}
 
-	//int slashCount = 0;
-	//for (int i = 0; filepath[i] != '\0'; ++i)
-	//{
-	//	if (filepath[i] == '/') ++slashCount;
-	//}
+	int dirPathSize = 0;
+	for (dirPathSize = 0; filepath[dirPathSize] != '\0'; ++dirPathSize)
+	{
+		if (slashCount == 0)
+		{
+			break;
+		}
+		if (filepath[dirPathSize] == '/')
+		{
+			--slashCount;			
+		}
+	}
 
-	//int dirPathSize = 0;
-	//for (dirPathSize = 0; filepath[dirPathSize] != '\0'; ++dirPathSize)
-	//{
-	//	if (slashCount == 0)
-	//	{
-	//		break;
-	//	}
-	//	if (filepath[dirPathSize] == '/')
-	//	{
-	//		--slashCount;			
-	//	}
-	//}
+	for (int j = 0; j < model.GetTextureCount(); ++j)
+	{
+		auto& textureFileName = model.GetTexturePath(j);
+		auto texPathLength = (dirPathSize + textureFileName.GetLength());
+		char* texPath = new char[texPathLength] {'\0'};
 
-	//for (int j = 0; j < model.GetTextureCount(); ++j)
-	//{
-	//	auto& textureFileName = model.GetTexturePath(j);
-	//	auto texPathLength = dirPathSize + textureFileName.GetLength();
-	//	char* texPath = new char[texPathLength] {'\0'};
+		for (int i = 0; i < dirPathSize; ++i)
+		{
+			texPath[i] = filepath[i];
+		}
+		for (int i = 0; i < textureFileName.GetLength(); ++i)
+		{
+			texPath[i + dirPathSize] = (GetText(textureFileName))[i];
+		}
 
-	//	for (int i = 0; i < dirPathSize; ++i)
-	//	{
-	//		texPath[i] = filepath[i];
-	//	}
-	//	for (int i = 0; i < textureFileName.GetLength(); ++i)
-	//	{
-	//		texPath[i + dirPathSize] = (GetText(textureFileName))[i];
-	//	}
+		DebugMessage(texPath);
 
-	//	DebugMessage(texPath);
+		FileReadBin texture(texPath);
 
-	//	FileReadBin texture(texPath);
-
-	//	SafeDeleteArray(&texPath);
-	//}
+		SafeDeleteArray(&texPath);
+	}
 	
 
 }
