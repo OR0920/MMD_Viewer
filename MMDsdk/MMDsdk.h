@@ -1151,6 +1151,7 @@ namespace MMDsdk
 			int32_t rigitbodyIndexB = 0;
 
 			float3 position = {};
+			float3 rotation = { 5.f };
 
 			Joint(); ~Joint();
 		private:

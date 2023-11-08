@@ -1084,6 +1084,14 @@ namespace MMDsdkTest
 				Assert::IsTrue(FloatEqual(j0.position.x, 0.224f));
 				Assert::IsTrue(FloatEqual(j0.position.y, 16.20214f));
 				Assert::IsTrue(FloatEqual(j0.position.z, -1.905562f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j0.rotation.x), 0.f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j0.rotation.y), 0.f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j0.rotation.z), 0.f));
+
+			}
+			{
+				// âÒì]Ç™0Ç≈ÇÕÇ»Ç¢ÉfÅ[É^
+				// auto& j17 = pmx.GetJoint(17);
 			}
 			//last
 		}
