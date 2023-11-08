@@ -1315,8 +1315,8 @@ PmxFile::PmxFile(const char* filepath)
 	for (int i = 0; i < mBoneCount; ++i)
 	{
 		auto& b = mBone[i];
-		b.name.Load(&file);
-		b.nameEng.Load(&file);
+		b.name.Load(&file, mHeader.encode);
+		b.nameEng.Load(&file, mHeader.encode);
 		file.Read(b.position);
 		LoadID_AsInt32(file, b.parentBoneID, mHeader.boneID_Size);
 		file.Read(b.transformHierarchy);
@@ -1799,8 +1799,8 @@ void PmxFile::Bone::LoadIK_Link(void* _file, const size_t boneID_Size)
 void PmxFile::Bone::DebugOut() const
 {
 #ifdef _DEBUG
-	DebugMessageWide(GetText(name));
-	DebugMessageWide(GetText(nameEng));
+	DebugMessage(GetText(name));
+	DebugMessage(GetText(nameEng));
 	DebugOutFloat3(position);
 	DebugOutParamI(parentBoneID);
 	DebugOutParamI(transformHierarchy);

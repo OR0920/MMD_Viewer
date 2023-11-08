@@ -586,8 +586,8 @@ namespace MMDsdkTest
 			{
 				auto& b0 = pmx.GetBone(0);
 
-				Assert::IsTrue(strCmpFortest(GetText(b0.name), L"ëSÇƒÇÃêe", b0.name.GetLength()));
-				Assert::IsTrue(strCmpFortest(GetText(b0.nameEng), L"master", b0.nameEng.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(b0.name), "ëSÇƒÇÃêe", b0.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(b0.nameEng), "master", b0.nameEng.GetLength()));
 				Assert::IsTrue(FloatEqual(b0.position.x, 0.f));
 				Assert::IsTrue(FloatEqual(b0.position.y, 0.f));
 				Assert::IsTrue(FloatEqual(b0.position.z, -0.2195798f));
@@ -625,8 +625,8 @@ namespace MMDsdkTest
 			{
 				auto& boneWithIK = pmx.GetBone(71);
 
-				Assert::IsTrue(strCmpFortest(GetText(boneWithIK.name), L"ç∂ë´ÇhÇj", boneWithIK.name.GetLength()));
-				Assert::IsTrue(strCmpFortest(GetText(boneWithIK.nameEng), L"leg IK_R", boneWithIK.nameEng.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(boneWithIK.name), "ç∂ë´ÇhÇj", boneWithIK.name.GetLength()));
+				Assert::IsTrue(strCmpFortest(GetText(boneWithIK.nameEng), "leg IK_R", boneWithIK.nameEng.GetLength()));
 				Assert::IsTrue(FloatEqual(boneWithIK.position.x, 0.7553458f));
 				Assert::IsTrue(FloatEqual(boneWithIK.position.y, 0.9500531f));
 				Assert::IsTrue(FloatEqual(boneWithIK.position.z, 0.1935074f));
