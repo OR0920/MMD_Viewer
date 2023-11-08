@@ -987,7 +987,9 @@ namespace MMDsdkTest
 				Assert::IsTrue(FloatEqual(r0.position.x + relBone0.positionOffs.x, 0.f));
 				Assert::IsTrue(FloatEqual(r0.position.y + relBone0.positionOffs.y, 15.62877f));
 				Assert::IsTrue(FloatEqual(r0.position.z + relBone0.positionOffs.z, -0.3113128f));
-				
+				Assert::IsTrue(FloatEqual(RadianToDegree(r0.rotation.x), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r0.rotation.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r0.rotation.z), 0.00f));
 			}
 			{
 				// 関連ボーンがオフセット位置を持つ場合
