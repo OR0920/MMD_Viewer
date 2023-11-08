@@ -1201,7 +1201,9 @@ PmxFile::PmxFile(const char* filepath)
 	mDisplayFrameCount(0),
 	mDisplayFrame(nullptr),
 	mRigitbodyCount(0),
-	mRigitbody(nullptr)
+	mRigitbody(nullptr),
+	mJointCount(0),
+	mJoint(nullptr)
 	//last
 {
 	FileReadBin file(filepath);
@@ -1456,6 +1458,7 @@ PmxFile::PmxFile(const char* filepath)
 	}
 
 	file.Read(mJointCount);
+	mJoint = new Joint[mJointCount]{};
 
 	DebugMessageNewLine();
 	//last
@@ -1463,6 +1466,7 @@ PmxFile::PmxFile(const char* filepath)
 
 PmxFile::~PmxFile()
 {
+	SafeDeleteArray(&mJoint);
 	SafeDeleteArray(&mRigitbody);
 	SafeDeleteArray(&mDisplayFrame);
 	SafeDeleteArray(&mMorph);
@@ -2334,6 +2338,16 @@ void PmxFile::DebugOutAllRigitbody() const
 const int32_t& PmxFile::GetJointCount() const
 {
 	return mJointCount;
+}
+
+PmxFile::Joint::Joint() {};
+PmxFile::Joint::~Joint() {};
+
+const PmxFile::Joint& PmxFile::GetJoint(const int32_t i) const
+{
+	NO_REF(i);
+	NO_DATA(mJoint, mJointCount);
+	return mJoint[i];
 }
 
 //last

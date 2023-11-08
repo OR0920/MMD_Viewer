@@ -1135,7 +1135,16 @@ namespace MMDsdk
 
 		// ジョイントデータ
 		const int32_t& GetJointCount() const;
+		struct Joint
+		{
+			TextBufferVariable name = {};
 
+			Joint(); ~Joint();
+		private:
+			Joint(const Joint&);
+			const Joint& operator=(const Joint&) const;
+		};
+		const Joint& GetJoint(const int32_t i) const;
 
 		//last
 
@@ -1171,6 +1180,7 @@ namespace MMDsdk
 		Rigitbody* mRigitbody;
 
 		int32_t mJointCount;
+		Joint* mJoint;
 
 		//last
 	};

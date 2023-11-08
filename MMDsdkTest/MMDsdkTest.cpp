@@ -1074,6 +1074,10 @@ namespace MMDsdkTest
 
 			Assert::IsTrue(pmx.GetJointCount() == 21);
 
+			{
+				auto& j0 = pmx.GetJoint(0);
+				Assert::IsTrue(strCmpFortest(GetText(j0.name), "‘O”¯", j0.name.GetLength()));
+			}
 			//last
 		}
 
