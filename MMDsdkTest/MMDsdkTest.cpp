@@ -1072,6 +1072,8 @@ namespace MMDsdkTest
 				Assert::IsTrue(rL.type == PmdFile::Rigitbody::RigitBodyType::RT_BONE_FOLLOW);
 			}
 
+			Assert::IsTrue(pmx.GetJointCount() == 21);
+
 			//last
 		}
 

@@ -1133,6 +1133,10 @@ namespace MMDsdk
 		void DebugOutRigitbody(const int32_t) const;
 		void DebugOutAllRigitbody() const;
 
+		// ジョイントデータ
+		const int32_t& GetJointCount() const;
+
+
 		//last
 
 	private:
@@ -1165,6 +1169,8 @@ namespace MMDsdk
 
 		int32_t mRigitbodyCount;
 		Rigitbody* mRigitbody;
+
+		int32_t mJointCount;
 
 		//last
 	};

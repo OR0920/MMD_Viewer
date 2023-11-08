@@ -2329,5 +2329,10 @@ void PmxFile::DebugOutAllRigitbody() const
 #endif // _DEBUG
 }
 
+const int32_t& PmxFile::GetJointCount() const
+{
+	return mJointCount;
+}
+
 //last
 
