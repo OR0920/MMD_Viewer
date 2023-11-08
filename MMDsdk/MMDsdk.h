@@ -45,6 +45,14 @@ namespace MMDsdk
 		MT_NONE
 	};
 
+	enum RigitbodyShapeType : uint8_t
+	{
+		RST_SPHERE = 0,
+		RST_BOX = 1,
+		RST_CAPSULE = 2,
+		RST_NONE,
+	};
+
 	// ÉeÉLÉXÉgéÊìæÉ}ÉNÉç
 #define GetText(textBuffer) &textBuffer.GetFirstChar()
 
@@ -465,13 +473,7 @@ namespace MMDsdk
 			// 0x1111_1111_1101_1111 Ç™äiî[Ç≥ÇÍÇÈ//
 			uint16_t groupTarget = 0;
 
-			enum RigitBodyShapeType : uint8_t
-			{
-				RST_SPHERE = 0,
-				RST_BOX = 1,
-				RST_CAPSULE = 2,
-				RST_NONE,
-			} shapeType = RST_NONE;
+			RigitbodyShapeType shapeType = RigitbodyShapeType::RST_NONE;
 			float shapeW = 0;
 			float shapeH = 0;
 			float shapeD = 0;
@@ -1106,8 +1108,8 @@ namespace MMDsdk
 			// 0x1111_1111_1101_1111 Ç™äiî[Ç≥ÇÍÇÈ//
 			uint16_t groupTarget = 0;
 
-			PmdFile::Rigitbody::RigitBodyShapeType shapeType
-				= PmdFile::Rigitbody::RigitBodyShapeType::RST_NONE;
+			RigitbodyShapeType shapeType
+				= RigitbodyShapeType::RST_NONE;
 
 			float shapeW = 0.f;
 			float shapeH = 0.f;

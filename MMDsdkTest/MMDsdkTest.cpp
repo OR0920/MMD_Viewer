@@ -245,7 +245,7 @@ namespace MMDsdkTest
 			Assert::IsTrue(body0.relationshipBoneID == 3);
 			Assert::IsTrue(body0.group == 0);
 			Assert::IsTrue(body0.groupTarget == 0b1111111111111111);
-			Assert::IsTrue(body0.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_SPHERE);
+			Assert::IsTrue(body0.shapeType == RigitbodyShapeType::RST_SPHERE);
 			Assert::IsTrue(FloatEqual(body0.shapeW, 1.6f));
 			auto& relBone0 = pmd.GetBone(body0.relationshipBoneID);
 			Assert::IsTrue(FloatEqual(body0.position.x + relBone0.headPos.x, 0.1f));
@@ -266,7 +266,7 @@ namespace MMDsdkTest
 			Assert::IsTrue(bodyL.relationshipBoneID == 8);
 			Assert::IsTrue(bodyL.group == 05);
 			Assert::IsTrue(bodyL.groupTarget == 0b1111111111011111);
-			Assert::IsTrue(bodyL.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_BOX);
+			Assert::IsTrue(bodyL.shapeType == RigitbodyShapeType::RST_BOX);
 			Assert::IsTrue(FloatEqual(bodyL.shapeW, 0.3f));
 			Assert::IsTrue(FloatEqual(bodyL.shapeH, 0.9f));
 			Assert::IsTrue(FloatEqual(bodyL.shapeD, 0.2f));
@@ -981,7 +981,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(r0.relationshipBoneID == 6);
 				Assert::IsTrue(r0.group == 0);
 				Assert::IsTrue(r0.groupTarget == 0b1111'1111'1111'1111);
-				Assert::IsTrue(r0.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_SPHERE);
+				Assert::IsTrue(r0.shapeType == RigitbodyShapeType::RST_SPHERE);
 				Assert::IsTrue(FloatEqual(r0.shapeW, 1.f));
 				Assert::IsTrue(FloatEqual(r0.position.x, 0.f));
 				Assert::IsTrue(FloatEqual(r0.position.y, 15.62877f));
@@ -1006,7 +1006,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(r1.relationshipBoneID == 94);
 				Assert::IsTrue(r1.group == 4);
 				Assert::IsTrue(r1.groupTarget == 0b1111'1111'1110'1111);
-				Assert::IsTrue(r1.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_CAPSULE);
+				Assert::IsTrue(r1.shapeType == RigitbodyShapeType::RST_CAPSULE);
 				Assert::IsTrue(FloatEqual(r1.shapeW, 0.199335f));
 				Assert::IsTrue(FloatEqual(r1.shapeH, 0.6f));
 				Assert::IsTrue(FloatEqual(r1.position.x , 0.224f));
@@ -1032,7 +1032,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(r18.relationshipBoneID == 7);
 				Assert::IsTrue(r18.group == 1);
 				Assert::IsTrue(r18.groupTarget == 0b1111'1111'1111'1101);
-				Assert::IsTrue(r18.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_SPHERE);
+				Assert::IsTrue(r18.shapeType == RigitbodyShapeType::RST_SPHERE);
 				Assert::IsTrue(FloatEqual(r18.shapeW, 1.f));
 				Assert::IsTrue(FloatEqual(r18.position.x, 0.32f));
 				Assert::IsTrue(FloatEqual(r18.position.y, 16.40877f));
@@ -1056,7 +1056,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(rL.relationshipBoneID == 11);
 				Assert::IsTrue(rL.group == 4);
 				Assert::IsTrue(rL.groupTarget == 0b1111'1111'1100'1111);
-				Assert::IsTrue(rL.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_SPHERE);
+				Assert::IsTrue(rL.shapeType == RigitbodyShapeType::RST_SPHERE);
 				Assert::IsTrue(FloatEqual(rL.shapeW, 0.2f));
 				Assert::IsTrue(FloatEqual(rL.position.x, 1.897798f));
 				Assert::IsTrue(FloatEqual(rL.position.y, 16.30588f));
