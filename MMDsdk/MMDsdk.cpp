@@ -1448,6 +1448,10 @@ PmxFile::PmxFile(const char* filepath)
 		file.Read(r.position);
 		file.Read(r.rotation);
 		file.Read(r.weight);
+		file.Read(r.positionDim);
+		file.Read(r.rotationDim);
+		file.Read(r.recoil);
+		file.Read(r.friction);
 	}
 
 	DebugMessageNewLine();
