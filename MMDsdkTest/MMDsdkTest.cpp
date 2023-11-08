@@ -972,6 +972,7 @@ namespace MMDsdkTest
 			// 剛体情報読み込みテスト
 
 			Assert::IsTrue(pmx.GetRigitbodyCount() == 41);
+
 			{
 				auto& r0 = pmx.GetRigitbody(0);
 
@@ -982,9 +983,15 @@ namespace MMDsdkTest
 				Assert::IsTrue(r0.groupTarget == 0b1111'1111'1111'1111);
 				Assert::IsTrue(r0.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_SPHERE);
 				Assert::IsTrue(FloatEqual(r0.shapeW, 1.f));
-				Assert::IsTrue(FloatEqual(r0.shapeH, 0.f));
-				Assert::IsTrue(FloatEqual(r0.shapeD, 0.f));
-
+				auto& relBone0 = pmx.GetBone(r0.relationshipBoneID);
+				Assert::IsTrue(FloatEqual(r0.position.x + relBone0.positionOffs.x, 0.f));
+				Assert::IsTrue(FloatEqual(r0.position.y + relBone0.positionOffs.y, 15.62877f));
+				Assert::IsTrue(FloatEqual(r0.position.z + relBone0.positionOffs.z, -0.3113128f));
+				
+			}
+			{
+				// 関連ボーンがオフセット位置を持つ場合
+				// auto& r18 = pmx.GetRigitbody(18);
 			}
 
 			//last

@@ -1110,6 +1110,7 @@ namespace MMDsdk
 			float shapeW = 0.f;
 			float shapeH = 0.f;
 			float shapeD = 0.f;
+			float3 position = {};
 
 			Rigitbody(); ~Rigitbody();
 		private:

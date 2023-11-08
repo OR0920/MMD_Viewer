@@ -1442,6 +1442,10 @@ PmxFile::PmxFile(const char* filepath)
 		file.Read(r.group);
 		file.Read(r.groupTarget);
 		file.Read(r.shapeType);
+		file.Read(r.shapeW);
+		file.Read(r.shapeH);
+		file.Read(r.shapeD);
+		file.Read(r.position);
 	}
 
 	DebugMessageNewLine();
