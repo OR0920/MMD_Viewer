@@ -1446,6 +1446,7 @@ PmxFile::PmxFile(const char* filepath)
 		file.Read(r.shapeH);
 		file.Read(r.shapeD);
 		file.Read(r.position);
+		file.Read(r.rotation);
 	}
 
 	DebugMessageNewLine();

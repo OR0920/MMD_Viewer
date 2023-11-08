@@ -992,6 +992,10 @@ namespace MMDsdkTest
 				Assert::IsTrue(FloatEqual(RadianToDegree(r0.rotation.z), 0.00f));
 			}
 			{
+				// 回転が0でない剛体
+				//auto& r1 = pmx.GetRigitbody(1);
+			}
+			{
 				// 関連ボーンがオフセット位置を持つ場合
 				// auto& r18 = pmx.GetRigitbody(18);
 			}
