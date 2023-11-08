@@ -1147,6 +1147,8 @@ namespace MMDsdk
 				JT_NONE
 			} type = JT_NONE;
 
+			int32_t rigitbodyIndexA = 99;
+
 			Joint(); ~Joint();
 		private:
 			Joint(const Joint&);
