@@ -1459,6 +1459,11 @@ PmxFile::PmxFile(const char* filepath)
 
 	file.Read(mJointCount);
 	mJoint = new Joint[mJointCount]{};
+	for (int i = 0; i < 1; ++i)
+	{
+		auto& j = mJoint[i];
+		j.name.Load(&file, mHeader.encode);
+	}
 
 	DebugMessageNewLine();
 	//last
