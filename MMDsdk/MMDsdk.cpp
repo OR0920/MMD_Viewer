@@ -50,27 +50,27 @@ TextBufferVariable::~TextBufferVariable()
 {
 	SafeDeleteArray(&mStr);
 }
-
-void TextBufferVariable::Load(void* _file)
-{
-	// 2重にロードさせない
-	if (mStr != nullptr)
-	{
-		DebugMessage("This Buffer is Already Loaded");
-		return;
-	}
-
-	auto& file = GetFile(_file);
-	file.Read(mLength);
-	mStr = new char[mLength] {};
-	//for (int i = 0; i < mLength; ++i)
-	//{
-	//	DebugOutArrayBin(mStr, i, 8);
-	//	DebugMessageNewLine();
-	//}
-	file.ReadArray(mStr, mLength);
-
-}
+//
+//void TextBufferVariable::Load(void* _file)
+//{
+//	// 2重にロードさせない
+//	if (mStr != nullptr)
+//	{
+//		DebugMessage("This Buffer is Already Loaded");
+//		return;
+//	}
+//
+//	auto& file = GetFile(_file);
+//	file.Read(mLength);
+//	mStr = new char[mLength] {};
+//	//for (int i = 0; i < mLength; ++i)
+//	//{
+//	//	DebugOutArrayBin(mStr, i, 8);
+//	//	DebugMessageNewLine();
+//	//}
+//	file.ReadArray(mStr, mLength);
+//
+//}
 
 void TextBufferVariable::Load(void* _file, EncodeType encode)
 {

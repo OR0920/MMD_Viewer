@@ -71,7 +71,6 @@ namespace MMDsdk
 	public:
 		TextBufferVariable(); ~TextBufferVariable();
 
-		void Load(void* _file);
 		void Load(void* _file, EncodeType encode);
 
 		const int GetLength() const;
