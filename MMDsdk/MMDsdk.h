@@ -122,8 +122,6 @@ namespace MMDsdk
 		char mStr[size]{ '\0' };
 	};
 
-
-
 	// pmdファイルを読み込み、内部構造のまま安全に公開するクラス
 	// より上位のクラス（例：Modelクラスなど）がファイルのデータを得るためのクラス
 	// intなどの型を使用すると、将来的に変わってしまう可能性があるため、
@@ -138,6 +136,9 @@ namespace MMDsdk
 		// コンストラクタの処理で一気にファイルを読み込み閉じる
 		PmdFile(const char* filepath);  ~PmdFile();
 
+		// ディレクトリのパスを取得する
+		// テクスチャなどのファイルはすべて同じディレクトリに入れること //
+		const char& GetDirectoryPathStart() const;
 
 		// 以下データの構造体とその取得関数をペアで記述する
 		// 内部に配列を持つ場合は専用のロード関数を用意している
@@ -497,7 +498,7 @@ namespace MMDsdk
 			float rotationDim = 0.f;
 			float recoil = 0.f;
 			float friction = 0.f;
-			
+
 			RigitbodyType type = RigitbodyType::RT_NONE;
 
 			void DebugOut() const;
@@ -556,6 +557,8 @@ namespace MMDsdk
 		//必ずファイル名を指定して生成すること
 		PmdFile(); PmdFile(const PmdFile& copy);
 		const PmdFile& operator=(const PmdFile&) const;
+
+		char* mDirectoryPath;
 
 		//　各種データ実態
 		Header mHeader;

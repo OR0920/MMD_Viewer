@@ -86,11 +86,11 @@ void TextBufferVariable::Load(void* _file, EncodeType encode)
 
 	char* s16 = new char[mLength + 2] {'\0'};
 	file.ReadArray(s16, mLength);
-		
+
 	auto bytesize = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, NULL, 0, NULL, NULL);
 	mStr = new char[bytesize] {};
-	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1,(LPSTR)mStr, bytesize, NULL, NULL);
-	
+	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, (LPSTR)mStr, bytesize, NULL, NULL);
+
 	SafeDeleteArray(&s16);
 }
 
@@ -112,8 +112,63 @@ const char& TextBufferVariable::GetFirstChar() const
 	return *mStr;
 }
 
+// ディレクトリのパスを取得する関数
+// dirpath	ディレクトリのパスを受け取るポインタ nullptrであること
+//			内部でnewされるので、必ずdeleteすること
+// filepath 元のポインタ
+void CopyDirectoryPath(char** _dirpath, const char* const filepath)
+{
+	auto& dirpath = *_dirpath;
+	if (dirpath != nullptr)
+	{
+		DebugMessage("The pointer is already used");
+	}
+
+	// パスの長さ文字数のため1始まり
+	int pathLength = 1;
+	// ディレクトリの取得
+	int dirCount = 0;
+
+	for (pathLength; filepath[pathLength - 1] != '\0'; ++pathLength)
+	{
+		if (filepath[pathLength] == '/') ++dirCount;
+	}
+	DebugOutParamI(pathLength);
+	DebugOutParamI(dirCount);
+
+	for (int i = 0; i < pathLength; ++i)
+	{
+		if (filepath[i] == '/') --dirCount;
+		DebugOutArray(filepath, i);
+		DebugOutParam(dirCount);
+		if (dirCount == 0)
+		{
+			DebugOutParamI(i);
+			// ファイル名の最後のディレクトリ名までの文字数
+			// 最後の'/'までの文字数 + NULL文字分　//
+			const int dirPathLength = i + 2;
+
+			DebugOutParamI(dirPathLength);
+
+			dirpath = new char[dirPathLength] {'\0'};
+			// 末尾のNULL文字は残し、それまでをコピー
+			for (int j = 0; j < dirPathLength - 1; ++j)
+			{
+				dirpath[j] = filepath[j];
+				DebugOutArray(filepath, j);
+				DebugOutArray(dirpath, j);
+			}
+			break;
+		}
+	}
+
+	DebugMessage(dirpath);
+ 	DebugMessageNewLine();
+}
+
 PmdFile::PmdFile(const char* filepath)
 	:
+	mDirectoryPath(nullptr),
 	mHeader(),
 	mVertexCount(0),
 	mVertex(nullptr),
@@ -167,6 +222,11 @@ PmdFile::PmdFile(const char* filepath)
 		DebugMessage("Not Pmd File !");
 		return;
 	}
+
+	// ディレクトリのパスを取得する
+	CopyDirectoryPath(&mDirectoryPath, filepath);
+	DebugMessage(mDirectoryPath);
+	DebugMessageNewLine();
 
 	file.Read(mHeader.version);
 
@@ -420,6 +480,13 @@ PmdFile::~PmdFile()
 
 	SafeDeleteArray(&mIndex);
 	SafeDeleteArray(&mVertex);
+
+	SafeDeleteArray(&mDirectoryPath);
+}
+
+const char& PmdFile::GetDirectoryPathStart() const
+{
+	return mDirectoryPath[0];
 }
 
 PmdFile::Header::ModelInfo::ModelInfo() {}

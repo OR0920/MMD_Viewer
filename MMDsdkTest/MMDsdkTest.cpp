@@ -49,7 +49,7 @@ namespace MMDsdkTest
 		{
 			PmdFile pmd(testPmdModelPath);
 
-			//Assert::IsTrue(strCmpFortest(pmd.GetDirectoryPath(), "Test/Model/PMD/"));
+			Assert::IsTrue(strCmpForTest(&pmd.GetDirectoryPathStart(), "Test/Model/PMD/"));
 
 			// 基本情報の読み込みテスト
 			Assert::IsTrue(pmd.GetHeader().version == 1.f);
@@ -369,6 +369,8 @@ namespace MMDsdkTest
 		TEST_METHOD(ReadPmx)
 		{
 			PmxFile pmx(testPmxModelPath);
+
+			
 
 			{
 				auto& h = pmx.GetHeader();
