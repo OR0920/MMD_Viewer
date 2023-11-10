@@ -133,37 +133,25 @@ void CopyDirectoryPath(char** _dirpath, const char* const filepath)
 	{
 		if (filepath[pathLength] == '/') ++dirCount;
 	}
-	DebugOutParamI(pathLength);
-	DebugOutParamI(dirCount);
 
 	for (int i = 0; i < pathLength; ++i)
 	{
 		if (filepath[i] == '/') --dirCount;
-		DebugOutArray(filepath, i);
-		DebugOutParam(dirCount);
 		if (dirCount == 0)
 		{
-			DebugOutParamI(i);
 			// ファイル名の最後のディレクトリ名までの文字数
 			// 最後の'/'までの文字数 + NULL文字分　//
 			const int dirPathLength = i + 2;
-
-			DebugOutParamI(dirPathLength);
 
 			dirpath = new char[dirPathLength] {'\0'};
 			// 末尾のNULL文字は残し、それまでをコピー
 			for (int j = 0; j < dirPathLength - 1; ++j)
 			{
 				dirpath[j] = filepath[j];
-				DebugOutArray(filepath, j);
-				DebugOutArray(dirpath, j);
 			}
 			break;
 		}
 	}
-
-	DebugMessage(dirpath);
- 	DebugMessageNewLine();
 }
 
 PmdFile::PmdFile(const char* filepath)

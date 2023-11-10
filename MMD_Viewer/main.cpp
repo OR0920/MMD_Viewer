@@ -2,6 +2,7 @@
 #include<iomanip>
 
 #include<array>
+#include<string>
 
 #include"MathUtil.h"
 #include"System.h"
@@ -29,10 +30,44 @@ const char* testModelFilePath[] =
 
 const auto kabanPath = "Test/Model/PMX/Ç©ÇŒÇÒÇøÇ·ÇÒ/Ç©ÇŒÇÒÇøÇ·ÇÒ/Ç©ÇŒÇÒÇøÇ·ÇÒ.pmx";
 const auto mikuPath = "Test/Model/PMD/èââπÉ~ÉNVer2.pmd";
+
+bool strCmpForTest(const char* _str1, const char* _str2)
+{
+	DebugOutParam(_str1);
+	DebugOutParam(_str2);
+
+	for (int i = 0; true; ++i)
+	{
+		DebugOutArrayBin(_str1, i, 8);
+		DebugOutArrayBin(_str2, i, 8);
+		if (_str1[i] == '\0' && _str2[i] == '\0')break;
+		if (_str1[i] == '\0')
+		{
+			if (_str2[i + 1] == '\0')
+			{
+				break;
+			}
+		}
+		else
+		{
+			if (_str1[i + 1] == '\0')
+			{
+				break;
+			}
+		}
+		if (_str1[i] != _str2[i]) return false;
+		DebugMessageNewLine()
+	}
+	return true;
+}
+
 void LoadAndCout(const char* filepath)
 {
 	MMDsdk::PmdFile model(filepath);
 	
+	assert(strCmpForTest(GetText(model.GetBoneNameForDisplay(0)), "ÇhÇj") == true);
+
+
 	//int slashCount = 0;
 	//for (int i = 0; filepath[i] != '\0'; ++i)
 	//{
@@ -90,7 +125,7 @@ int main()
 	}
 
 	MMDsdk::PmxFile stage(testModelFilePath[filepathCount - 1]);
-	stage.DebugOutAllData();
+	//stage.DebugOutAllData();
 
 	//MMDsdk::PmxFile kaban(kabanPath);
 	//
