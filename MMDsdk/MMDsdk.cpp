@@ -1252,6 +1252,7 @@ void LoadID_AsInt32(FileReadBin& file, int32_t& buf, const size_t idByteSize)
 
 PmxFile::PmxFile(const char* filepath)
 	:
+	mDirectoryPath(nullptr),
 	mHeader(),
 	mVertexCount(0),
 	mVertex(nullptr),
@@ -1306,6 +1307,7 @@ PmxFile::PmxFile(const char* filepath)
 		}
 	}
 
+	CopyDirectoryPath(&mDirectoryPath, filepath);
 
 	file.Read(mHeader.version, 4);
 	file.Read(mHeader.fileConfigLength);
@@ -1559,6 +1561,12 @@ PmxFile::~PmxFile()
 	SafeDeleteArray(&mTexturePath);
 	SafeDeleteArray(&mIndex);
 	SafeDeleteArray(&mVertex);
+	SafeDeleteArray(&mDirectoryPath);
+}
+
+const char& PmxFile::GetDirectoryPathStart() const
+{
+	return mDirectoryPath[0];
 }
 
 PmxFile::Header::ModelInfo::ModelInfo() {}

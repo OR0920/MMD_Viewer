@@ -611,6 +611,8 @@ namespace MMDsdk
 	public:
 		PmxFile(const char* filepath); ~PmxFile();
 
+		const char&	GetDirectoryPathStart() const;
+
 		// ヘッダ情報
 		struct Header
 		{
@@ -1186,6 +1188,8 @@ namespace MMDsdk
 		// デフォルト、コピー禁止
 		PmxFile(); PmxFile(const PmxFile& copy);
 		const PmxFile& operator=(const PmxFile&) const;
+
+		char* mDirectoryPath;
 
 		Header mHeader;
 
