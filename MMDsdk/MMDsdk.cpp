@@ -50,27 +50,6 @@ TextBufferVariable::~TextBufferVariable()
 {
 	System::SafeDeleteArray(&mStr);
 }
-//
-//void TextBufferVariable::Load(void* _file)
-//{
-//	// 2èdÇ…ÉçÅ[ÉhÇ≥ÇπÇ»Ç¢
-//	if (mStr != nullptr)
-//	{
-//		DebugMessage("This Buffer is Already Loaded");
-//		return;
-//	}
-//
-//	auto& file = GetFile(_file);
-//	file.Read(mLength);
-//	mStr = new char[mLength] {};
-//	//for (int i = 0; i < mLength; ++i)
-//	//{
-//	//	DebugOutArrayBin(mStr, i, 8);
-//	//	DebugMessageNewLine();
-//	//}
-//	file.ReadArray(mStr, mLength);
-//
-//}
 
 void TextBufferVariable::Load(void* _file, EncodeType encode)
 {
@@ -81,15 +60,19 @@ void TextBufferVariable::Load(void* _file, EncodeType encode)
 		return;
 	}
 
+	
 	auto& file = GetFile(_file);
 	file.Read(mLength);
 
 	char* s16 = new char[mLength + 2] {'\0'};
 	file.ReadArray(s16, mLength);
 
-	auto bytesize = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, NULL, 0, NULL, NULL);
-	mStr = new char[bytesize] {};
-	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, (LPSTR)mStr, bytesize, NULL, NULL);
+	if (encode == EncodeType::UTF16)
+	{
+		auto bytesize = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, NULL, 0, NULL, NULL);
+		mStr = new char[bytesize] {};
+		WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, (LPSTR)mStr, bytesize, NULL, NULL);
+	}
 
 	SafeDeleteArray(&s16);
 }
@@ -98,7 +81,6 @@ const int TextBufferVariable::GetLength() const
 {
 	return mLength;
 }
-
 
 const char& TextBufferVariable::GetFirstChar() const
 {
