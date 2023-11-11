@@ -1209,7 +1209,7 @@ namespace MMDsdkTest
 
 	TEST_CLASS(VmdLoadTest)
 	{
-		const char* filepath = "Test/Mortion/シンプルウォーク.vmd";
+		const char* filepath = "Test/Motion/シンプルウォーク.vmd";
 
 		TEST_METHOD(LoadTest)
 		{
