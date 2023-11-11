@@ -11,6 +11,13 @@ namespace SystemTest
 	TEST_CLASS(SystemTest)
 	{
 	public:
+		TEST_METHOD(StrLengthTest)
+		{
+			Assert::IsTrue(GetStringLength("123456789") == 10);
+			Assert::IsTrue(GetStringLength("123456789\0") == 10);
+			Assert::IsTrue(GetStringLength("") == 0);
+		}
+
 		TEST_METHOD(StrCmpTest)
 		{
 			Assert::IsTrue(StringEqual("agaraerafdasf", "agaraerafdasf"));
@@ -24,10 +31,15 @@ namespace SystemTest
 			const char* filepath = "TestRoot/TestDir/TestFilePath.file";
 			char* dirpath = nullptr;
 
-			NewDirPathAndCopyFromFilePath(&dirpath, filepath);
-			
-			Assert::IsTrue(StringEqual(dirpath, "TestRoot/TestDir/"));
+			NewArrayAndCopyDirPathFromFilePath(&dirpath, filepath);
 
+			Assert::IsTrue(StringEqual(dirpath, "TestRoot/TestDir/"));
+			char* assetPath = nullptr;
+
+			NewArrayAndCopyAssetPath(&assetPath, dirpath, "AnotherTestFilePath.file");
+			Assert::IsTrue(StringEqual(assetPath, "TestRoot/TestDir/AnotherTestFilePath.file"));
+
+			SafeDeleteArray(&assetPath);
 			SafeDeleteArray(&dirpath);
 		}
 	};
@@ -50,7 +62,7 @@ namespace SystemTest
 		TEST_METHOD(open)
 		{
 			FileWriteBin fw(testFilePath);
-			
+
 			Assert::IsTrue(fw.IsFileOpenSuccsess() == true);
 
 			fw.Close();
@@ -81,7 +93,7 @@ namespace SystemTest
 			unsigned int uIntTestData = 53489;
 			float floatTestData = 534.f;
 			double doubleTestData = 2483.53534;
-			
+
 			TestStruct testData =
 			{
 				charTestData,
@@ -241,12 +253,12 @@ namespace SystemTest
 
 			fr.Close();
 
-			Assert::IsTrue(static_cast<char>(veryLargeVariable[0])== charTestData);
+			Assert::IsTrue(static_cast<char>(veryLargeVariable[0]) == charTestData);
 			Assert::IsTrue(static_cast<unsigned char>(veryLargeVariable[1]) == uCharTestData);
 			Assert::IsTrue(static_cast<short>(veryLargeVariable[2]) == shortTestData);
-			Assert::IsTrue(static_cast<unsigned short>(veryLargeVariable[3])== uShortTestData);
-			Assert::IsTrue(static_cast<int>(veryLargeVariable[4])== intTestData);
-			Assert::IsTrue(static_cast<unsigned int>(veryLargeVariable[5])== uIntTestData);
+			Assert::IsTrue(static_cast<unsigned short>(veryLargeVariable[3]) == uShortTestData);
+			Assert::IsTrue(static_cast<int>(veryLargeVariable[4]) == intTestData);
+			Assert::IsTrue(static_cast<unsigned int>(veryLargeVariable[5]) == uIntTestData);
 			Assert::IsTrue(testData.f == floatTestData);
 			Assert::IsTrue(testData.d == doubleTestData);
 		}
@@ -316,7 +328,7 @@ namespace SystemTest
 		TEST_METHOD(ReadArray)
 		{
 			int arr[100] = {};
-			int arrSize = sizeof(arr)/sizeof(int);
+			int arrSize = sizeof(arr) / sizeof(int);
 			for (int i = 0; i < arrSize; ++i)
 			{
 				arr[i] = rand();

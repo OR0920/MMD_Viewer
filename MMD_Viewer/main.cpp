@@ -92,6 +92,15 @@ int main()
 	}
 
 	MMDsdk::PmxFile stage(testModelFilePath[filepathCount - 1]);
+
+	char* assetpath = nullptr;
+	NewArrayAndCopyAssetPath(&assetpath, &stage.GetDirectoryPathStart(), GetText(stage.GetTexturePath(0)));
+
+	DebugMessage(assetpath);
+	FileReadBin tex(assetpath);
+
+	SafeDeleteArray(&assetpath);
+	
 	//stage.DebugOutAllData();
 
 	//MMDsdk::PmxFile kaban(kabanPath);

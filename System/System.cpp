@@ -8,7 +8,7 @@ bool System::StringEqual(const void* _str1, const void* _str2)
 	return str1 == str2;
 }
 
-void System::NewDirPathAndCopyFromFilePath(char** _dirpath, const char* const filepath)
+void System::NewArrayAndCopyDirPathFromFilePath(char** _dirpath, const char* const filepath)
 {
 	auto& dirpath = *_dirpath;
 	if (dirpath != nullptr)
@@ -43,5 +43,43 @@ void System::NewDirPathAndCopyFromFilePath(char** _dirpath, const char* const fi
 			}
 			break;
 		}
+	}
+}
+
+// NULL•¶Žš‚ðŠÜ‚Þ’·‚³‚ð•Ô‚·	
+int System::GetStringLength(const char* const text)
+{
+	if (text == nullptr)
+	{
+		return 0;
+	}
+
+	if (text[0] == '\0')
+	{
+		return 0;
+	}
+
+	int length = 1;
+	for (length; text[length - 1] != '\0'; ++length);
+	return length;
+}
+
+void System::NewArrayAndCopyAssetPath(char** _assetpath, const char* const dirpath, const char* const filename)
+{
+	auto& assetpath = *_assetpath;
+
+	const int dirLengthNotIncludeNULL = GetStringLength(dirpath) - 1;
+	const int filenameLength = GetStringLength(filename);
+	const int assetPathLength = dirLengthNotIncludeNULL + filenameLength;
+
+	assetpath = new char[assetPathLength] {'\0'};
+	for (int i = 0; i < dirLengthNotIncludeNULL; ++i)
+	{
+		assetpath[i] = dirpath[i];
+	}
+
+	for (int i = 0; (dirLengthNotIncludeNULL + i) < assetPathLength; ++i)
+	{
+		assetpath[dirLengthNotIncludeNULL + i] = filename[i];
 	}
 }
