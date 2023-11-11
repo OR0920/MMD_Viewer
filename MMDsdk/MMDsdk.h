@@ -585,6 +585,7 @@ namespace MMDsdk
 		uint16_t* mMorphForDisplay;
 
 		uint8_t mBoneNameForDisplayCount;
+		// 日本語表示用ボーン名は改行文字('\n' : 0x0a)で終わる　
 		TextBufferFixed<50>* mBoneNameForDisplay;
 
 		// 拡張機能(4)

@@ -222,11 +222,12 @@ namespace MMDsdkTest
 			Assert::IsTrue(pmd.GetBoneNameForDisplayCount() == 7);
 
 			//　出力すると同じはずだが、なぜか通らない
-			//Assert::IsTrue(strCmpForTest(GetText(pmd.GetBoneNameForDisplay(0)), "ＩＫ"));
+			// 「日本語名のみに」末尾に改行コードがある模様　
+			Assert::IsTrue(strCmpForTest(GetText(pmd.GetBoneNameForDisplay(0)), "ＩＫ\n"));
 
 			Assert::IsTrue(strCmpForTest(GetText(pmd.GetBoneNameForDisplayEng(0)), "IK"));
 			// 同上
-			//Assert::IsTrue(strCmpForTest(GetText(pmd.GetBoneNameForDisplay(pmd.GetLastBoneNameForDisplayID())), "足"));
+			Assert::IsTrue(strCmpForTest(GetText(pmd.GetBoneNameForDisplay(pmd.GetLastBoneNameForDisplayID())), "足\n"));
 
 			Assert::IsTrue(strCmpForTest(GetText(pmd.GetBoneNameForDisplayEng(pmd.GetLastBoneNameForDisplayID())), "Legs"));
 
