@@ -1215,7 +1215,7 @@ namespace MMDsdkTest
 		{
 			VmdFile vmd(filepath);
 
-			Assert::IsTrue(StringEqual(GetText(vmd.GetHeader().sigunature), "Vocaloid Mortion Data 0002"));
+			Assert::IsTrue(StringEqual(GetText(vmd.GetHeader().sigunature), "Vocaloid Motion Data 0002"));
 		}
 	};
 }

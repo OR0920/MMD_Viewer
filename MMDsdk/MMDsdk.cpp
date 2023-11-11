@@ -2452,7 +2452,13 @@ VmdFile::VmdFile(const char* const filepath)
 	:
 	mHeader()
 {
+	System::FileReadBin file(filepath);
 
+	file.ReadArray
+	(
+		const_cast<char*>(&mHeader.sigunature.GetFirstChar()), 
+		mHeader.sigunature.GetLength()
+	);
 }
 
 VmdFile::~VmdFile()
