@@ -1239,11 +1239,10 @@ namespace MMDsdk
 			const Header& operator=(const Header&) const;
 		};
 		const Header& GetHeader() const;
-
 	private:
 		VmdFile(); VmdFile(VmdFile&);
 		const VmdFile& operator=(const VmdFile&) const;
-
+		
 		Header mHeader;
 	};
 

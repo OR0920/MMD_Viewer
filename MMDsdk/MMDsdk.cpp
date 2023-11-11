@@ -94,6 +94,17 @@ const char& TextBufferVariable::GetFirstChar() const
 	return *mStr;
 }
 
+template <size_t size>
+void LoadTextBufferFixed(System::FileReadBin& file, TextBufferFixed<size>& text)
+{
+	// 諸々考慮した結果、やむを得ずconst_cast
+	file.ReadArray
+	(
+		const_cast<char*>(GetText(text)),
+		text.GetLength()
+	);
+}
+
 
 PmdFile::PmdFile(const char* filepath)
 	:
@@ -159,8 +170,8 @@ PmdFile::PmdFile(const char* filepath)
 
 	file.Read(mHeader.version);
 
-	// 諸々考慮した結果、やむを得ずconst_cast
-	// テキスト読み込み以外では使用していない //
+
+	
 	file.ReadArray
 	(
 		const_cast<char*>(&mHeader.modelInfoJP.modelName.GetFirstChar()),
@@ -2454,11 +2465,8 @@ VmdFile::VmdFile(const char* const filepath)
 {
 	System::FileReadBin file(filepath);
 
-	file.ReadArray
-	(
-		const_cast<char*>(&mHeader.sigunature.GetFirstChar()), 
-		mHeader.sigunature.GetLength()
-	);
+	LoadTextBufferFixed(file, mHeader.sigunature);
+	LoadTextBufferFixed(file, mHeader.defaultModelName);
 }
 
 VmdFile::~VmdFile()
