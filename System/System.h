@@ -32,6 +32,12 @@ namespace System
 			*ptr = nullptr;
 		}
 	}
+
+	// ディレクトリのパスを取得する関数
+	// dirpath	ディレクトリのパスを受け取るポインタ nullptrであること
+	//			内部でnewされるので、必ずdeleteすること
+	// filepath 元のポインタ
+	void CopyDirectoryPath(char** _dirpath, const char* const filepath);
 }
 
 #endif // _SYSTEM_H_

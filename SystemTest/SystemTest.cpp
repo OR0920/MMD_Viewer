@@ -3,6 +3,8 @@
 
 #include"System.h"
 
+#include<string>
+
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace System;
 
@@ -11,7 +13,19 @@ namespace SystemTest
 	TEST_CLASS(SystemTest)
 	{
 	public:
-		
+		TEST_METHOD(CopyDirectoryPathTest)
+		{
+			const char* filepath = "TestRoot/TestDir/TestFilePath.file";
+			char* dirpath = nullptr;
+
+			CopyDirectoryPath(&dirpath, filepath);
+			
+			std::string dirpathStr(dirpath);
+
+			Assert::IsTrue(dirpathStr == "TestRoot/TestDir/");
+
+			SafeDeleteArray(&dirpath);
+		}
 	};
 
 	TEST_CLASS(FileIOTest)

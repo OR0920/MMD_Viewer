@@ -1,8 +1,8 @@
+#include<Windows.h>
 #include<cassert>
+
 #include"MMDsdk.h"
 #include"System.h"
-
-#include<Windows.h>
 
 #ifdef _DEBUG
 // pmxファイル専用 頂点以外、-1を非参照値として記録する
@@ -37,10 +37,10 @@ DebugOutParam(f.w);
 
 // 汎用ポインタから、ファイル読み込み型への変換
 // ヘッダから型名を隠ぺいするため //
-#define GetFile(_file) *reinterpret_cast<FileReadBin*>(_file);
+#define GetFile(_file) *reinterpret_cast<System::FileReadBin*>(_file);
 
 using namespace MMDsdk;
-using namespace System;
+using System::SafeDeleteArray;
 
 
 //可変長テキストバッファの実装
@@ -48,7 +48,7 @@ using namespace System;
 TextBufferVariable::TextBufferVariable() : mLength(0), mStr(nullptr) {}
 TextBufferVariable::~TextBufferVariable()
 {
-	SafeDeleteArray(&mStr);
+	System::SafeDeleteArray(&mStr);
 }
 //
 //void TextBufferVariable::Load(void* _file)
@@ -112,47 +112,6 @@ const char& TextBufferVariable::GetFirstChar() const
 	return *mStr;
 }
 
-// ディレクトリのパスを取得する関数
-// dirpath	ディレクトリのパスを受け取るポインタ nullptrであること
-//			内部でnewされるので、必ずdeleteすること
-// filepath 元のポインタ
-void CopyDirectoryPath(char** _dirpath, const char* const filepath)
-{
-	auto& dirpath = *_dirpath;
-	if (dirpath != nullptr)
-	{
-		DebugMessage("The pointer is already used");
-	}
-
-	// パスの長さ文字数のため1始まり
-	int pathLength = 1;
-	// ディレクトリの取得
-	int dirCount = 0;
-
-	for (pathLength; filepath[pathLength - 1] != '\0'; ++pathLength)
-	{
-		if (filepath[pathLength] == '/') ++dirCount;
-	}
-
-	for (int i = 0; i < pathLength; ++i)
-	{
-		if (filepath[i] == '/') --dirCount;
-		if (dirCount == 0)
-		{
-			// ファイル名の最後のディレクトリ名までの文字数
-			// 最後の'/'までの文字数 + NULL文字分　//
-			const int dirPathLength = i + 2;
-
-			dirpath = new char[dirPathLength] {'\0'};
-			// 末尾のNULL文字は残し、それまでをコピー
-			for (int j = 0; j < dirPathLength - 1; ++j)
-			{
-				dirpath[j] = filepath[j];
-			}
-			break;
-		}
-	}
-}
 
 PmdFile::PmdFile(const char* filepath)
 	:
@@ -183,7 +142,7 @@ PmdFile::PmdFile(const char* filepath)
 	mJointCount(0),
 	mJoint(nullptr)
 {
-	FileReadBin file(filepath);
+	System::FileReadBin file(filepath);
 
 	// ファイルパスそのものが間違い
 	if (file.IsFileOpenSuccsess() == false)
@@ -212,7 +171,7 @@ PmdFile::PmdFile(const char* filepath)
 	}
 
 	// ディレクトリのパスを取得する
-	CopyDirectoryPath(&mDirectoryPath, filepath);
+	System::CopyDirectoryPath(&mDirectoryPath, filepath);
 	DebugMessage(mDirectoryPath);
 	DebugMessageNewLine();
 
@@ -1207,7 +1166,7 @@ void PmdFile::DebugOutAllData() const
 // インデックス系のデータはエディタ側で1, 2, 4バイトで最適化されるため
 // バイト数に応じて、読み込み方を変える
 // 全て4バイトの整数型で保持する 
-void LoadID_AsInt32(FileReadBin& file, int32_t& buf, const size_t idByteSize)
+void LoadID_AsInt32(System::FileReadBin& file, int32_t& buf, const size_t idByteSize)
 {
 	buf = 0;
 	switch (idByteSize)
@@ -1262,7 +1221,7 @@ PmxFile::PmxFile(const char* filepath)
 	mJoint(nullptr)
 	//last
 {
-	FileReadBin file(filepath);
+	System::FileReadBin file(filepath);
 
 	if (file.IsFileOpenSuccsess() == false)
 	{
@@ -1295,7 +1254,7 @@ PmxFile::PmxFile(const char* filepath)
 		}
 	}
 
-	CopyDirectoryPath(&mDirectoryPath, filepath);
+	System::CopyDirectoryPath(&mDirectoryPath, filepath);
 
 	file.Read(mHeader.version, 4);
 	file.Read(mHeader.fileConfigLength);
