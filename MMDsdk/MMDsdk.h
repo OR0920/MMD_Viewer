@@ -27,6 +27,40 @@ namespace MMDsdk
 		float w = 0.f;
 	};
 
+	enum EncodeType : uint8_t
+	{
+		UTF16 = 0,
+		UTF8 = 1,
+		INIT = 0xff
+	};
+
+	// 0：base、1：まゆ、2：目、3：リップ、4：その他
+	enum MorphType : uint8_t
+	{
+		MT_BASE = 0,
+		MT_EYEBROW = 1,
+		MT_EYE = 2,
+		MT_LIP = 3,
+		MT_OTHER = 4,
+		MT_NONE
+	};
+
+	enum RigitbodyShapeType : uint8_t
+	{
+		RST_SPHERE = 0,
+		RST_BOX = 1,
+		RST_CAPSULE = 2,
+		RST_NONE,
+	};
+
+	enum RigitbodyType : uint8_t
+	{
+		RT_BONE_FOLLOW = 0,
+		RT_RIGITBODY = 1,
+		RT_RIGITBODY_WITH_BONE_OFFS = 2,
+		RT_NONE,
+	};
+
 	// テキスト取得マクロ
 #define GetText(textBuffer) &textBuffer.GetFirstChar()
 
@@ -37,7 +71,7 @@ namespace MMDsdk
 	public:
 		TextBufferVariable(); ~TextBufferVariable();
 
-		void Load(void* _file);
+		void Load(void* _file, EncodeType encode);
 
 		const int GetLength() const;
 		// 文字列取得 
@@ -48,6 +82,10 @@ namespace MMDsdk
 		// (&instance.GetFirstChar())[instance.GetLength()] <- 万死
 		const char& GetFirstChar() const;
 	private:
+		// 内部でnewを行うため隔離
+		TextBufferVariable(const TextBufferVariable&);
+		const TextBufferVariable& operator=(const TextBufferVariable&) const;
+
 		int mLength;
 		char* mStr;
 	};
@@ -59,6 +97,8 @@ namespace MMDsdk
 	class TextBufferFixed
 	{
 	public:
+		TextBufferFixed() {} ~TextBufferFixed() {}
+
 		const int GetLength() const
 		{
 			return mLength;
@@ -75,11 +115,12 @@ namespace MMDsdk
 			return mStr[0];
 		}
 	private:
+		TextBufferFixed(TextBufferFixed&);
+		const TextBufferFixed& operator=(const TextBufferFixed&) const;
+
 		const int mLength = size;
 		char mStr[size]{ '\0' };
 	};
-
-
 
 	// pmdファイルを読み込み、内部構造のまま安全に公開するクラス
 	// より上位のクラス（例：Modelクラスなど）がファイルのデータを得るためのクラス
@@ -95,6 +136,9 @@ namespace MMDsdk
 		// コンストラクタの処理で一気にファイルを読み込み閉じる
 		PmdFile(const char* filepath);  ~PmdFile();
 
+		// ディレクトリのパスを取得する
+		// テクスチャなどのファイルはすべて同じディレクトリに入れること //
+		const char& GetDirectoryPathStart() const;
 
 		// 以下データの構造体とその取得関数をペアで記述する
 		// 内部に配列を持つ場合は専用のロード関数を用意している
@@ -114,6 +158,12 @@ namespace MMDsdk
 			{
 				TextBufferFixed<20> modelName = {};
 				TextBufferFixed<256> comment = {};
+
+				ModelInfo(); ~ModelInfo();
+			private:
+				ModelInfo(ModelInfo&);
+				const ModelInfo& operator=(ModelInfo&) const;
+
 			} modelInfoJP = {};
 
 			// 拡張機能(1)　英語対応状況　英語モデル名
@@ -123,6 +173,11 @@ namespace MMDsdk
 
 			// ライブラリが使用する関数
 			void DebugOut() const;
+			Header(); ~Header();
+		private:
+			// コピー禁止
+			Header(const Header&);
+			const Header& operator=(const Header&) const;
 		};
 		const Header& GetHeader() const;
 		void DebugOutHeader() const;
@@ -155,6 +210,10 @@ namespace MMDsdk
 			// ライブラリが使用する関数
 			void LoadBoneID(void* _file);
 			void DebugOut() const;
+			Vertex(); ~Vertex();
+		private:
+			Vertex(const Vertex&);
+			const Vertex& operator=(const Vertex&) const;
 		};
 		const Vertex& GetVertex(const uint32_t i) const;
 		const uint32_t GetLastVertexID() const;
@@ -191,11 +250,15 @@ namespace MMDsdk
 				MEE_NONE = 99,
 			} edgeFlag = MEE_NONE;
 
-			uint32_t vertexCount=0;
+			uint32_t vertexCount = 0;
 			TextBufferFixed<20> texturePath = {};
 
 			// ライブラリが使用する関数
 			void DebugOut() const;
+			Material(); ~Material();
+		private:
+			Material(const Material&);
+			const Material& operator=(const Material&) const;
 		};
 		const Material& GetMaterial(const uint32_t i) const;
 		const uint32_t GetLastMaterialID() const;
@@ -237,6 +300,10 @@ namespace MMDsdk
 
 			// ライブラリが使用する関数
 			void DebugOut() const;
+			Bone(); ~Bone();
+		private:
+			Bone(const Bone&);
+			const Bone& operator=(const Bone&) const;
 		};
 		const Bone& GetBone(const uint16_t i) const;
 		const uint32_t GetLastBoneID() const;
@@ -245,7 +312,7 @@ namespace MMDsdk
 
 		//ikデータ
 		const uint16_t& GetIKCount() const;
-		struct IKData
+		struct IK_Data
 		{
 			uint16_t ikBoneIndex = 0;
 			uint16_t ikTargetBoneIndex = 0;
@@ -264,14 +331,16 @@ namespace MMDsdk
 
 			// ライブラリが使用する関数
 
-			// 可変長配列のロード用関数、デストラクタ
+			// 可変長配列のロード用関数、コンストラクタ　デストラクタ
 			// ユーザー側から呼び出すことはない
 			void LoadIkChildBoneID(void* _file);
-			~IKData();
-
 			void DebugOut() const;
+			IK_Data(); ~IK_Data();
+		private:
+			IK_Data(const IK_Data&);
+			const IK_Data& operator=(const IK_Data&) const;
 		};
-		const IKData& GetIKData(const uint16_t i) const;
+		const IK_Data& GetIKData(const uint16_t i) const;
 		const uint16_t GetLastIKDataID() const;
 		void DebugOutIKData(const uint16_t i) const;
 		void DebugOutAllIK() const;
@@ -285,16 +354,7 @@ namespace MMDsdk
 			TextBufferFixed<20> name = {};
 			uint32_t offsCount = 0;
 
-			// 0：base、1：まゆ、2：目、3：リップ、4：その他
-			enum MorphType : uint8_t
-			{
-				MT_BASE = 0,
-				MT_EYEBROW = 1,
-				MT_EYE = 2,
-				MT_LIP = 3,
-				MT_OTHER = 4,
-				MT_NONE
-			} type = MT_NONE;
+			MorphType type = MorphType::MT_NONE;
 
 			// typeで変数の役割が異なる
 			// 構造は同じ //
@@ -302,18 +362,33 @@ namespace MMDsdk
 			{
 				uint32_t baseIndex = 0;
 				float3 offsPosition = {};
+
+				MorphOffsData(); ~MorphOffsData();
+			private:
+				MorphOffsData(MorphOffsData&);
+				const MorphOffsData& operator=(const MorphOffsData&) const;
 			};
 			struct MorphBaseData
 			{
 				uint32_t index = 0;
 				float3 positon = {};
+
+				MorphBaseData(); ~MorphBaseData();
+			private:
+				MorphBaseData(MorphBaseData&);
+				const MorphBaseData& operator=(const MorphBaseData&) const;
 			};
 		private:
 			//可変長配列　:　要素数　vertexCount
 			union MorphData
 			{
-				MorphBaseData base;
+				MorphBaseData base = {};
 				MorphOffsData offs;
+
+				MorphData(); ~MorphData();
+			private:
+				MorphData(const MorphData&);
+				const MorphData& operator=(const MorphData&) const;
 			} *morphData = nullptr;
 
 		public:
@@ -328,11 +403,13 @@ namespace MMDsdk
 			// ライブラリが使用する関数
 			// 可変長配列のロード用関数
 			void LoadSkinVertex(void* _file);
-			~Morph();
-
 
 			// デバッグ出力　内部に長めの可変長配列を持つため、表示するかを選ぶ
 			void DebugOut(bool isOutVertexData = false) const;
+			Morph(); ~Morph();
+		private:
+			Morph(const Morph&);
+			const Morph& operator=(const Morph&) const;
 		};
 		//i = 0はbase
 		const Morph& GetMorph(const uint16_t i) const;
@@ -370,6 +447,10 @@ namespace MMDsdk
 			uint8_t boneDisplayFrameIndex = 0;
 
 			void DebugOut() const;
+			BoneForDisplay(); ~BoneForDisplay();
+		private:
+			BoneForDisplay(const BoneForDisplay&);
+			const BoneForDisplay& operator=(const BoneForDisplay&) const;
 		};
 		const BoneForDisplay& GetBoneForDisplay(const uint32_t i) const;
 		const uint32_t GetLastBoneForDisplayID() const;
@@ -390,8 +471,9 @@ namespace MMDsdk
 		struct Rigitbody
 		{
 			TextBufferFixed<20> name = {};
-			uint16_t relationshipBoneIndex = 0;
-			uint8_t groupIndex = 0;
+			uint16_t relationshipBoneID = 0;
+			// グループの番号　グループ1 = 0, グループ16 = 15,
+			uint8_t group = 0;
 			// 衝突対象のオブジェクト
 			// エディタ上では「非衝突対象」を選択するチェックボックスが表示されている
 			// 16~5,4,3,2,1 の順に並んでおり、
@@ -399,13 +481,8 @@ namespace MMDsdk
 			// 0x1111_1111_1101_1111 が格納される//
 			uint16_t groupTarget = 0;
 
-			enum RigitBodyShapeType : uint8_t
-			{
-				RST_SPHERE = 0,
-				RST_BOX = 1,
-				RST_CAPSULE = 2,
-				RST_NONE,
-			} shapeType = RST_NONE;
+			RigitbodyShapeType shapeType = RigitbodyShapeType::RST_NONE;
+
 			float shapeW = 0;
 			float shapeH = 0;
 			float shapeD = 0;
@@ -421,15 +498,14 @@ namespace MMDsdk
 			float rotationDim = 0.f;
 			float recoil = 0.f;
 			float friction = 0.f;
-			enum RigitBodyType : uint8_t
-			{
-				RT_BONE_FOLLOW = 0,
-				RT_RIGITBODY = 1,
-				RT_RIGITBODY_WITH_BONE_OFFS = 2,
-				RT_NONE,
-			} type = RT_NONE;
+
+			RigitbodyType type = RigitbodyType::RT_NONE;
 
 			void DebugOut() const;
+			Rigitbody(); ~Rigitbody();
+		private:
+			Rigitbody(const Rigitbody&);
+			const Rigitbody& operator=(const Rigitbody&) const;
 		};
 		const Rigitbody& GetRigitbody(const uint32_t i) const;
 		const uint32_t GetLastRigitbodyID() const;
@@ -463,6 +539,10 @@ namespace MMDsdk
 
 
 			void DebugOut() const;
+			Joint(); ~Joint();
+		private:
+			Joint(const Joint&);
+			const Joint& operator=(const Joint&) const;
 		};
 		const Joint& GetJoint(const uint32_t i) const;
 		const uint32_t GetLastJointID() const;
@@ -476,6 +556,9 @@ namespace MMDsdk
 		//既定のコンストラクタ、コピーコンストラクタ呼び出し禁止
 		//必ずファイル名を指定して生成すること
 		PmdFile(); PmdFile(const PmdFile& copy);
+		const PmdFile& operator=(const PmdFile&) const;
+
+		char* mDirectoryPath;
 
 		//　各種データ実態
 		Header mHeader;
@@ -493,7 +576,7 @@ namespace MMDsdk
 		Bone* mBone;
 
 		uint16_t mIKCount;
-		IKData* mIK;
+		IK_Data* mIK;
 
 		uint16_t mMorphCount;
 		Morph* mMorph;
@@ -502,6 +585,7 @@ namespace MMDsdk
 		uint16_t* mMorphForDisplay;
 
 		uint8_t mBoneNameForDisplayCount;
+		// 日本語表示用ボーン名は改行文字('\n' : 0x0a)で終わる　
 		TextBufferFixed<50>* mBoneNameForDisplay;
 
 		// 拡張機能(4)
@@ -528,33 +612,40 @@ namespace MMDsdk
 	public:
 		PmxFile(const char* filepath); ~PmxFile();
 
+		const char& GetDirectoryPathStart() const;
+
 		// ヘッダ情報
 		struct Header
 		{
 			float version = 0.f;
 			uint8_t fileConfigLength = 0;
-			enum EncodeType : uint8_t
-			{
-				UTF16 = 0,
-				UTF8 = 1,
-				INIT = 0xff
-			} encode = INIT;
+			EncodeType encode = EncodeType::INIT;
 			uint8_t additionalUVcount = 0;
-			uint8_t vertexIDsize = 0;
-			uint8_t textureIDsize = 0;
-			uint8_t materialIDsize = 0;
-			uint8_t boneIDsize = 0;
-			uint8_t morphIDsize = 0;
-			uint8_t rigitbodyIDsize = 0;
+			uint8_t vertexID_Size = 0;
+			uint8_t textureID_Size = 0;
+			uint8_t materialID_Size = 0;
+			uint8_t boneID_Size = 0;
+			uint8_t morphID_Size = 0;
+			uint8_t rigitbodyID_Size = 0;
 
 			struct ModelInfo
 			{
 				TextBufferVariable modelName = {};
 				TextBufferVariable comment = {};
+
+				ModelInfo(); ~ModelInfo();
+			private:
+				ModelInfo(const ModelInfo&);
+				const ModelInfo& operator=(const ModelInfo&) const;
 			} modelInfoJp = {};
+
 			ModelInfo modelInfoEng = {};
 
 			void DebugOut() const;
+			Header(); ~Header();
+		private:
+			Header(const Header&);
+			const Header& operator=(const Header&) const;
 		};
 		const Header& GetHeader() const;
 
@@ -597,8 +688,12 @@ namespace MMDsdk
 
 			// ライブラリ側が呼び出す関数
 			void LoadAddtionalUV(void* _file, const int32_t addtionalUVCount);
-			void LoadBoneIDAndWeight(void* _file, const uint8_t boneIDsize);
+			void LoadBoneIDAndWeight(void* _file, const uint8_t boneID_Size);
 			void DebugOut() const;
+			Vertex(); ~Vertex();
+		private:
+			Vertex(const Vertex&);
+			const Vertex& operator=(const Vertex&) const;
 		};
 		const Vertex& GetVertex(const int32_t i) const;
 		const int32_t GetLastVertexID() const;
@@ -628,7 +723,7 @@ namespace MMDsdk
 			TextBufferVariable nameEng = {};
 
 			float4 diffuse = {};
-			float3 specular={};
+			float3 specular = {};
 			float specularity = 0.f;
 			float3 ambient = {};
 			// 背面を描画するか
@@ -665,7 +760,7 @@ namespace MMDsdk
 				TM_SHARED = 1,
 				TM_NONE,
 			} toonMode = TM_NONE;
-			int32_t toonTextureID =0;
+			int32_t toonTextureID = 0;
 			TextBufferVariable memo = {};
 			int32_t vertexCount = 0;
 
@@ -675,6 +770,10 @@ namespace MMDsdk
 
 			// ライブラリ側が使用する関数
 			void DebugOut() const;
+			Material(); ~Material();
+		private:
+			Material(const Material&);
+			const Material& operator=(const Material&) const;
 		};
 		const Material& GetMaterial(const int32_t i) const;
 		const int32_t GetLastMaterialID() const;
@@ -730,14 +829,19 @@ namespace MMDsdk
 				// 接続先が座標オフセットの場合　0x0001 == true
 				float3 positionOffs = {};
 				// 接続先がボーンの場合 0x0001 == false
-				int32_t linkDestBoneID ;
+				int32_t linkDestBoneID;
 			};
 
 			struct AddData
 			{
 				int32_t addPalentBoneID = -1;
 				float addRatio = 0.f;
-			} addRot, addMov;
+
+				AddData(); ~AddData();
+			private:
+				AddData(const AddData&);
+				const AddData& operator=(const AddData&) const;
+			} addRot = {}, addMov = {};
 
 			float3 axisDirection = {};
 
@@ -763,6 +867,11 @@ namespace MMDsdk
 				} rotLimitConfig = IK_RLC_NONE;
 				float3 lowerLimit = {};
 				float3 upperLimit = {};
+
+				IK_Link(); ~IK_Link();
+			private:
+				IK_Link(const IK_Link&);
+				const IK_Link& operator=(const IK_Link&) const;
 			};
 		private:
 			// IKリンクデータ本体の可変長配列
@@ -780,10 +889,13 @@ namespace MMDsdk
 
 
 			// ライブラリ側が使用する関数
-			void LoadIK_Link(void* file, const size_t boneIDsize);
-			~Bone();
+			void LoadIK_Link(void* file, const size_t boneID_Size);
 
 			void DebugOut() const;
+			Bone(); ~Bone();
+		private:
+			Bone(const Bone&);
+			const Bone& operator=(const Bone&) const;
 		};
 		const Bone& GetBone(const int32_t i) const;
 		const int32_t GetLastBoneID() const;
@@ -797,7 +909,7 @@ namespace MMDsdk
 			TextBufferVariable name = {};
 			TextBufferVariable nameEng = {};
 			// pmd と共通
-			PmdFile::Morph::MorphType type = PmdFile::Morph::MorphType::MT_NONE;
+			MorphType type = MorphType::MT_NONE;
 			// pmx で追加
 			// グループモーフ　:2つ以上のモーフを同時行うモーフ
 			// 頂点モーフ　:頂点位置を変更するモーフpmdのモーフはすべてこれ
@@ -824,41 +936,61 @@ namespace MMDsdk
 			// グループモーフのオフセットデータ
 			struct GroupOffs
 			{
-				int32_t morphID = 0;
+				int32_t morphID = -1;
 				float morphRatio = 0.f;
 				void DebugOut() const;
+
+				GroupOffs(); ~GroupOffs();
+			private:
+				GroupOffs(const GroupOffs&);
+				const GroupOffs& operator=(const GroupOffs&) const;
 			};
 
 			// 頂点モーフのオフセットデータ
 			struct VertexOffs
 			{
-				int32_t vertexID = 0;
+				int32_t vertexID = -1;
 				float3 offsPos = {};
 				void DebugOut() const;
+
+				VertexOffs(); ~VertexOffs();
+			private:
+				VertexOffs(const VertexOffs&);
+				const VertexOffs& operator=(const VertexOffs&) const;
 			};
 
 			// ボーンモーフのオフセットデータ
 			struct BoneOffs
 			{
-				int32_t boneID = 0;
+				int32_t boneID = -1;
 				float3 offsPos = {};
 				float4 offsRotQ = {};
 				void DebugOut() const;
+
+				BoneOffs(); ~BoneOffs();
+			private:
+				BoneOffs(const BoneOffs&);
+				const BoneOffs& operator=(const BoneOffs&) const;
 			};
 
 			// UVモーフのオフセットデータ
 			struct UV_Offs
 			{
-				int32_t vertexID = 0;
+				int32_t vertexID = -1;
 				// 通常のUVの場合、z, w成分は使用しないが、データ上存在
 				float4 uv = {};
 				void DebugOut() const;
+
+				UV_Offs(); ~UV_Offs();
+			private:
+				UV_Offs(const UV_Offs&);
+				const UV_Offs& operator=(const UV_Offs) const;
 			};
 
 			// マテリアルモーフのオフセットデータ
 			struct MaterialOffs
 			{
-				int32_t materialID = {};
+				int32_t materialID = -1;
 				enum OffsType : uint8_t
 				{
 					OT_MUL = 0,
@@ -876,6 +1008,11 @@ namespace MMDsdk
 				float4 toonTextureScale = {};
 
 				void DebugOut() const;
+
+				MaterialOffs(); ~MaterialOffs();
+			private:
+				MaterialOffs(const MaterialOffs&);
+				const MaterialOffs& operator=(const MaterialOffs&) const;
 			};
 
 			// オフセットデータを格納する共用体
@@ -887,6 +1024,11 @@ namespace MMDsdk
 				BoneOffs boneOffs;
 				UV_Offs uvOffs;
 				MaterialOffs materialOffs = {};
+
+				MorphOffsData(); ~MorphOffsData();
+			private:
+				MorphOffsData(const MorphOffsData&);
+				const MorphOffsData& operator=(const MorphOffsData&) const;
 			};
 
 		private:
@@ -900,24 +1042,155 @@ namespace MMDsdk
 
 			// ライブラリ側が使用する関数
 			void LoadOffsData(void* _file, const size_t idByteSize);
-			~Morph();
-
 			void DebugOut(bool isOutOffsData) const;
+
+			Morph(); ~Morph();
+		private:
+			Morph(const Morph&);
+			const Morph& operator=(const Morph&) const;
 		};
 		const Morph& GetMorph(const int32_t i) const;
-		void DebugOutMorph(const int32_t i, bool isOutOffsData) const;
-		void DebugOutAllMorph(bool isOutOffsData) const;
+		const int32_t GetLastMorphID() const;
+		void DebugOutMorph(const int32_t i, bool isOutOffsData = false) const;
+		void DebugOutAllMorph(bool isOutOffsData = false) const;
 
 
 		// 表示枠データ
 		const int32_t& GetDisplayFrameCount() const;
+		struct DisplayFrame
+		{
+			TextBufferVariable name = {};
+			TextBufferVariable nameEng = {};
+			enum DisplayFrameType : uint8_t
+			{
+				DFT_NORMAL = 0,
+				DFT_SPECIAL = 1,
+				DFT_NONE
+			} type = DFT_NONE;
+			int32_t frameElementCount = 0;
+			struct FrameElement
+			{
+				enum FrameElementType : uint8_t
+				{
+					FET_BONE = 0,
+					FET_MORPH = 1,
+					FET_NONE
+				} elementType = FET_NONE;
+				int32_t objectID = -1;
 
+				FrameElement(); ~FrameElement();
+			private:
+				FrameElement(FrameElement&);
+				const FrameElement& operator=(const FrameElement&) const;
+			};
+		private:
+			FrameElement* frameElement = nullptr;
+		public:
+
+			const FrameElement& GetFrameElement(const int32_t i) const;
+
+			// ライブラリが使用する関数
+			void LoadFrameElement(void* _file, const size_t boneID_Size, const size_t morphID_Size);
+			void DebugOut() const;
+			DisplayFrame(); ~DisplayFrame();
+		private:
+			DisplayFrame(const DisplayFrame&);
+			const DisplayFrame& operator=(const DisplayFrame&) const;
+		};
+		const DisplayFrame& GetDisplayFrame(const int32_t i) const;
+		const int32_t GetLastDisplayFrameID() const;
+		void DebugOutDisplayFrame(const int32_t i) const;
+		void DebugOutAllDisplayFrame() const;
+
+		// 剛体データ
+		const int32_t& GetRigitbodyCount() const;
+		struct Rigitbody
+		{
+			TextBufferVariable name = {};
+			TextBufferVariable nameEng = {};
+			int32_t relationshipBoneID = -1;
+			uint8_t group = 0;
+			// 衝突対象のオブジェクト
+			// エディタ上では「非衝突対象」を選択するチェックボックスが表示されている
+			// 16~5,4,3,2,1 の順に並んでおり、
+			// 例えばエディタ上で6番が非衝突としてチェックされている場合は
+			// 0x1111_1111_1101_1111 が格納される//
+			uint16_t groupTarget = 0;
+
+			RigitbodyShapeType shapeType = RigitbodyShapeType::RST_NONE;
+
+			float shapeW = 0.f;
+			float shapeH = 0.f;
+			float shapeD = 0.f;
+			// pmdと異なり、pmxエディタ上の値と同じ値が格納されている
+			float3 position = {};
+			float3 rotation = { 4.f };
+			float weight = 0.f;
+			float positionDim = 0.f;
+			float rotationDim = 0.f;
+			float recoil = 0.f;
+			float friction = 0.f;
+
+			RigitbodyType type = RigitbodyType::RT_NONE;
+
+			void DebugOut() const;
+			Rigitbody(); ~Rigitbody();
+		private:
+			Rigitbody(const Rigitbody&);
+			const Rigitbody& operator=(const Rigitbody&) const;
+		};
+		const Rigitbody& GetRigitbody(const int32_t i) const;
+		const int32_t GetLastRigitbodyID() const;
+		void DebugOutRigitbody(const int32_t) const;
+		void DebugOutAllRigitbody() const;
+
+		// ジョイントデータ
+		const int32_t& GetJointCount() const;
+		struct Joint
+		{
+			TextBufferVariable name = {};
+			TextBufferVariable nameEng = {};
+
+			enum JointType : uint8_t
+			{
+				// PMX2.0では1つのみ
+				JT_SPRING_6_DOF = 0,
+				JT_NONE
+			} type = JT_NONE;
+
+			int32_t rigitbodyIndexA = 0;
+			int32_t rigitbodyIndexB = 0;
+
+			float3 position = {};
+			float3 rotation = {};
+			float3 posLowerLimit = {};
+			float3 posUpperLimit = {};
+			float3 rotLowerLimit = {};
+			float3 rotUpperLimit = {};
+			float3 springPos = {};
+			float3 springRot = {};
+
+			void DebugOut() const;
+			Joint(); ~Joint();
+		private:
+			Joint(const Joint&);
+			const Joint& operator=(const Joint&) const;
+		};
+		const Joint& GetJoint(const int32_t i) const;
+		const int32_t GetLastJointID() const;
+		void DebugOutJoint(const int32_t i) const;
+		void DebugOutAllJoint() const;
+
+		void DebugOutAllData() const;
 
 		//last
 
 	private:
 		// デフォルト、コピー禁止
 		PmxFile(); PmxFile(const PmxFile& copy);
+		const PmxFile& operator=(const PmxFile&) const;
+
+		char* mDirectoryPath;
 
 		Header mHeader;
 
@@ -940,6 +1213,14 @@ namespace MMDsdk
 		Morph* mMorph;
 
 		int32_t mDisplayFrameCount;
+		DisplayFrame* mDisplayFrame;
+
+		int32_t mRigitbodyCount;
+		Rigitbody* mRigitbody;
+
+		int32_t mJointCount;
+		Joint* mJoint;
+
 		//last
 	};
 

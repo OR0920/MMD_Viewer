@@ -1,16 +1,18 @@
+#include<Windows.h>
 #include<cassert>
+
 #include"MMDsdk.h"
 #include"System.h"
 
 #ifdef _DEBUG
 // pmxファイル専用 頂点以外、-1を非参照値として記録する
-#define NO_REF(i) if (i == -1)\
+#define ID_IS_NO_REF(i) if (i == -1)\
 {\
 	DebugMessage("index " << i << " is no ref")\
 	return {};\
 }
 // データを持たない場合、初期化の値を返す
-#define NO_DATA(dataPtr, count)\
+#define ALLAY_HAS_NO_DATA(dataPtr, count)\
 if(dataPtr == nullptr || count == 0)\
 {\
 	DebugMessage(ToString(dataPtr) << " has No Data ! ")\
@@ -35,10 +37,10 @@ DebugOutParam(f.w);
 
 // 汎用ポインタから、ファイル読み込み型への変換
 // ヘッダから型名を隠ぺいするため //
-#define GetFile(_file) *reinterpret_cast<FileReadBin*>(_file);
+#define GetFile(_file) *reinterpret_cast<System::FileReadBin*>(_file);
 
 using namespace MMDsdk;
-using namespace System;
+using System::SafeDeleteArray;
 
 
 //可変長テキストバッファの実装
@@ -46,10 +48,10 @@ using namespace System;
 TextBufferVariable::TextBufferVariable() : mLength(0), mStr(nullptr) {}
 TextBufferVariable::~TextBufferVariable()
 {
-	SafeDeleteArray(&mStr);
+	System::SafeDeleteArray(&mStr);
 }
 
-void TextBufferVariable::Load(void* _file)
+void TextBufferVariable::Load(void* _file, EncodeType encode)
 {
 	// 2重にロードさせない
 	if (mStr != nullptr)
@@ -58,17 +60,27 @@ void TextBufferVariable::Load(void* _file)
 		return;
 	}
 
+	
 	auto& file = GetFile(_file);
 	file.Read(mLength);
-	mStr = new char[mLength] {};
-	file.ReadArray(mStr, mLength);
+
+	char* s16 = new char[mLength + 2] {'\0'};
+	file.ReadArray(s16, mLength);
+
+	if (encode == EncodeType::UTF16)
+	{
+		auto bytesize = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, NULL, 0, NULL, NULL);
+		mStr = new char[bytesize] {};
+		WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, (LPSTR)mStr, bytesize, NULL, NULL);
+	}
+
+	SafeDeleteArray(&s16);
 }
 
 const int TextBufferVariable::GetLength() const
 {
 	return mLength;
 }
-
 
 const char& TextBufferVariable::GetFirstChar() const
 {
@@ -82,9 +94,11 @@ const char& TextBufferVariable::GetFirstChar() const
 	return *mStr;
 }
 
+
 PmdFile::PmdFile(const char* filepath)
 	:
-	mHeader({}),
+	mDirectoryPath(nullptr),
+	mHeader(),
 	mVertexCount(0),
 	mVertex(nullptr),
 	mIndexCount(0),
@@ -110,7 +124,7 @@ PmdFile::PmdFile(const char* filepath)
 	mJointCount(0),
 	mJoint(nullptr)
 {
-	FileReadBin file(filepath);
+	System::FileReadBin file(filepath);
 
 	// ファイルパスそのものが間違い
 	if (file.IsFileOpenSuccsess() == false)
@@ -138,6 +152,11 @@ PmdFile::PmdFile(const char* filepath)
 		return;
 	}
 
+	// ディレクトリのパスを取得する
+	System::NewArrayAndCopyDirPathFromFilePath(&mDirectoryPath, filepath);
+	DebugMessage(mDirectoryPath);
+	DebugMessageNewLine();
+
 	file.Read(mHeader.version);
 
 	// 諸々考慮した結果、やむを得ずconst_cast
@@ -155,7 +174,6 @@ PmdFile::PmdFile(const char* filepath)
 
 	//頂点の読み込み
 	file.Read(mVertexCount);
-	DebugOutParamI(mVertexCount);
 	mVertex = new Vertex[mVertexCount]{};
 	for (uint16_t i = 0; i < mVertexCount; ++i)
 	{
@@ -211,7 +229,7 @@ PmdFile::PmdFile(const char* filepath)
 
 	//IKデータ読み込み
 	file.Read(mIKCount);
-	mIK = new IKData[mIKCount]{};
+	mIK = new IK_Data[mIKCount];
 	for (uint32_t i = 0; i < mIKCount; ++i)
 	{
 		auto& ik = mIK[i];
@@ -332,8 +350,8 @@ PmdFile::PmdFile(const char* filepath)
 	{
 		auto& r = mRigitbody[i];
 		file.ReadArray(const_cast<char*>(&r.name.GetFirstChar()), r.name.GetLength());
-		file.Read(r.relationshipBoneIndex);
-		file.Read(r.groupIndex);
+		file.Read(r.relationshipBoneID);
+		file.Read(r.group);
 		file.Read(r.groupTarget);
 		file.Read(r.shapeType);
 		file.Read(r.shapeW);
@@ -391,7 +409,17 @@ PmdFile::~PmdFile()
 
 	SafeDeleteArray(&mIndex);
 	SafeDeleteArray(&mVertex);
+
+	SafeDeleteArray(&mDirectoryPath);
 }
+
+const char& PmdFile::GetDirectoryPathStart() const
+{
+	return mDirectoryPath[0];
+}
+
+PmdFile::Header::ModelInfo::ModelInfo() {}
+PmdFile::Header::ModelInfo::~ModelInfo() {}
 
 // コンソール出力関数、内部にif, forなどが入る場合は、デバッグ時のみ実装
 void PmdFile::Header::DebugOut() const
@@ -414,6 +442,9 @@ void PmdFile::Header::DebugOut() const
 #endif // _DEBUG
 }
 
+PmdFile::Header::Header() {}
+PmdFile::Header::~Header() {}
+
 const PmdFile::Header& PmdFile::GetHeader() const
 {
 	return mHeader;
@@ -431,7 +462,7 @@ const uint32_t& PmdFile::GetVertexCount() const
 
 const uint16_t& PmdFile::Vertex::GetBoneID(const int i) const
 {
-	NO_DATA(boneID, 2);
+	ALLAY_HAS_NO_DATA(boneID, 2);
 	IS_OUT_OF_RANGE(boneID, i, 2);
 	return boneID[i];
 }
@@ -454,9 +485,12 @@ void PmdFile::Vertex::DebugOut() const
 	DebugMessageNewLine();
 }
 
+PmdFile::Vertex::Vertex() {}
+PmdFile::Vertex::~Vertex() {}
+
 const PmdFile::Vertex& PmdFile::GetVertex(const uint32_t i) const
 {
-	NO_DATA(mVertex, mVertexCount);
+	ALLAY_HAS_NO_DATA(mVertex, mVertexCount);
 	IS_OUT_OF_RANGE(mVertex, i, mVertexCount);
 	return mVertex[i];
 }
@@ -489,7 +523,7 @@ const uint32_t& PmdFile::GetIndexCount() const
 
 const uint16_t& PmdFile::GetIndex(const uint32_t i) const
 {
-	NO_DATA(mIndex, mIndexCount);
+	ALLAY_HAS_NO_DATA(mIndex, mIndexCount);
 	IS_OUT_OF_RANGE(mIndex, i, mIndexCount);
 	return mIndex[i];
 }
@@ -534,9 +568,12 @@ void PmdFile::Material::DebugOut() const
 	DebugMessageNewLine();
 }
 
+PmdFile::Material::Material() {}
+PmdFile::Material::~Material() {}
+
 const PmdFile::Material& PmdFile::GetMaterial(const uint32_t i) const
 {
-	NO_DATA(mMaterial, mMaterialCount);
+	ALLAY_HAS_NO_DATA(mMaterial, mMaterialCount);
 	IS_OUT_OF_RANGE(mMaterial, i, mMaterialCount);
 	return mMaterial[i];
 }
@@ -579,9 +616,12 @@ void PmdFile::Bone::DebugOut() const
 	DebugMessageNewLine();
 }
 
+PmdFile::Bone::Bone() {}
+PmdFile::Bone::~Bone() {}
+
 const PmdFile::Bone& PmdFile::GetBone(const uint16_t i) const
 {
-	NO_DATA(mBone, mBoneCount);
+	ALLAY_HAS_NO_DATA(mBone, mBoneCount);
 	IS_OUT_OF_RANGE(mBone, i, mBoneCount);
 	return mBone[i];
 }
@@ -612,28 +652,23 @@ const uint16_t& PmdFile::GetIKCount() const
 	return mIKCount;
 }
 
-const uint16_t& PmdFile::IKData::GetIkChildBoneID(const int i) const
+const uint16_t& PmdFile::IK_Data::GetIkChildBoneID(const int i) const
 {
-	NO_DATA(ikChildBoneIndexArray, ikChainCount);
+	ALLAY_HAS_NO_DATA(ikChildBoneIndexArray, ikChainCount);
 	IS_OUT_OF_RANGE(ikChildBoneIndexArray, i, ikChainCount);
 	return ikChildBoneIndexArray[i];
 }
 
-void PmdFile::IKData::LoadIkChildBoneID(void* _file)
+void PmdFile::IK_Data::LoadIkChildBoneID(void* _file)
 {
 	// 汎用ポインタをキャスト
 	auto& file = GetFile(_file);
 	// 配列データ読み込み
-	ikChildBoneIndexArray = new uint16_t[ikChainCount]{};
+	ikChildBoneIndexArray = new uint16_t[ikChainCount];
 	file.ReadArray(ikChildBoneIndexArray, ikChainCount);
 }
 
-PmdFile::IKData::~IKData()
-{
-	SafeDeleteArray(&ikChildBoneIndexArray);
-}
-
-void PmdFile::IKData::DebugOut() const
+void PmdFile::IK_Data::DebugOut() const
 {
 	DebugOutParamI(ikBoneIndex);
 	DebugOutParamI(ikTargetBoneIndex);
@@ -647,9 +682,15 @@ void PmdFile::IKData::DebugOut() const
 	DebugMessageNewLine();
 }
 
-const PmdFile::IKData& PmdFile::GetIKData(const uint16_t i) const
+PmdFile::IK_Data::IK_Data() {}
+PmdFile::IK_Data::~IK_Data()
 {
-	NO_DATA(mIK, mIKCount);
+	SafeDeleteArray(&ikChildBoneIndexArray);
+}
+
+const PmdFile::IK_Data& PmdFile::GetIKData(const uint16_t i) const
+{
+	ALLAY_HAS_NO_DATA(mIK, mIKCount);
 	IS_OUT_OF_RANGE(mIK, i, mIKCount);
 	return mIK[i];
 }
@@ -685,16 +726,24 @@ const uint16_t PmdFile::GetMorphCountNotIncludeBase() const
 	return mMorphCount - 1;
 }
 
+PmdFile::Morph::MorphOffsData::MorphOffsData() {}
+PmdFile::Morph::MorphOffsData::~MorphOffsData() {}
+PmdFile::Morph::MorphBaseData::MorphBaseData() {}
+PmdFile::Morph::MorphBaseData::~MorphBaseData() {}
+
+PmdFile::Morph::MorphData::MorphData() {}
+PmdFile::Morph::MorphData::~MorphData() {}
+
 const PmdFile::Morph::MorphBaseData& PmdFile::Morph::GetMorphBaseData(const int i) const
 {
-	NO_DATA(morphData, offsCount);
+	ALLAY_HAS_NO_DATA(morphData, offsCount);
 	IS_OUT_OF_RANGE(morphData, i, offsCount);
 	return morphData[i].base;
 }
 
 const PmdFile::Morph::MorphOffsData& PmdFile::Morph::GetMorphOffsData(const int i) const
 {
-	NO_DATA(morphData, offsCount);
+	ALLAY_HAS_NO_DATA(morphData, offsCount);
 	IS_OUT_OF_RANGE(morphData, i, offsCount);
 	return morphData[i].offs;
 }
@@ -705,11 +754,6 @@ void PmdFile::Morph::LoadSkinVertex(void* _file)
 	auto& file = GetFile(_file);
 	morphData = new MorphData[offsCount]{};
 	file.ReadArray(morphData, offsCount);
-}
-
-PmdFile::Morph::~Morph()
-{
-	SafeDeleteArray(&morphData);
 }
 
 void PmdFile::Morph::DebugOut(bool isOutVertexData) const
@@ -725,7 +769,7 @@ void PmdFile::Morph::DebugOut(bool isOutVertexData) const
 		{
 			auto& sv = morphData[i];
 			DebugMessage(ToString(morphData) << "[" << i << "]");
-			if (type == Morph::MT_BASE)
+			if (type == MorphType::MT_BASE)
 			{
 				DebugOutParamI(sv.base.index);
 				DebugOutFloat3(sv.base.positon);
@@ -742,10 +786,15 @@ void PmdFile::Morph::DebugOut(bool isOutVertexData) const
 #endif // _DEBUG
 }
 
+PmdFile::Morph::Morph() {}
+PmdFile::Morph::~Morph()
+{
+	SafeDeleteArray(&morphData);
+}
 
 const PmdFile::Morph& PmdFile::GetMorph(const uint16_t i) const
 {
-	NO_DATA(mMorph, mMorphCount);
+	ALLAY_HAS_NO_DATA(mMorph, mMorphCount);
 	IS_OUT_OF_RANGE(mMorph, i, mMorphCount);
 	return mMorph[i];
 }
@@ -778,7 +827,7 @@ const uint8_t& PmdFile::GetMorphIndexForDisplayCount() const
 
 const uint16_t& PmdFile::GetMorphIndexForDisplay(const uint8_t i) const
 {
-	NO_DATA(mMorphForDisplay, mMorphForDisplayCount);
+	ALLAY_HAS_NO_DATA(mMorphForDisplay, mMorphForDisplayCount);
 	IS_OUT_OF_RANGE(mMorphForDisplay, i, mMorphForDisplayCount);
 	return mMorphForDisplay[i];
 }
@@ -823,7 +872,7 @@ const uint8_t& PmdFile::GetBoneNameForDisplayCount() const
 
 const TextBufferFixed<50>& PmdFile::GetBoneNameForDisplay(const uint8_t i) const
 {
-	NO_DATA(mBoneNameForDisplay, mBoneNameForDisplayCount);
+	ALLAY_HAS_NO_DATA(mBoneNameForDisplay, mBoneNameForDisplayCount);
 	IS_OUT_OF_RANGE(mBoneNameForDisplay, i, mBoneNameForDisplayCount);
 	return mBoneNameForDisplay[i];
 }
@@ -835,7 +884,7 @@ const uint8_t PmdFile::GetLastBoneNameForDisplayID() const
 
 const TextBufferFixed<50>& PmdFile::GetBoneNameForDisplayEng(const uint8_t i) const
 {
-	NO_DATA(mBoneNameForDisplayEng, mBoneNameForDisplayCount);
+	ALLAY_HAS_NO_DATA(mBoneNameForDisplayEng, mBoneNameForDisplayCount);
 	IS_OUT_OF_RANGE(mBoneNameForDisplayEng, i, mBoneNameForDisplayCount);
 	return mBoneNameForDisplayEng[i];
 }
@@ -870,9 +919,12 @@ void PmdFile::BoneForDisplay::DebugOut() const
 	DebugMessageNewLine();
 }
 
+PmdFile::BoneForDisplay::BoneForDisplay() {}
+PmdFile::BoneForDisplay::~BoneForDisplay() {}
+
 const PmdFile::BoneForDisplay& PmdFile::GetBoneForDisplay(const uint32_t i) const
 {
-	NO_DATA(mBoneForDisplay, mBoneForDisplayCount);
+	ALLAY_HAS_NO_DATA(mBoneForDisplay, mBoneForDisplayCount);
 	IS_OUT_OF_RANGE(mBoneForDisplay, i, mBoneForDisplayCount);
 	return mBoneForDisplay[i];
 }
@@ -953,8 +1005,8 @@ inline const float3 DegreeToRagianFloat3(float3 f3)
 void PmdFile::Rigitbody::DebugOut() const
 {
 	DebugOutString(GetText(name));
-	DebugOutParamI(relationshipBoneIndex);
-	DebugOutParamI(groupIndex);
+	DebugOutParamI(relationshipBoneID);
+	DebugOutParamI(group);
 	DebugOutParamBin(groupTarget, 16);
 	DebugOutParamI(shapeType);
 	DebugOutParam(shapeW);
@@ -971,9 +1023,12 @@ void PmdFile::Rigitbody::DebugOut() const
 	DebugMessageNewLine();
 }
 
+PmdFile::Rigitbody::Rigitbody() {}
+PmdFile::Rigitbody::~Rigitbody() {}
+
 const PmdFile::Rigitbody& PmdFile::GetRigitbody(const uint32_t i) const
 {
-	NO_DATA(mRigitbody, mRigitbodyCount);
+	ALLAY_HAS_NO_DATA(mRigitbody, mRigitbodyCount);
 	IS_OUT_OF_RANGE(mRigitbody, i, mRigitbodyCount);
 	return mRigitbody[i];
 }
@@ -1028,9 +1083,12 @@ void PmdFile::Joint::DebugOut() const
 	DebugMessageNewLine();
 }
 
+PmdFile::Joint::Joint() {}
+PmdFile::Joint::~Joint() {}
+
 const PmdFile::Joint& PmdFile::GetJoint(const uint32_t i) const
 {
-	NO_DATA(mJoint, mJointCount);
+	ALLAY_HAS_NO_DATA(mJoint, mJointCount);
 	IS_OUT_OF_RANGE(mJoint, i, mJointCount);
 	return mJoint[i];
 }
@@ -1090,7 +1148,7 @@ void PmdFile::DebugOutAllData() const
 // インデックス系のデータはエディタ側で1, 2, 4バイトで最適化されるため
 // バイト数に応じて、読み込み方を変える
 // 全て4バイトの整数型で保持する 
-void LoadID_AsInt32(FileReadBin& file, int32_t& buf, const size_t idByteSize)
+void LoadID_AsInt32(System::FileReadBin& file, int32_t& buf, const size_t idByteSize)
 {
 	buf = 0;
 	switch (idByteSize)
@@ -1123,7 +1181,8 @@ void LoadID_AsInt32(FileReadBin& file, int32_t& buf, const size_t idByteSize)
 
 PmxFile::PmxFile(const char* filepath)
 	:
-	mHeader({}),
+	mDirectoryPath(nullptr),
+	mHeader(),
 	mVertexCount(0),
 	mVertex(nullptr),
 	mIndexCount(0),
@@ -1136,10 +1195,15 @@ PmxFile::PmxFile(const char* filepath)
 	mBone(nullptr),
 	mMorphCount(0),
 	mMorph(nullptr),
-	mDisplayFrameCount(0)
+	mDisplayFrameCount(0),
+	mDisplayFrame(nullptr),
+	mRigitbodyCount(0),
+	mRigitbody(nullptr),
+	mJointCount(0),
+	mJoint(nullptr)
 	//last
 {
-	FileReadBin file(filepath);
+	System::FileReadBin file(filepath);
 
 	if (file.IsFileOpenSuccsess() == false)
 	{
@@ -1172,15 +1236,16 @@ PmxFile::PmxFile(const char* filepath)
 		}
 	}
 
+	System::NewArrayAndCopyDirPathFromFilePath(&mDirectoryPath, filepath);
 
 	file.Read(mHeader.version, 4);
 	file.Read(mHeader.fileConfigLength);
 	file.Read(mHeader.encode, mHeader.fileConfigLength);
 
-	mHeader.modelInfoJp.modelName.Load(&file);
-	mHeader.modelInfoEng.modelName.Load(&file);
-	mHeader.modelInfoJp.comment.Load(&file);
-	mHeader.modelInfoEng.comment.Load(&file);
+	mHeader.modelInfoJp.modelName.Load(&file, mHeader.encode);
+	mHeader.modelInfoEng.modelName.Load(&file, mHeader.encode);
+	mHeader.modelInfoJp.comment.Load(&file, mHeader.encode);
+	mHeader.modelInfoEng.comment.Load(&file, mHeader.encode);
 
 	// 頂点読み込み
 	file.Read(mVertexCount);
@@ -1196,7 +1261,7 @@ PmxFile::PmxFile(const char* filepath)
 			v.LoadAddtionalUV(&file, mHeader.additionalUVcount);
 		}
 		file.Read(v.weightType);
-		v.LoadBoneIDAndWeight(&file, mHeader.boneIDsize);
+		v.LoadBoneIDAndWeight(&file, mHeader.boneID_Size);
 		file.Read(v.edgeRate);
 	}
 
@@ -1205,9 +1270,9 @@ PmxFile::PmxFile(const char* filepath)
 	mIndex = new int32_t[mIndexCount]{};
 	for (int i = 0; i < mIndexCount; ++i)
 	{
-		LoadID_AsInt32(file, mIndex[i], mHeader.vertexIDsize);
+		LoadID_AsInt32(file, mIndex[i], mHeader.vertexID_Size);
 	}
-	//file.ReadArray(mIndex, mIndexCount, mHeader.vertexIDsize);
+	//file.ReadArray(mIndex, mIndexCount, mHeader.vertexID_Size);
 
 	// テクスチャ読み込み
 	file.Read(mTextureCount);
@@ -1215,7 +1280,7 @@ PmxFile::PmxFile(const char* filepath)
 
 	for (int i = 0; i < mTextureCount; ++i)
 	{
-		mTexturePath[i].Load(&file);
+		mTexturePath[i].Load(&file, mHeader.encode);
 	}
 
 	//DebugOutAllTexturePath();
@@ -1226,8 +1291,8 @@ PmxFile::PmxFile(const char* filepath)
 	for (int i = 0; i < mMaterialCount; ++i)
 	{
 		auto& m = mMaterial[i];
-		m.name.Load(&file);
-		m.nameEng.Load(&file);
+		m.name.Load(&file, mHeader.encode);
+		m.nameEng.Load(&file, mHeader.encode);
 		file.Read(m.diffuse);
 		file.Read(m.specular);
 		file.Read(m.specularity);
@@ -1235,12 +1300,12 @@ PmxFile::PmxFile(const char* filepath)
 		file.Read(m.drawConfig);
 		file.Read(m.edgeColor);
 		file.Read(m.edgeSize);
-		LoadID_AsInt32(file, m.textureID, mHeader.textureIDsize);
-		LoadID_AsInt32(file, m.sphereTextureID, mHeader.textureIDsize);
+		LoadID_AsInt32(file, m.textureID, mHeader.textureID_Size);
+		LoadID_AsInt32(file, m.sphereTextureID, mHeader.textureID_Size);
 		file.Read(m.sphereMode);
 		file.Read(m.toonMode);
-		LoadID_AsInt32(file, m.toonTextureID, mHeader.textureIDsize);
-		m.memo.Load(&file);
+		LoadID_AsInt32(file, m.toonTextureID, mHeader.textureID_Size);
+		m.memo.Load(&file, mHeader.encode);
 		file.Read(m.vertexCount);
 	}
 
@@ -1250,15 +1315,15 @@ PmxFile::PmxFile(const char* filepath)
 	for (int i = 0; i < mBoneCount; ++i)
 	{
 		auto& b = mBone[i];
-		b.name.Load(&file);
-		b.nameEng.Load(&file);
+		b.name.Load(&file, mHeader.encode);
+		b.nameEng.Load(&file, mHeader.encode);
 		file.Read(b.position);
-		LoadID_AsInt32(file, b.parentBoneID, mHeader.boneIDsize);
+		LoadID_AsInt32(file, b.parentBoneID, mHeader.boneID_Size);
 		file.Read(b.transformHierarchy);
 		file.Read(b.bc);
 		if (b.GetBoneConfig(Bone::BoneConfig::BC_IS_LINK_DEST_BY_BONE) == true)
 		{
-			LoadID_AsInt32(file, b.linkDestBoneID, mHeader.boneIDsize);
+			LoadID_AsInt32(file, b.linkDestBoneID, mHeader.boneID_Size);
 		}
 		else
 		{
@@ -1270,7 +1335,7 @@ PmxFile::PmxFile(const char* filepath)
 			(
 				file,
 				b.addRot.addPalentBoneID,
-				mHeader.boneIDsize
+				mHeader.boneID_Size
 			);
 			file.Read(b.addRot.addRatio);
 		}
@@ -1280,7 +1345,7 @@ PmxFile::PmxFile(const char* filepath)
 			(
 				file,
 				b.addMov.addPalentBoneID,
-				mHeader.boneIDsize
+				mHeader.boneID_Size
 			);
 			file.Read(b.addMov.addRatio);
 		}
@@ -1299,11 +1364,11 @@ PmxFile::PmxFile(const char* filepath)
 		}
 		if (b.GetBoneConfig(Bone::BoneConfig::BC_IK) == true)
 		{
-			LoadID_AsInt32(file, b.ikTargetBoneID, mHeader.boneIDsize);
+			LoadID_AsInt32(file, b.ikTargetBoneID, mHeader.boneID_Size);
 			file.Read(b.ikLoopCount);
 			file.Read(b.ikRotateLimit);
 			file.Read(b.ikLinkCount);
-			b.LoadIK_Link(&file, mHeader.boneIDsize);
+			b.LoadIK_Link(&file, mHeader.boneID_Size);
 		}
 	}
 
@@ -1313,9 +1378,8 @@ PmxFile::PmxFile(const char* filepath)
 	for (int i = 0; i < mMorphCount; ++i)
 	{
 		auto& mph = mMorph[i];
-		mph.name.Load(&file);
-		DebugMessageWide(GetText(mph.name));
-		mph.nameEng.Load(&file);
+		mph.name.Load(&file, mHeader.encode);
+		mph.nameEng.Load(&file, mHeader.encode);
 		file.Read(mph.type);
 		file.Read(mph.typeEX);
 		file.Read(mph.offsCount);
@@ -1325,23 +1389,23 @@ PmxFile::PmxFile(const char* filepath)
 		switch (mph.typeEX)
 		{
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_GROUP:
-			mph.LoadOffsData(&file, mHeader.morphIDsize);
+			mph.LoadOffsData(&file, mHeader.morphID_Size);
 			break;
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_VERTEX:
-			mph.LoadOffsData(&file, mHeader.vertexIDsize);
+			mph.LoadOffsData(&file, mHeader.vertexID_Size);
 			break;
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_BONE:
-			mph.LoadOffsData(&file, mHeader.boneIDsize);
+			mph.LoadOffsData(&file, mHeader.boneID_Size);
 			break;
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_UV:
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_ADDTIONAL_UV_1:
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_ADDTIONAL_UV_2:
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_ADDTIONAL_UV_3:
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_ADDTIONAL_UV_4:
-			mph.LoadOffsData(&file, mHeader.vertexIDsize);
+			mph.LoadOffsData(&file, mHeader.vertexID_Size);
 			break;
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_MATERIAL:
-			mph.LoadOffsData(&file, mHeader.materialIDsize);
+			mph.LoadOffsData(&file, mHeader.materialID_Size);
 			break;
 		case MMDsdk::PmxFile::Morph::MorphTypeEX::MTEX_NONE:
 			break;
@@ -1353,49 +1417,120 @@ PmxFile::PmxFile(const char* filepath)
 
 	// 表示枠データの読み込み
 	file.Read(mDisplayFrameCount);
+	mDisplayFrame = new DisplayFrame[mDisplayFrameCount]{};
+	for (int i = 0; i < mDisplayFrameCount; ++i)
+	{
+		auto& d = mDisplayFrame[i];
 
+		d.name.Load(&file, mHeader.encode);
+		d.nameEng.Load(&file, mHeader.encode);
+		file.Read(d.type);
+		file.Read(d.frameElementCount);
+		d.LoadFrameElement(&file, mHeader.boneID_Size, mHeader.morphID_Size);
+	}
 
+	// 剛体の読み込み
+	file.Read(mRigitbodyCount);
+	mRigitbody = new Rigitbody[mRigitbodyCount]{};
+	for (int i = 0; i < mRigitbodyCount; ++i)
+	{
+		auto& r = mRigitbody[i];
+
+		r.name.Load(&file, mHeader.encode);
+		r.nameEng.Load(&file, mHeader.encode);
+		LoadID_AsInt32(file, r.relationshipBoneID, mHeader.boneID_Size);
+		file.Read(r.group);
+		file.Read(r.groupTarget);
+		file.Read(r.shapeType);
+		file.Read(r.shapeW);
+		file.Read(r.shapeH);
+		file.Read(r.shapeD);
+		file.Read(r.position);
+		file.Read(r.rotation);
+		file.Read(r.weight);
+		file.Read(r.positionDim);
+		file.Read(r.rotationDim);
+		file.Read(r.recoil);
+		file.Read(r.friction);
+		file.Read(r.type);
+	}
+
+	file.Read(mJointCount);
+	mJoint = new Joint[mJointCount]{};
+	for (int i = 0; i < mJointCount; ++i)
+	{
+		auto& j = mJoint[i];
+		j.name.Load(&file, mHeader.encode);
+		j.nameEng.Load(&file, mHeader.encode);
+		file.Read(j.type);
+		LoadID_AsInt32(file, j.rigitbodyIndexA, mHeader.rigitbodyID_Size);
+		LoadID_AsInt32(file, j.rigitbodyIndexB, mHeader.rigitbodyID_Size);
+		file.Read(j.position);
+		file.Read(j.rotation);
+		file.Read(j.posLowerLimit);
+		file.Read(j.posUpperLimit);
+		file.Read(j.rotLowerLimit);
+		file.Read(j.rotUpperLimit);
+		file.Read(j.springPos);
+		file.Read(j.springRot);
+	}
+
+	DebugMessageNewLine();
 	//last
 }
 
 PmxFile::~PmxFile()
 {
+	SafeDeleteArray(&mJoint);
+	SafeDeleteArray(&mRigitbody);
+	SafeDeleteArray(&mDisplayFrame);
 	SafeDeleteArray(&mMorph);
 	SafeDeleteArray(&mBone);
 	SafeDeleteArray(&mMaterial);
 	SafeDeleteArray(&mTexturePath);
 	SafeDeleteArray(&mIndex);
 	SafeDeleteArray(&mVertex);
+	SafeDeleteArray(&mDirectoryPath);
 }
+
+const char& PmxFile::GetDirectoryPathStart() const
+{
+	return mDirectoryPath[0];
+}
+
+PmxFile::Header::ModelInfo::ModelInfo() {}
+PmxFile::Header::ModelInfo::~ModelInfo() {}
 
 void PmxFile::Header::DebugOut() const
 {
 	DebugMessage("PMXFile /////////////////////////////////////////");
 	DebugMessage("<<<<ModelName>>>");
-	DebugMessageWide(GetText(modelInfoJp.modelName));
+	DebugMessage(GetText(modelInfoJp.modelName));
 	DebugMessage("<<<<ModelName Eng>>>");
-	DebugMessageWide(GetText(modelInfoEng.modelName));
+	DebugMessage(GetText(modelInfoEng.modelName));
 	DebugMessageNewLine();
 	DebugMessage("<<<<Comment>>>");
-	DebugMessageWide(GetText(modelInfoJp.comment));
+	DebugMessage(GetText(modelInfoJp.comment));
 	DebugMessageNewLine();
 	DebugMessage("<<<<Comment Eng>>>");
-	DebugMessageWide(GetText(modelInfoEng.comment));
+	DebugMessage(GetText(modelInfoEng.comment));
 	DebugMessageNewLine();
 	DebugOutParam(version);
 	DebugOutParamI(encode);
 	DebugOutParamI(additionalUVcount);
-	DebugOutParamI(vertexIDsize);
-	DebugOutParamI(textureIDsize);
-	DebugOutParamI(materialIDsize);
-	DebugOutParamI(boneIDsize);
-	DebugOutParamI(morphIDsize);
-	DebugOutParamI(rigitbodyIDsize);
+	DebugOutParamI(vertexID_Size);
+	DebugOutParamI(textureID_Size);
+	DebugOutParamI(materialID_Size);
+	DebugOutParamI(boneID_Size);
+	DebugOutParamI(morphID_Size);
+	DebugOutParamI(rigitbodyID_Size);
 	DebugMessageNewLine();
 	DebugMessage("/////////////////////////////////////////////////");
 	DebugMessageNewLine();
 }
 
+PmxFile::Header::Header() {}
+PmxFile::Header::~Header() {}
 
 const PmxFile::Header& PmxFile::GetHeader() const
 {
@@ -1433,29 +1568,29 @@ void PmxFile::Vertex::LoadAddtionalUV(void* _file, const int32_t addtionalUVCoun
 	file.ReadArray(addtionalUV, addtionalUVCount);
 }
 
-void PmxFile::Vertex::LoadBoneIDAndWeight(void* _file, const uint8_t boneIDsize)
+void PmxFile::Vertex::LoadBoneIDAndWeight(void* _file, const uint8_t boneID_Size)
 {
 	auto& file = GetFile(_file);
 	switch (weightType)
 	{
 	case MMDsdk::PmxFile::Vertex::BDEF1:
-		LoadID_AsInt32(file, boneID[0], boneIDsize);
-		//file.Read(boneID[0], boneIDsize);
+		LoadID_AsInt32(file, boneID[0], boneID_Size);
+		//file.Read(boneID[0], boneID_Size);
 		weight[0] = 1.f;
 		break;
 	case MMDsdk::PmxFile::Vertex::BDEF2:
-		LoadID_AsInt32(file, boneID[0], boneIDsize);
-		LoadID_AsInt32(file, boneID[1], boneIDsize);
+		LoadID_AsInt32(file, boneID[0], boneID_Size);
+		LoadID_AsInt32(file, boneID[1], boneID_Size);
 		file.Read(weight[0]);
 		weight[1] = 1 - weight[0];
 		break;
 	case MMDsdk::PmxFile::Vertex::BDEF4:
-		for (int i = 0; i < 4; ++i)	LoadID_AsInt32(file, boneID[i], boneIDsize);
+		for (int i = 0; i < 4; ++i)	LoadID_AsInt32(file, boneID[i], boneID_Size);
 		for (int i = 0; i < 4; ++i)	file.Read(weight[i]);
 		break;
 	case MMDsdk::PmxFile::Vertex::SDEF:
-		LoadID_AsInt32(file, boneID[0], boneIDsize);
-		LoadID_AsInt32(file, boneID[1], boneIDsize);
+		LoadID_AsInt32(file, boneID[0], boneID_Size);
+		LoadID_AsInt32(file, boneID[1], boneID_Size);
 		file.Read(weight[0]);
 		weight[1] = 1 - weight[0];
 		file.Read(sdefC);
@@ -1491,9 +1626,12 @@ void PmxFile::Vertex::DebugOut() const
 	DebugMessageNewLine();
 }
 
+PmxFile::Vertex::Vertex() {}
+PmxFile::Vertex::~Vertex() {}
+
 const PmxFile::Vertex& PmxFile::GetVertex(const int32_t i) const
 {
-	NO_DATA(mVertex, mVertexCount);
+	ALLAY_HAS_NO_DATA(mVertex, mVertexCount);
 	IS_OUT_OF_RANGE(mVertex, i, mVertexCount);
 	return mVertex[i];
 }
@@ -1512,7 +1650,7 @@ void PmxFile::DebugOutVertex(const int32_t i) const
 void PmxFile::DebugOutAllVertex() const
 {
 #ifdef _DEBUG
-	for (int32_t i = 0; i < mVertexCount; ++i)
+	for (int i = 0; i < mVertexCount; ++i)
 	{
 		DebugOutVertex(i);
 	}
@@ -1526,7 +1664,7 @@ const int32_t& PmxFile::GetIndexCount() const
 
 const int32_t& PmxFile::GetIndex(const int32_t i) const
 {
-	NO_DATA(mIndex, mIndexCount);
+	ALLAY_HAS_NO_DATA(mIndex, mIndexCount);
 	IS_OUT_OF_RANGE(mIndex, i, mIndexCount);
 	return mIndex[i];
 }
@@ -1560,8 +1698,8 @@ const int32_t& PmxFile::GetTextureCount() const
 
 const TextBufferVariable& PmxFile::GetTexturePath(const int32_t i) const
 {
-	NO_REF(i);
-	NO_DATA(mTexturePath, mTextureCount);
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mTexturePath, mTextureCount);
 	IS_OUT_OF_RANGE(mTexturePath, i, mTextureCount);
 	return mTexturePath[i];
 }
@@ -1574,7 +1712,7 @@ const int32_t PmxFile::GetLastTextureID() const
 void PmxFile::DebugOutTexturePath(const int32_t i) const
 {
 	DebugMessage("Texture [" << i << "]");
-	DebugMessageWide(GetText(GetTexturePath(i)));
+	DebugMessage(GetText(GetTexturePath(i)));
 	DebugMessageNewLine();
 }
 
@@ -1600,8 +1738,8 @@ bool PmxFile::Material::GetDrawConfig(DrawConfig bitflag) const
 
 void PmxFile::Material::DebugOut() const
 {
-	DebugMessageWide(GetText(name));
-	DebugMessageWide(GetText(nameEng));
+	DebugMessage(GetText(name));
+	DebugMessage(GetText(nameEng));
 	DebugOutFloat4(diffuse);
 	DebugOutFloat3(specular);
 	DebugOutParam(specularity);
@@ -1615,15 +1753,18 @@ void PmxFile::Material::DebugOut() const
 	DebugOutParamI(toonMode);
 	DebugOutParamI(toonTextureID);
 	DebugMessage("<<< memo >>>");
-	DebugMessageWide(GetText(memo));
+	DebugMessage(GetText(memo));
 	DebugOutParamI(vertexCount / 3);
 	DebugMessageNewLine();
 }
 
+PmxFile::Material::Material() {}
+PmxFile::Material::~Material() {}
+
 const PmxFile::Material& PmxFile::GetMaterial(const int32_t i) const
 {
-	NO_REF(i);
-	NO_DATA(mMaterial, mMaterialCount);
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mMaterial, mMaterialCount);
 	IS_OUT_OF_RANGE(mMaterial, i, mMaterialCount);
 	return mMaterial[i];
 }
@@ -1643,7 +1784,7 @@ void PmxFile::DebugOutMaterial(const int32_t i) const
 void PmxFile::DebugOutAllMaterial() const
 {
 #ifdef _DEBUG
-	for (int32_t i = 0; i < mMaterialCount; ++i)
+	for (int i = 0; i < mMaterialCount; ++i)
 	{
 		DebugOutMaterial(i);
 	}
@@ -1655,6 +1796,12 @@ const int32_t& PmxFile::GetBoneCount() const
 	return mBoneCount;
 }
 
+PmxFile::Bone::AddData::AddData() {}
+PmxFile::Bone::AddData::~AddData() {}
+
+PmxFile::Bone::IK_Link::IK_Link() {}
+PmxFile::Bone::IK_Link::~IK_Link() {}
+
 bool PmxFile::Bone::GetBoneConfig(BoneConfig bitFlag) const
 {
 	return bc & bitFlag;
@@ -1662,19 +1809,19 @@ bool PmxFile::Bone::GetBoneConfig(BoneConfig bitFlag) const
 
 const PmxFile::Bone::IK_Link& PmxFile::Bone::GetIK_Link(const int32_t i) const
 {
-	NO_DATA(ikLink, ikLinkCount);
+	ALLAY_HAS_NO_DATA(ikLink, ikLinkCount);
 	IS_OUT_OF_RANGE(ikLink, i, ikLinkCount);
 	return ikLink[i];
 }
 
-void PmxFile::Bone::LoadIK_Link(void* _file, const size_t boneIDsize)
+void PmxFile::Bone::LoadIK_Link(void* _file, const size_t boneID_Size)
 {
 	auto& file = GetFile(_file);
 	ikLink = new IK_Link[ikLinkCount]{};
 	for (int i = 0; i < ikLinkCount; ++i)
 	{
 		auto& ikl = ikLink[i];
-		LoadID_AsInt32(file, ikl.linkBoneID, boneIDsize);
+		LoadID_AsInt32(file, ikl.linkBoneID, boneID_Size);
 		file.Read(ikl.rotLimitConfig);
 		if (ikl.rotLimitConfig == IK_Link::IK_RLC_ON)
 		{
@@ -1684,17 +1831,11 @@ void PmxFile::Bone::LoadIK_Link(void* _file, const size_t boneIDsize)
 	}
 }
 
-PmxFile::Bone::~Bone()
-{
-	//DebugMessage("pmx bone deleted");
-	SafeDeleteArray(&ikLink);
-}
-
 void PmxFile::Bone::DebugOut() const
 {
 #ifdef _DEBUG
-	DebugMessageWide(GetText(name));
-	DebugMessageWide(GetText(nameEng));
+	DebugMessage(GetText(name));
+	DebugMessage(GetText(nameEng));
 	DebugOutFloat3(position);
 	DebugOutParamI(parentBoneID);
 	DebugOutParamI(transformHierarchy);
@@ -1727,13 +1868,22 @@ void PmxFile::Bone::DebugOut() const
 		DebugOutFloat3(ikl.lowerLimit);
 		DebugOutFloat3(ikl.upperLimit);
 	}
+	DebugMessageNewLine();
 #endif // _DEBUG
+}
+
+PmxFile::Bone::Bone() {}
+
+PmxFile::Bone::~Bone()
+{
+	//DebugMessage("pmx bone deleted");
+	SafeDeleteArray(&ikLink);
 }
 
 const PmxFile::Bone& PmxFile::GetBone(const int32_t i) const
 {
-	NO_REF(i);
-	NO_DATA(mBone, mBoneCount);
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mBone, mBoneCount);
 	IS_OUT_OF_RANGE(mBone, i, mBoneCount);
 	return mBone[i];
 }
@@ -1772,11 +1922,17 @@ void PmxFile::Morph::GroupOffs::DebugOut() const
 	DebugOutParam(morphRatio);
 }
 
+PmxFile::Morph::GroupOffs::GroupOffs() {}
+PmxFile::Morph::GroupOffs::~GroupOffs() {}
+
 void PmxFile::Morph::VertexOffs::DebugOut() const
 {
 	DebugOutParamI(vertexID);
 	DebugOutFloat3(offsPos);
 }
+
+PmxFile::Morph::VertexOffs::VertexOffs() {}
+PmxFile::Morph::VertexOffs::~VertexOffs() {}
 
 void PmxFile::Morph::BoneOffs::DebugOut() const
 {
@@ -1785,11 +1941,17 @@ void PmxFile::Morph::BoneOffs::DebugOut() const
 	DebugOutFloat4(offsRotQ);
 }
 
+PmxFile::Morph::BoneOffs::BoneOffs() {}
+PmxFile::Morph::BoneOffs::~BoneOffs() {}
+
 void PmxFile::Morph::UV_Offs::DebugOut() const
 {
 	DebugOutParamI(vertexID);
 	DebugOutFloat4(uv);
 }
+
+PmxFile::Morph::UV_Offs::UV_Offs() {}
+PmxFile::Morph::UV_Offs::~UV_Offs() {}
 
 void PmxFile::Morph::MaterialOffs::DebugOut() const
 {
@@ -1819,11 +1981,16 @@ void PmxFile::Morph::MaterialOffs::DebugOut() const
 	DebugOutFloat4(toonTextureScale);
 }
 
+PmxFile::Morph::MaterialOffs::MaterialOffs() {}
+PmxFile::Morph::MaterialOffs::~MaterialOffs() {}
+
+PmxFile::Morph::MorphOffsData::MorphOffsData() {}
+PmxFile::Morph::MorphOffsData::~MorphOffsData() {}
 
 const PmxFile::Morph::MorphOffsData& PmxFile::Morph::GetMorphOffsData(const int32_t i) const
 {
-	NO_REF(i);
-	NO_DATA(morphOffsData, offsCount);
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(morphOffsData, offsCount);
 	IS_OUT_OF_RANGE(morphOffsData, i, offsCount);
 	return morphOffsData[i];
 }
@@ -1884,35 +2051,30 @@ void PmxFile::Morph::LoadOffsData(void* _file, const size_t idByteSize)
 }
 
 
-PmxFile::Morph::~Morph()
-{
-	SafeDeleteArray(&morphOffsData);
-}
-
 
 void PmxFile::Morph::DebugOut(bool isOutOffsData) const
 {
 #ifdef _DEBUG
-	DebugMessageWide(GetText(name));
-	DebugMessageWide(GetText(nameEng));
+	DebugMessage(GetText(name));
+	DebugMessage(GetText(nameEng));
 	switch (type)
 	{
-	case MMDsdk::PmdFile::Morph::MT_BASE:
+	case MorphType::MT_BASE:
 		DebugMessage(ToString(type) << " = MT_BASE");
 		break;
-	case MMDsdk::PmdFile::Morph::MT_EYEBROW:
+	case MorphType::MT_EYEBROW:
 		DebugMessage(ToString(type) << " = MT_EYEBROW");
 		break;
-	case MMDsdk::PmdFile::Morph::MT_EYE:
+	case MorphType::MT_EYE:
 		DebugMessage(ToString(type) << " = MT_EYE");
 		break;
-	case MMDsdk::PmdFile::Morph::MT_LIP:
+	case MorphType::MT_LIP:
 		DebugMessage(ToString(type) << " = MT_LIP");
 		break;
-	case MMDsdk::PmdFile::Morph::MT_OTHER:
+	case MorphType::MT_OTHER:
 		DebugMessage(ToString(type) << " = MT_OTHER");
 		break;
-	case MMDsdk::PmdFile::Morph::MT_NONE:
+	case MorphType::MT_NONE:
 		DebugMessage(ToString(type) << " = MT_NONE");
 		break;
 	default:
@@ -1982,14 +2144,26 @@ void PmxFile::Morph::DebugOut(bool isOutOffsData) const
 #endif // _DEBUG
 }
 
+
+PmxFile::Morph::Morph() {}
+PmxFile::Morph::~Morph()
+{
+	SafeDeleteArray(&morphOffsData);
+}
+
+
 const PmxFile::Morph& PmxFile::GetMorph(const int32_t i) const
 {
-	NO_REF(i);
-	NO_DATA(mMorph, mMorphCount);
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mMorph, mMorphCount);
 	IS_OUT_OF_RANGE(mMorph, i, mMorphCount);
 	return mMorph[i];
 }
 
+const int32_t PmxFile::GetLastMorphID() const
+{
+	return mMorphCount - 1;
+}
 
 void PmxFile::DebugOutMorph(const int32_t i, bool isOutVertexData) const
 {
@@ -2000,7 +2174,7 @@ void PmxFile::DebugOutMorph(const int32_t i, bool isOutVertexData) const
 void PmxFile::DebugOutAllMorph(bool isOutVertexData) const
 {
 #ifdef _DEBUG
-	for (uint16_t i = 0; i < mMorphCount; ++i)
+	for (int i = 0; i < mMorphCount; ++i)
 	{
 		DebugOutMorph(i, isOutVertexData);
 	}
@@ -2011,6 +2185,267 @@ void PmxFile::DebugOutAllMorph(bool isOutVertexData) const
 const int32_t& PmxFile::GetDisplayFrameCount() const
 {
 	return mDisplayFrameCount;
+}
+
+PmxFile::DisplayFrame::FrameElement::FrameElement() {}
+PmxFile::DisplayFrame::FrameElement::~FrameElement() {}
+
+const PmxFile::DisplayFrame::FrameElement& PmxFile::DisplayFrame::GetFrameElement(const int32_t i) const
+{
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(frameElement, frameElementCount);
+	IS_OUT_OF_RANGE(frameElement, i, frameElementCount);
+	return frameElement[i];
+}
+
+void PmxFile::DisplayFrame::LoadFrameElement(void* _file, const size_t boneID_Size, const size_t morphID_Size)
+{
+	auto& file = GetFile(_file);
+	frameElement = new FrameElement[frameElementCount]{};
+	for (int i = 0; i < frameElementCount; ++i)
+	{
+		auto& fe = frameElement[i];
+		file.Read(fe.elementType);
+		switch (fe.elementType)
+		{
+		case FrameElement::FrameElementType::FET_BONE:
+			LoadID_AsInt32(file, fe.objectID, boneID_Size);
+			break;
+		case FrameElement::FrameElementType::FET_MORPH:
+			LoadID_AsInt32(file, fe.objectID, morphID_Size);
+			break;
+		default:
+			break;
+		}
+
+	}
+}
+
+void PmxFile::DisplayFrame::DebugOut() const
+{
+#ifdef _DEBUG
+	DebugMessage(GetText(name));
+	DebugMessage(GetText(nameEng));
+	switch (type)
+	{
+	case MMDsdk::PmxFile::DisplayFrame::DFT_NORMAL:
+		DebugMessage("type = DFT_NORMAL");
+		break;
+	case MMDsdk::PmxFile::DisplayFrame::DFT_SPECIAL:
+		DebugMessage("type = DFT_SPECIAL");
+		break;
+	case MMDsdk::PmxFile::DisplayFrame::DFT_NONE:
+		break;
+	default:
+		break;
+	}
+	for (int i = 0; i < frameElementCount; ++i)
+	{
+		auto& fe = GetFrameElement(i);
+		DebugMessage("FrameElement [" << i << "]");
+		switch (fe.elementType)
+		{
+		case FrameElement::FrameElementType::FET_BONE:
+			DebugMessage("elementType = FET_BONE");
+			DebugOutParamI(fe.objectID);
+			break;
+		case FrameElement::FrameElementType::FET_MORPH:
+			DebugMessage("elementType = FET_MORPH");
+			DebugOutParamI(fe.objectID);
+			break;
+		default:
+			break;
+		}
+	}
+#endif // _DEBUG
+}
+
+PmxFile::DisplayFrame::DisplayFrame() {}
+PmxFile::DisplayFrame::~DisplayFrame()
+{
+	SafeDeleteArray(&frameElement);
+}
+
+const PmxFile::DisplayFrame& PmxFile::GetDisplayFrame(const int32_t i) const
+{
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mDisplayFrame, mDisplayFrameCount);
+	IS_OUT_OF_RANGE(mDisplayFrame, i, mDisplayFrameCount);
+	return mDisplayFrame[i];
+}
+
+const int32_t PmxFile::GetLastDisplayFrameID() const
+{
+	return mDisplayFrameCount - 1;
+}
+
+
+void PmxFile::DebugOutDisplayFrame(const int32_t i) const
+{
+	DebugMessage("DisplayFrame [" << i << "]");
+	GetDisplayFrame(i).DebugOut();
+}
+
+void PmxFile::DebugOutAllDisplayFrame() const
+{
+#ifdef _DEBUG
+	for (int i = 0; i < mDisplayFrameCount; ++i)
+	{
+		DebugOutDisplayFrame(i);
+	}
+#endif // _DEBUG
+}
+
+const int32_t& PmxFile::GetRigitbodyCount() const
+{
+	return mRigitbodyCount;
+}
+
+void PmxFile::Rigitbody::DebugOut() const
+{
+	DebugOutString(GetText(name));
+	DebugOutString(GetText(nameEng));
+	DebugOutParamI(relationshipBoneID);
+	DebugOutParamI(group);
+	DebugOutParamBin(groupTarget, 16);
+	DebugOutParamI(shapeType);
+	DebugOutParam(shapeW);
+	DebugOutParam(shapeH);
+	DebugOutParam(shapeD);
+	DebugOutFloat3(position);
+	DebugOutFloat3(RadianToDegreeFloat3(rotation));
+	DebugOutParam(weight);
+	DebugOutParam(positionDim);
+	DebugOutParam(rotationDim);
+	DebugOutParam(recoil);
+	DebugOutParam(friction);
+	DebugOutParamI(type);
+	DebugMessageNewLine();
+
+}
+
+PmxFile::Rigitbody::Rigitbody() {}
+PmxFile::Rigitbody::~Rigitbody() {}
+
+const PmxFile::Rigitbody& PmxFile::GetRigitbody(const int32_t i) const
+{
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mRigitbody, mRigitbodyCount);
+	IS_OUT_OF_RANGE(mRigitbody, i, mRigitbodyCount);
+	return mRigitbody[i];
+}
+
+const int32_t PmxFile::GetLastRigitbodyID() const
+{
+	return mRigitbodyCount - 1;
+}
+
+void PmxFile::DebugOutRigitbody(const int32_t i) const
+{
+	DebugMessage("Rigtbody [" << i << "]");
+	GetRigitbody(i).DebugOut();
+}
+
+void PmxFile::DebugOutAllRigitbody() const
+{
+#ifdef _DEBUG
+	for (int32_t i = 0; i < mRigitbodyCount; ++i)
+	{
+		DebugOutRigitbody(i);
+	}
+#endif // _DEBUG
+}
+
+const int32_t& PmxFile::GetJointCount() const
+{
+	return mJointCount;
+}
+
+void PmxFile::Joint::DebugOut() const
+{
+	DebugOutString(GetText(name));
+	DebugOutString(GetText(nameEng));
+
+	switch (type)
+	{
+	case MMDsdk::PmxFile::Joint::JT_SPRING_6_DOF:
+		DebugMessage("type = JointType::JT_SPRING_6_DOF");
+		break;
+	case MMDsdk::PmxFile::Joint::JT_NONE:
+		break;
+	default:
+		break;
+	}
+
+	DebugOutParamI(rigitbodyIndexA);
+	DebugOutParamI(rigitbodyIndexB);
+
+	DebugOutFloat3(position);
+	DebugOutFloat3(rotation);
+
+	DebugOutFloat3(posLowerLimit);
+	DebugOutFloat3(posUpperLimit);
+
+	DebugOutFloat3(RadianToDegreeFloat3(rotLowerLimit));
+	DebugOutFloat3(RadianToDegreeFloat3(rotUpperLimit));
+
+	DebugOutFloat3(springPos);
+	DebugOutFloat3(springRot);
+
+	DebugMessageNewLine();
+}
+
+PmxFile::Joint::Joint() {};
+PmxFile::Joint::~Joint() {};
+
+const PmxFile::Joint& PmxFile::GetJoint(const int32_t i) const
+{
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mJoint, mJointCount);
+	IS_OUT_OF_RANGE(mJoint, i, mJointCount);
+	return mJoint[i];
+}
+
+const int32_t PmxFile::GetLastJointID() const
+{
+	return mJointCount - 1;
+}
+
+
+void PmxFile::DebugOutJoint(const int32_t i) const
+{
+	DebugMessage("Joint [" << i << "]");
+	GetJoint(i).DebugOut();
+}
+
+void PmxFile::DebugOutAllJoint() const
+{
+#ifdef _DEBUG
+	for (int32_t i = 0; i < mJointCount; ++i)
+	{
+		DebugOutJoint(i);
+	}
+#endif // _DEBUG
+}
+
+
+void PmxFile::DebugOutAllData() const
+{
+	GetHeader().DebugOut();
+	DebugOutParamI(mVertexCount);
+	DebugOutAllVertex();
+	DebugOutParamI(mIndexCount);
+	DebugOutAllIndexData();
+	DebugOutParamI(mMaterialCount);
+	DebugOutAllMaterial();
+	DebugOutParamI(mBoneCount);
+	DebugOutAllBone();
+	DebugOutParamI(mMorphCount);
+	DebugOutAllMorph(true);
+	DebugOutParamI(mRigitbodyCount);
+	DebugOutAllRigitbody();
+	DebugOutParamI(mJointCount);
+	DebugOutAllJoint();
 }
 
 //last

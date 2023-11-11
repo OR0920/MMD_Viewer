@@ -4,39 +4,28 @@
 
 #include"MMDsdk.h"
 #include"MathUtil.h"
+#include"System.h"
+
+#include<string>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace MMDsdk;
 using namespace MathUtil;
+using System::StringEqual;
 
 namespace MMDsdkTest
 {
-	bool strCmpFortest(const void* _str1, const void* _str2, const int length)
-	{
-		bool result = false;
-		auto str1 = reinterpret_cast<const char*>(_str1);
-		auto str2 = reinterpret_cast<const char*>(_str2);
-		for (auto i = 0; i < length; ++i)
-		{
-			if (str2[i] == '\0')
-			{
-				break;
-			}
-			result = str1[i] == str2[i];
-		}
-		return result;
-	}
 
 	TEST_CLASS(PmdReadTest)
 	{
 
 		const char* testPmdModelPath = "Test/Model/PMD/初音ミクVer2.pmd";
 
-
-
 		TEST_METHOD(ReadPmd)
 		{
 			PmdFile pmd(testPmdModelPath);
+
+			Assert::IsTrue(StringEqual(&pmd.GetDirectoryPathStart(), "Test/Model/PMD/"));
 
 			// 基本情報の読み込みテスト
 			Assert::IsTrue(pmd.GetHeader().version == 1.f);
@@ -116,14 +105,14 @@ namespace MMDsdkTest
 			Assert::IsTrue(mWithTex.toonIndex == 0);
 			Assert::IsTrue(mWithTex.edgeFlag == PmdFile::Material::MEE_DISABLE);
 			Assert::IsTrue(mWithTex.vertexCount == 432);
-			Assert::IsTrue(strCmpFortest(GetText(mWithTex.texturePath), "eyeM2.bmp", mWithTex.texturePath.GetLength()));
+			Assert::IsTrue(StringEqual(GetText(mWithTex.texturePath), "eyeM2.bmp"));
 
 			//ボーン読み込みテスト
 			Assert::IsTrue(pmd.GetBoneCount() == 140);
 
 			auto& b0 = pmd.GetBone(0);
-			Assert::IsTrue(strCmpFortest(GetText(b0.name), "センター", b0.name.GetLength()));
-			Assert::IsTrue(strCmpFortest(GetText(b0.nameEng), "center", b0.nameEng.GetLength()));
+			Assert::IsTrue(StringEqual(GetText(b0.name), "センター"));
+			Assert::IsTrue(StringEqual(GetText(b0.nameEng), "center"));
 			Assert::IsTrue(b0.parentIndex == 65535);
 			Assert::IsTrue(b0.childIndex == 116);
 			Assert::IsTrue(b0.type == PmdFile::Bone::BT_ROTATE_AND_TRANSRATE);
@@ -133,8 +122,8 @@ namespace MMDsdkTest
 			Assert::IsTrue(FloatEqual(b0.headPos.z, 0.f));
 
 			auto& bL = pmd.GetBone(pmd.GetLastBoneID());
-			Assert::IsTrue(strCmpFortest(GetText(bL.name), "右腕捩3", bL.name.GetLength()));
-			Assert::IsTrue(strCmpFortest(GetText(bL.nameEng), "右腕捩3", bL.nameEng.GetLength()));
+			Assert::IsTrue(StringEqual(GetText(bL.name), "右腕捩3"));
+			Assert::IsTrue(StringEqual(GetText(bL.nameEng), "右腕捩3"));
 			Assert::IsTrue(bL.parentIndex == 50);
 			Assert::IsTrue(bL.childIndex == 51);
 			Assert::IsTrue(bL.type == PmdFile::Bone::BT_ROTATION_MOVE);
@@ -170,10 +159,10 @@ namespace MMDsdkTest
 			auto& base = pmd.GetMorph(0);
 
 			auto& m1 = pmd.GetMorph(1);
-			Assert::IsTrue(strCmpFortest(GetText(m1.name), "真面目", m1.name.GetLength()));
-			Assert::IsTrue(strCmpFortest(GetText(m1.nameEng), "serious", m1.nameEng.GetLength()));
+			Assert::IsTrue(StringEqual(GetText(m1.name), "真面目"));
+			Assert::IsTrue(StringEqual(GetText(m1.nameEng), "serious"));
 			Assert::IsTrue(m1.offsCount == 78);
-			Assert::IsTrue(m1.type == PmdFile::Morph::MT_EYEBROW);
+			Assert::IsTrue(m1.type == MorphType::MT_EYEBROW);
 
 			Assert::IsTrue(base.GetMorphBaseData(m1.GetMorphOffsData(0).baseIndex).index == 11245);
 			Assert::IsTrue(m1.GetMorphOffsData(0).offsPosition.x == -0.0123f);
@@ -189,10 +178,10 @@ namespace MMDsdkTest
 
 
 			auto& mL = pmd.GetMorph(pmd.GetLastMorphID());
-			Assert::IsTrue(strCmpFortest(GetText(mL.name), "にやり", mL.name.GetLength()));
-			Assert::IsTrue(strCmpFortest(GetText(mL.nameEng), "grin", mL.nameEng.GetLength()));
+			Assert::IsTrue(StringEqual(GetText(mL.name), "にやり"));
+			Assert::IsTrue(StringEqual(GetText(mL.nameEng), "grin"));
 			Assert::IsTrue(mL.offsCount == 45);
-			Assert::IsTrue(mL.type == PmdFile::Morph::MT_LIP);
+			Assert::IsTrue(mL.type == MorphType::MT_LIP);
 
 			Assert::IsTrue(base.GetMorphBaseData(mL.GetMorphOffsData(0).baseIndex).index == 12000);
 			Assert::IsTrue(mL.GetMorphOffsData(0).offsPosition.x == 0.0443f);
@@ -213,21 +202,15 @@ namespace MMDsdkTest
 			// 表示用ボーン名データ
 			Assert::IsTrue(pmd.GetBoneNameForDisplayCount() == 7);
 
-			const char* boneName0 = "ＩＫ";
-			auto& boneName0FromFile = pmd.GetBoneNameForDisplay(0);
-			Assert::IsTrue(strCmpFortest(GetText(boneName0FromFile), boneName0, boneName0FromFile.GetLength()));
+			//　出力すると同じはずだが、なぜか通らない
+			// 「日本語名のみに」末尾に改行コードがある模様　
+			Assert::IsTrue(StringEqual(GetText(pmd.GetBoneNameForDisplay(0)), "ＩＫ\n"));
 
-			const char* boneName0Eng = "IK";
-			auto& boneName0FromFileEng = pmd.GetBoneNameForDisplayEng(0);
-			Assert::IsTrue(strCmpFortest(GetText(boneName0FromFileEng), boneName0Eng, boneName0FromFileEng.GetLength()));
+			Assert::IsTrue(StringEqual(GetText(pmd.GetBoneNameForDisplayEng(0)), "IK"));
+			// 同上
+			Assert::IsTrue(StringEqual(GetText(pmd.GetBoneNameForDisplay(pmd.GetLastBoneNameForDisplayID())), "足\n"));
 
-			const char* boneNameL = "足";
-			auto& boneNameLFromFile = pmd.GetBoneNameForDisplay(pmd.GetLastBoneNameForDisplayID());
-			Assert::IsTrue(strCmpFortest(GetText(boneNameLFromFile), boneNameL, boneNameLFromFile.GetLength()));
-
-			const char* boneNameLEng = "Legs";
-			auto& boneNameLFromFileEng = pmd.GetBoneNameForDisplayEng(pmd.GetLastBoneNameForDisplayID());
-			Assert::IsTrue(strCmpFortest(GetText(boneNameLFromFileEng), boneNameLEng, boneNameLFromFileEng.GetLength()));
+			Assert::IsTrue(StringEqual(GetText(pmd.GetBoneNameForDisplayEng(pmd.GetLastBoneNameForDisplayID())), "Legs"));
 
 			// 表示用ボーンデータ
 			Assert::IsTrue(pmd.GetBoneForDisplayCount() == 87);
@@ -241,13 +224,13 @@ namespace MMDsdkTest
 			Assert::IsTrue(pmd.GetRigitbodyCount() == 45);
 
 			auto& body0 = pmd.GetRigitbody(0);
-			Assert::IsTrue(strCmpFortest(GetText(body0.name), "頭", body0.name.GetLength()));
-			Assert::IsTrue(body0.relationshipBoneIndex == 3);
-			Assert::IsTrue(body0.groupIndex == 0);
+			Assert::IsTrue(StringEqual(GetText(body0.name), "頭"));
+			Assert::IsTrue(body0.relationshipBoneID == 3);
+			Assert::IsTrue(body0.group == 0);
 			Assert::IsTrue(body0.groupTarget == 0b1111111111111111);
-			Assert::IsTrue(body0.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_SPHERE);
+			Assert::IsTrue(body0.shapeType == RigitbodyShapeType::RST_SPHERE);
 			Assert::IsTrue(FloatEqual(body0.shapeW, 1.6f));
-			auto& relBone0 = pmd.GetBone(body0.relationshipBoneIndex);
+			auto& relBone0 = pmd.GetBone(body0.relationshipBoneID);
 			Assert::IsTrue(FloatEqual(body0.position.x + relBone0.headPos.x, 0.1f));
 			Assert::IsTrue(FloatEqual(body0.position.y + relBone0.headPos.y, 18.3985f));
 			Assert::IsTrue(FloatEqual(body0.position.z + relBone0.headPos.z, 0.2f));
@@ -259,18 +242,18 @@ namespace MMDsdkTest
 			Assert::IsTrue(FloatEqual(body0.rotationDim, 0.f));
 			Assert::IsTrue(FloatEqual(body0.recoil, 0.f));
 			Assert::IsTrue(FloatEqual(body0.friction, 0.5f));
-			Assert::IsTrue(body0.type == PmdFile::Rigitbody::RigitBodyType::RT_BONE_FOLLOW);
+			Assert::IsTrue(body0.type == RigitbodyType::RT_BONE_FOLLOW);
 
 			auto& bodyL = pmd.GetRigitbody(pmd.GetLastRigitbodyID());
-			Assert::IsTrue(strCmpFortest(GetText(bodyL.name), "ネクタイ3", bodyL.name.GetLength()));
-			Assert::IsTrue(bodyL.relationshipBoneIndex == 8);
-			Assert::IsTrue(bodyL.groupIndex == 05);
+			Assert::IsTrue(StringEqual(GetText(bodyL.name), "ネクタイ3"));
+			Assert::IsTrue(bodyL.relationshipBoneID == 8);
+			Assert::IsTrue(bodyL.group == 05);
 			Assert::IsTrue(bodyL.groupTarget == 0b1111111111011111);
-			Assert::IsTrue(bodyL.shapeType == PmdFile::Rigitbody::RigitBodyShapeType::RST_BOX);
+			Assert::IsTrue(bodyL.shapeType == RigitbodyShapeType::RST_BOX);
 			Assert::IsTrue(FloatEqual(bodyL.shapeW, 0.3f));
 			Assert::IsTrue(FloatEqual(bodyL.shapeH, 0.9f));
 			Assert::IsTrue(FloatEqual(bodyL.shapeD, 0.2f));
-			auto& relBoneL = pmd.GetBone(bodyL.relationshipBoneIndex);
+			auto& relBoneL = pmd.GetBone(bodyL.relationshipBoneID);
 			Assert::IsTrue(FloatEqual(bodyL.position.x + relBoneL.headPos.x, 0.f));
 			Assert::IsTrue(FloatEqual(bodyL.position.y + relBoneL.headPos.y, 11.97617f));
 			Assert::IsTrue(FloatEqual(bodyL.position.z + relBoneL.headPos.z, -1.37111f));
@@ -282,13 +265,13 @@ namespace MMDsdkTest
 			Assert::IsTrue(FloatEqual(bodyL.rotationDim, 2.f));
 			Assert::IsTrue(FloatEqual(bodyL.recoil, 0.f));
 			Assert::IsTrue(FloatEqual(bodyL.friction, 0.0f));
-			Assert::IsTrue(bodyL.type == PmdFile::Rigitbody::RigitBodyType::RT_RIGITBODY_WITH_BONE_OFFS);
+			Assert::IsTrue(bodyL.type == RigitbodyType::RT_RIGITBODY_WITH_BONE_OFFS);
 
 			// 物理演算ジョイントデータ
 			Assert::IsTrue(pmd.GetJointCount() == 27);
 
 			auto& joint0 = pmd.GetJoint(0);
-			Assert::IsTrue(strCmpFortest(GetText(joint0.name), "右髪1", joint0.name.GetLength()));
+			Assert::IsTrue(StringEqual(GetText(joint0.name), "右髪1"));
 			Assert::IsTrue(joint0.rigitbodyIndexA == 0);
 			Assert::IsTrue(joint0.rigitbodyIndexB == 1);
 			Assert::IsTrue(FloatEqual(joint0.position.x, -1.6482f));
@@ -317,7 +300,7 @@ namespace MMDsdkTest
 			Assert::IsTrue(FloatEqual(joint0.springRot.z, 100.f));
 
 			auto& jointL = pmd.GetJoint(pmd.GetLastJointID());
-			Assert::IsTrue(strCmpFortest(GetText(jointL.name), "左スカート前2", jointL.name.GetLength()));
+			Assert::IsTrue(StringEqual(GetText(jointL.name), "左スカート前2"));
 			Assert::IsTrue(jointL.rigitbodyIndexA == 35);
 			Assert::IsTrue(jointL.rigitbodyIndexB == 37);
 			Assert::IsTrue(FloatEqual(jointL.position.x, 1.1f));
@@ -349,29 +332,31 @@ namespace MMDsdkTest
 	TEST_CLASS(PmxReadTest)
 	{
 	public:
-		const char* testPmxModelPath = "D:/_3DModel/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
-		const char* testPmxModelPath2 = "C:/Users/onory/Downloads/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx";
+		const char* testPmxModelPath = "Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
+		const char* testPmxModelPath2 = "Test/Model/PMX/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx";
 
 
 		TEST_METHOD(ReadPmx)
 		{
 			PmxFile pmx(testPmxModelPath);
 
+			Assert::IsTrue(StringEqual(&pmx.GetDirectoryPathStart(), "Test/Model/PMX/かばんちゃん/かばんちゃん/"));
+
 			{
 				auto& h = pmx.GetHeader();
 
 				Assert::IsTrue(FloatEqual(h.version, 2.f));
 				Assert::IsTrue(h.fileConfigLength == 8);
-				Assert::IsTrue(h.encode == PmxFile::Header::UTF16);
+				Assert::IsTrue(h.encode == UTF16);
 				Assert::IsTrue(h.additionalUVcount == 0);
-				Assert::IsTrue(h.vertexIDsize == 2);
-				Assert::IsTrue(h.textureIDsize == 1);
-				Assert::IsTrue(h.materialIDsize == 1);
-				Assert::IsTrue(h.boneIDsize == 2);
-				Assert::IsTrue(h.morphIDsize == 2);
-				Assert::IsTrue(h.rigitbodyIDsize == 1);
+				Assert::IsTrue(h.vertexID_Size == 2);
+				Assert::IsTrue(h.textureID_Size == 1);
+				Assert::IsTrue(h.materialID_Size == 1);
+				Assert::IsTrue(h.boneID_Size == 2);
+				Assert::IsTrue(h.morphID_Size == 2);
+				Assert::IsTrue(h.rigitbodyID_Size == 1);
 
-				Assert::IsTrue(strCmpFortest(GetText(h.modelInfoJp.modelName), L"かばんちゃん", h.modelInfoJp.modelName.GetLength()));
+				Assert::IsTrue(StringEqual(GetText(h.modelInfoJp.modelName), "かばんちゃん"));
 			}
 
 			// 頂点データ読み込みテスト
@@ -505,17 +490,17 @@ namespace MMDsdkTest
 
 			// テクスチャ読み込みテスト
 			Assert::IsTrue(pmx.GetTextureCount() == 6);
-			Assert::IsTrue(strCmpFortest(GetText(pmx.GetTexturePath(0)), L"hair.png", pmx.GetTexturePath(0).GetLength()));
+			Assert::IsTrue(StringEqual(GetText(pmx.GetTexturePath(0)), "hair.png"));
 
 
-			Assert::IsTrue(strCmpFortest(GetText(pmx.GetTexturePath(pmx.GetLastTextureID())), L"k拡張.png", pmx.GetTexturePath(pmx.GetLastTextureID()).GetLength()));
+			Assert::IsTrue(StringEqual(GetText(pmx.GetTexturePath(pmx.GetLastTextureID())), "k拡張.png"));
 
 			// マテリアル読み込み
 			Assert::IsTrue(pmx.GetMaterialCount() == 42);
 			Assert::IsTrue(pmx.GetLastMaterialID() == pmx.GetMaterialCount() - 1);
 			{
 				auto& m0 = pmx.GetMaterial(0);
-				Assert::IsTrue(strCmpFortest(GetText(m0.name), L"後髪", m0.name.GetLength()));
+				Assert::IsTrue(StringEqual(GetText(m0.name), "後髪"));
 				Assert::IsTrue(m0.nameEng.GetLength() == 0);
 				Assert::IsTrue(FloatEqual(m0.diffuse.x, 1.f));
 				Assert::IsTrue(FloatEqual(m0.diffuse.y, 1.f));
@@ -548,7 +533,7 @@ namespace MMDsdkTest
 			}
 			{
 				auto& mL = pmx.GetMaterial(pmx.GetLastMaterialID());
-				Assert::IsTrue(strCmpFortest(GetText(mL.name), L"ガラス", mL.name.GetLength()));
+				Assert::IsTrue(StringEqual(GetText(mL.name), "ガラス"));
 				Assert::IsTrue(mL.nameEng.GetLength() == 0);
 				Assert::IsTrue(FloatEqual(mL.diffuse.x, 1.f));
 				Assert::IsTrue(FloatEqual(mL.diffuse.y, 1.f));
@@ -586,8 +571,8 @@ namespace MMDsdkTest
 			{
 				auto& b0 = pmx.GetBone(0);
 
-				Assert::IsTrue(strCmpFortest(GetText(b0.name), L"全ての親", b0.name.GetLength()));
-				Assert::IsTrue(strCmpFortest(GetText(b0.nameEng), L"master", b0.nameEng.GetLength()));
+				Assert::IsTrue(StringEqual(GetText(b0.name), "全ての親"));
+				Assert::IsTrue(StringEqual(GetText(b0.nameEng), "master"));
 				Assert::IsTrue(FloatEqual(b0.position.x, 0.f));
 				Assert::IsTrue(FloatEqual(b0.position.y, 0.f));
 				Assert::IsTrue(FloatEqual(b0.position.z, -0.2195798f));
@@ -625,8 +610,8 @@ namespace MMDsdkTest
 			{
 				auto& boneWithIK = pmx.GetBone(71);
 
-				Assert::IsTrue(strCmpFortest(GetText(boneWithIK.name), L"左足ＩＫ", boneWithIK.name.GetLength()));
-				Assert::IsTrue(strCmpFortest(GetText(boneWithIK.nameEng), L"leg IK_R", boneWithIK.nameEng.GetLength()));
+				Assert::IsTrue(StringEqual(GetText(boneWithIK.name), "左足ＩＫ"));
+				Assert::IsTrue(StringEqual(GetText(boneWithIK.nameEng), "leg IK_R"));
 				Assert::IsTrue(FloatEqual(boneWithIK.position.x, 0.7553458f));
 				Assert::IsTrue(FloatEqual(boneWithIK.position.y, 0.9500531f));
 				Assert::IsTrue(FloatEqual(boneWithIK.position.z, 0.1935074f));
@@ -684,9 +669,9 @@ namespace MMDsdkTest
 			{
 				auto& mph0 = pmx.GetMorph(0);
 
-				Assert::IsTrue(strCmpFortest(GetText(mph0.name), L"まばたき", mph0.name.GetLength()));
+				Assert::IsTrue(StringEqual(GetText(mph0.name), "まばたき"));
 				Assert::IsTrue(mph0.nameEng.GetLength() == 0);
-				Assert::IsTrue(mph0.type == PmdFile::Morph::MorphType::MT_EYE);
+				Assert::IsTrue(mph0.type == MorphType::MT_EYE);
 				Assert::IsTrue(mph0.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_VERTEX);
 				Assert::IsTrue(mph0.offsCount == 442);
 
@@ -709,9 +694,9 @@ namespace MMDsdkTest
 			{
 				auto& gMph = pmx.GetMorph(24);
 
-				Assert::IsTrue(strCmpFortest(GetText(gMph.name), L"ハート", gMph.name.GetLength()));
+				Assert::IsTrue(StringEqual(GetText(gMph.name), "ハート"));
 				Assert::IsTrue(gMph.nameEng.GetLength() == 0);
-				Assert::IsTrue(gMph.type == PmdFile::Morph::MorphType::MT_EYE);
+				Assert::IsTrue(gMph.type == MorphType::MT_EYE);
 				Assert::IsTrue(gMph.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_GROUP);
 				Assert::IsTrue(gMph.offsCount == 2);
 
@@ -730,9 +715,9 @@ namespace MMDsdkTest
 			{
 				auto& mMph = pmx.GetMorph(26);
 
-				Assert::IsTrue(strCmpFortest(GetText(mMph.name), L"ハイライト消失", mMph.name.GetLength()));
+				Assert::IsTrue(StringEqual(GetText(mMph.name), "ハイライト消失"));
 				Assert::IsTrue(mMph.nameEng.GetLength() == 0);
-				Assert::IsTrue(mMph.type == PmdFile::Morph::MorphType::MT_EYE);
+				Assert::IsTrue(mMph.type == MorphType::MT_EYE);
 				Assert::IsTrue(mMph.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_MATERIAL);
 				Assert::IsTrue(mMph.offsCount == 1);
 				{
@@ -772,9 +757,9 @@ namespace MMDsdkTest
 			{
 				auto& mMph2 = pmx.GetMorph(27);
 
-				Assert::IsTrue(strCmpFortest(GetText(mMph2.name), L"瞳AL発光", mMph2.name.GetLength()));
+				Assert::IsTrue(StringEqual(GetText(mMph2.name), "瞳AL発光"));
 				Assert::IsTrue(mMph2.nameEng.GetLength() == 0);
-				Assert::IsTrue(mMph2.type == PmdFile::Morph::MorphType::MT_EYE);
+				Assert::IsTrue(mMph2.type == MorphType::MT_EYE);
 				Assert::IsTrue(mMph2.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_MATERIAL);
 				Assert::IsTrue(mMph2.offsCount == 2);
 				{
@@ -849,9 +834,9 @@ namespace MMDsdkTest
 			{
 				auto& uvMph = pmx.GetMorph(118);
 
-				Assert::IsTrue(strCmpFortest(GetText(uvMph.name), L"口内色", uvMph.name.GetLength()));
+				Assert::IsTrue(StringEqual(GetText(uvMph.name), "口内色"));
 				Assert::IsTrue(uvMph.nameEng.GetLength() == 0);
-				Assert::IsTrue(uvMph.type == PmdFile::Morph::MorphType::MT_LIP);
+				Assert::IsTrue(uvMph.type == MorphType::MT_LIP);
 				Assert::IsTrue(uvMph.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_UV);
 				Assert::IsTrue(uvMph.offsCount == 295);
 
@@ -875,11 +860,11 @@ namespace MMDsdkTest
 
 			//最後の要素の読み込みテスト
 			{
-				auto& mphL = pmx.GetMorph(132);
+				auto& mphL = pmx.GetMorph(pmx.GetLastMorphID());
 
-				Assert::IsTrue(strCmpFortest(GetText(mphL.name), L"エッジ太さ", mphL.name.GetLength()));
+				Assert::IsTrue(StringEqual(GetText(mphL.name), "エッジ太さ"));
 				Assert::IsTrue(mphL.nameEng.GetLength() == 0);
-				Assert::IsTrue(mphL.type == PmdFile::Morph::MorphType::MT_OTHER);
+				Assert::IsTrue(mphL.type == MorphType::MT_OTHER);
 				Assert::IsTrue(mphL.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_MATERIAL);
 				Assert::IsTrue(mphL.offsCount == 1);
 				{
@@ -920,8 +905,262 @@ namespace MMDsdkTest
 			// 表示枠読み込みテスト
 			Assert::IsTrue(pmx.GetDisplayFrameCount() == 12);
 			{
-			
+				auto& d0 = pmx.GetDisplayFrame(0);
+
+				Assert::IsTrue(StringEqual(GetText(d0.name), "Root"));
+				Assert::IsTrue(StringEqual(GetText(d0.nameEng), "Root"));
+				Assert::IsTrue(d0.type == PmxFile::DisplayFrame::DisplayFrameType::DFT_SPECIAL);
+				Assert::IsTrue(d0.frameElementCount == 1);
+				{
+					auto& fe0 = d0.GetFrameElement(0);
+					Assert::IsTrue(fe0.elementType == PmxFile::DisplayFrame::FrameElement::FrameElementType::FET_BONE);
+					Assert::IsTrue(fe0.objectID == 0);
+				}
 			}
+			{
+				auto& d1 = pmx.GetDisplayFrame(1);
+
+				Assert::IsTrue(StringEqual(GetText(d1.name), "表情"));
+				Assert::IsTrue(StringEqual(GetText(d1.nameEng), "Exp"));
+				Assert::IsTrue(d1.type == PmxFile::DisplayFrame::DisplayFrameType::DFT_SPECIAL);
+				Assert::IsTrue(d1.frameElementCount == 130);
+				{
+					auto& fe0 = d1.GetFrameElement(0);
+					Assert::IsTrue(fe0.elementType == PmxFile::DisplayFrame::FrameElement::FrameElementType::FET_MORPH);
+					Assert::IsTrue(fe0.objectID == 0);
+				}
+				{
+					auto& fe0 = d1.GetFrameElement(d1.frameElementCount - 1);
+					Assert::IsTrue(fe0.elementType == PmxFile::DisplayFrame::FrameElement::FrameElementType::FET_MORPH);
+					Assert::IsTrue(fe0.objectID == 132);
+				}
+			}
+			{
+				auto& dL = pmx.GetDisplayFrame(pmx.GetLastDisplayFrameID());
+
+				Assert::IsTrue(StringEqual(GetText(dL.name), "その他"));
+				Assert::IsTrue(dL.nameEng.GetLength() == 0);
+				Assert::IsTrue(dL.type == PmxFile::DisplayFrame::DisplayFrameType::DFT_NORMAL);
+				Assert::IsTrue(dL.frameElementCount == 47);
+				{
+					auto& fe0 = dL.GetFrameElement(0);
+					Assert::IsTrue(fe0.elementType == PmxFile::DisplayFrame::FrameElement::FrameElementType::FET_BONE);
+					Assert::IsTrue(fe0.objectID == 14);
+				}
+				{
+					auto& fe0 = dL.GetFrameElement(dL.frameElementCount - 1);
+					Assert::IsTrue(fe0.elementType == PmxFile::DisplayFrame::FrameElement::FrameElementType::FET_BONE);
+					Assert::IsTrue(fe0.objectID == 60);
+				}
+			}
+
+			// 剛体情報読み込みテスト
+
+			Assert::IsTrue(pmx.GetRigitbodyCount() == 41);
+
+			{
+				auto& r0 = pmx.GetRigitbody(0);
+
+				Assert::IsTrue(StringEqual(GetText(r0.name), "頭"));
+				Assert::IsTrue(r0.nameEng.GetLength() == 0);
+				Assert::IsTrue(r0.relationshipBoneID == 6);
+				Assert::IsTrue(r0.group == 0);
+				Assert::IsTrue(r0.groupTarget == 0b1111'1111'1111'1111);
+				Assert::IsTrue(r0.shapeType == RigitbodyShapeType::RST_SPHERE);
+				Assert::IsTrue(FloatEqual(r0.shapeW, 1.f));
+				Assert::IsTrue(FloatEqual(r0.position.x, 0.f));
+				Assert::IsTrue(FloatEqual(r0.position.y, 15.62877f));
+				Assert::IsTrue(FloatEqual(r0.position.z, -0.3113128f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r0.rotation.x), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r0.rotation.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r0.rotation.z), 0.00f));
+				Assert::IsTrue(FloatEqual(r0.weight, 1.f));
+				Assert::IsTrue(FloatEqual(r0.positionDim, 0.5f));
+				Assert::IsTrue(FloatEqual(r0.rotationDim, 0.5f));
+				Assert::IsTrue(FloatEqual(r0.recoil, 0.f));
+				Assert::IsTrue(FloatEqual(r0.friction, 0.5f));
+				Assert::IsTrue(r0.type == RigitbodyType::RT_BONE_FOLLOW);
+			}
+			{
+				// 回転が0でない剛体
+				//auto& r1 = pmx.GetRigitbody(1);
+				auto& r1 = pmx.GetRigitbody(1);
+
+				Assert::IsTrue(StringEqual(GetText(r1.name), "前髪"));
+				Assert::IsTrue(r1.nameEng.GetLength() == 0);
+				Assert::IsTrue(r1.relationshipBoneID == 94);
+				Assert::IsTrue(r1.group == 4);
+				Assert::IsTrue(r1.groupTarget == 0b1111'1111'1110'1111);
+				Assert::IsTrue(r1.shapeType == RigitbodyShapeType::RST_CAPSULE);
+				Assert::IsTrue(FloatEqual(r1.shapeW, 0.199335f));
+				Assert::IsTrue(FloatEqual(r1.shapeH, 0.6f));
+				Assert::IsTrue(FloatEqual(r1.position.x, 0.224f));
+				Assert::IsTrue(FloatEqual(r1.position.y, 15.70385f));
+				Assert::IsTrue(FloatEqual(r1.position.z, -1.912162f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r1.rotation.x), 0.7588f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r1.rotation.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r1.rotation.z), 0.00f));
+				Assert::IsTrue(FloatEqual(r1.weight, 1.f));
+				Assert::IsTrue(FloatEqual(r1.positionDim, 0.95f));
+				Assert::IsTrue(FloatEqual(r1.rotationDim, 0.99f));
+				Assert::IsTrue(FloatEqual(r1.recoil, 0.f));
+				Assert::IsTrue(FloatEqual(r1.friction, 0.5f));
+				Assert::IsTrue(r1.type == RigitbodyType::RT_RIGITBODY);
+			}
+			{
+				// 関連ボーンがオフセット位置を持つ場合
+				// auto& r18 = pmx.GetRigitbody(18);
+				auto& r18 = pmx.GetRigitbody(18);
+
+				Assert::IsTrue(StringEqual(GetText(r18.name), "帽子"));
+				Assert::IsTrue(r18.nameEng.GetLength() == 0);
+				Assert::IsTrue(r18.relationshipBoneID == 7);
+				Assert::IsTrue(r18.group == 1);
+				Assert::IsTrue(r18.groupTarget == 0b1111'1111'1111'1101);
+				Assert::IsTrue(r18.shapeType == RigitbodyShapeType::RST_SPHERE);
+				Assert::IsTrue(FloatEqual(r18.shapeW, 1.f));
+				Assert::IsTrue(FloatEqual(r18.position.x, 0.32f));
+				Assert::IsTrue(FloatEqual(r18.position.y, 16.40877f));
+				Assert::IsTrue(FloatEqual(r18.position.z, -0.05131277f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r18.rotation.x), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r18.rotation.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(r18.rotation.z), 0.00f));
+				Assert::IsTrue(FloatEqual(r18.weight, 1.f));
+				Assert::IsTrue(FloatEqual(r18.positionDim, 0.5f));
+				Assert::IsTrue(FloatEqual(r18.rotationDim, 0.5f));
+				Assert::IsTrue(FloatEqual(r18.recoil, 0.f));
+				Assert::IsTrue(FloatEqual(r18.friction, 0.5f));
+				Assert::IsTrue(r18.type == RigitbodyType::RT_BONE_FOLLOW);
+			}
+			{
+				// 最後のデータ
+				auto& rL = pmx.GetRigitbody(pmx.GetLastRigitbodyID());
+
+				Assert::IsTrue(StringEqual(GetText(rL.name), "左羽元"));
+				Assert::IsTrue(rL.nameEng.GetLength() == 0);
+				Assert::IsTrue(rL.relationshipBoneID == 11);
+				Assert::IsTrue(rL.group == 4);
+				Assert::IsTrue(rL.groupTarget == 0b1111'1111'1100'1111);
+				Assert::IsTrue(rL.shapeType == RigitbodyShapeType::RST_SPHERE);
+				Assert::IsTrue(FloatEqual(rL.shapeW, 0.2f));
+				Assert::IsTrue(FloatEqual(rL.position.x, 1.897798f));
+				Assert::IsTrue(FloatEqual(rL.position.y, 16.30588f));
+				Assert::IsTrue(FloatEqual(rL.position.z, -0.718574f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(rL.rotation.x), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(rL.rotation.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(rL.rotation.z), 0.00f));
+				Assert::IsTrue(FloatEqual(rL.weight, 1.f));
+				Assert::IsTrue(FloatEqual(rL.positionDim, 0.5f));
+				Assert::IsTrue(FloatEqual(rL.rotationDim, 0.5f));
+				Assert::IsTrue(FloatEqual(rL.recoil, 0.f));
+				Assert::IsTrue(FloatEqual(rL.friction, 0.5f));
+				Assert::IsTrue(rL.type == RigitbodyType::RT_BONE_FOLLOW);
+			}
+
+			Assert::IsTrue(pmx.GetJointCount() == 21);
+
+			{
+				auto& j0 = pmx.GetJoint(0);
+				Assert::IsTrue(StringEqual(GetText(j0.name), "前髪"));
+				Assert::IsTrue(j0.nameEng.GetLength() == 0);
+				Assert::IsTrue(j0.type == PmxFile::Joint::JointType::JT_SPRING_6_DOF);
+				Assert::IsTrue(j0.rigitbodyIndexA == 0);
+				Assert::IsTrue(j0.rigitbodyIndexB == 1);
+				Assert::IsTrue(FloatEqual(j0.position.x, 0.224f));
+				Assert::IsTrue(FloatEqual(j0.position.y, 16.20214f));
+				Assert::IsTrue(FloatEqual(j0.position.z, -1.905562f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j0.rotation.x), 0.f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j0.rotation.y), 0.f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j0.rotation.z), 0.f));
+				Assert::IsTrue(FloatEqual(j0.posLowerLimit.x, 0.f));
+				Assert::IsTrue(FloatEqual(j0.posLowerLimit.y, 0.f));
+				Assert::IsTrue(FloatEqual(j0.posLowerLimit.z, 0.f));
+				Assert::IsTrue(FloatEqual(j0.posUpperLimit.x, 0.00f));
+				Assert::IsTrue(FloatEqual(j0.posUpperLimit.y, 0.00f));
+				Assert::IsTrue(FloatEqual(j0.posUpperLimit.z, 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j0.rotLowerLimit.x), -30.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j0.rotLowerLimit.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j0.rotLowerLimit.z), -20.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j0.rotUpperLimit.x), 5.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j0.rotUpperLimit.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j0.rotUpperLimit.z), 20.00f));
+				Assert::IsTrue(FloatEqual(j0.springPos.x, 0.00f));
+				Assert::IsTrue(FloatEqual(j0.springPos.y, 0.00f));
+				Assert::IsTrue(FloatEqual(j0.springPos.z, 0.00f));
+				Assert::IsTrue(FloatEqual(j0.springRot.x, 0.f));
+				Assert::IsTrue(FloatEqual(j0.springRot.y, 0.f));
+				Assert::IsTrue(FloatEqual(j0.springRot.z, 0.f));
+			}
+			{
+				// 回転が0ではないデータ
+				//auto& j17 = pmx.GetJoint(17);
+				auto& j17 = pmx.GetJoint(17);
+				Assert::IsTrue(StringEqual(GetText(j17.name), "右羽"));
+				Assert::IsTrue(j17.nameEng.GetLength() == 0);
+				Assert::IsTrue(j17.type == PmxFile::Joint::JointType::JT_SPRING_6_DOF);
+				Assert::IsTrue(j17.rigitbodyIndexA == 39);
+				Assert::IsTrue(j17.rigitbodyIndexB == 19);
+				Assert::IsTrue(FloatEqual(j17.position.x, -1.369087f));
+				Assert::IsTrue(FloatEqual(j17.position.y, 17.12843f));
+				Assert::IsTrue(FloatEqual(j17.position.z, -0.7528272f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotation.x), 35.5608f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotation.y), -6.899146f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotation.z), -11.75304f));
+				Assert::IsTrue(FloatEqual(j17.posLowerLimit.x, 0.f));
+				Assert::IsTrue(FloatEqual(j17.posLowerLimit.y, 0.f));
+				Assert::IsTrue(FloatEqual(j17.posLowerLimit.z, 0.f));
+				Assert::IsTrue(FloatEqual(j17.posUpperLimit.x, 0.00f));
+				Assert::IsTrue(FloatEqual(j17.posUpperLimit.y, 0.00f));
+				Assert::IsTrue(FloatEqual(j17.posUpperLimit.z, 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotLowerLimit.x), -20.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotLowerLimit.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotLowerLimit.z), -20.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotUpperLimit.x), 20.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotUpperLimit.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(j17.rotUpperLimit.z), 20.00f));
+				Assert::IsTrue(FloatEqual(j17.springPos.x, 0.00f));
+				Assert::IsTrue(FloatEqual(j17.springPos.y, 0.00f));
+				Assert::IsTrue(FloatEqual(j17.springPos.z, 0.00f));
+				Assert::IsTrue(FloatEqual(j17.springRot.x, 1000.f));
+				Assert::IsTrue(FloatEqual(j17.springRot.y, 0.f));
+				Assert::IsTrue(FloatEqual(j17.springRot.z, 1000.f));
+
+			}
+			{
+				// 最後のデータ
+				auto& jL = pmx.GetJoint(pmx.GetLastJointID());
+				Assert::IsTrue(StringEqual(GetText(jL.name), "_左羽"));
+				Assert::IsTrue(jL.nameEng.GetLength() == 0);
+				Assert::IsTrue(jL.type == PmxFile::Joint::JointType::JT_SPRING_6_DOF);
+				Assert::IsTrue(jL.rigitbodyIndexA == 20);
+				Assert::IsTrue(jL.rigitbodyIndexB == 40);
+				Assert::IsTrue(FloatEqual(jL.position.x, 1.906998f));
+				Assert::IsTrue(FloatEqual(jL.position.y, 16.37108f));
+				Assert::IsTrue(FloatEqual(jL.position.z, -0.681774));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotation.x), 34.89104f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotation.y), -10.59537f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotation.z), -18.10878f));
+				Assert::IsTrue(FloatEqual(jL.posLowerLimit.x, 0.f));
+				Assert::IsTrue(FloatEqual(jL.posLowerLimit.y, 0.f));
+				Assert::IsTrue(FloatEqual(jL.posLowerLimit.z, 0.f));
+				Assert::IsTrue(FloatEqual(jL.posUpperLimit.x, 0.00f));
+				Assert::IsTrue(FloatEqual(jL.posUpperLimit.y, 0.00f));
+				Assert::IsTrue(FloatEqual(jL.posUpperLimit.z, 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotLowerLimit.x), -20.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotLowerLimit.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotLowerLimit.z), -20.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotUpperLimit.x), 20.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotUpperLimit.y), 0.00f));
+				Assert::IsTrue(FloatEqual(RadianToDegree(jL.rotUpperLimit.z), 20.00f));
+				Assert::IsTrue(FloatEqual(jL.springPos.x, 0.00f));
+				Assert::IsTrue(FloatEqual(jL.springPos.y, 0.00f));
+				Assert::IsTrue(FloatEqual(jL.springPos.z, 0.00f));
+				Assert::IsTrue(FloatEqual(jL.springRot.x, 1000.f));
+				Assert::IsTrue(FloatEqual(jL.springRot.y, 0.f));
+				Assert::IsTrue(FloatEqual(jL.springRot.z, 1000.f));
+
+			}
+			//last
 		}
 
 		// ボーンモーフ読み込みテスト(最初のモデルには存在しなかったため他モデルで検証)
@@ -930,9 +1169,9 @@ namespace MMDsdkTest
 			PmxFile pmx2(testPmxModelPath2);
 			auto& bMph = pmx2.GetMorph(49);
 
-			Assert::IsTrue(strCmpFortest(GetText(bMph.name), L"左手握り", bMph.name.GetLength()));
+			Assert::IsTrue(StringEqual(GetText(bMph.name), "左手握り"));
 			Assert::IsTrue(bMph.nameEng.GetLength() == 0);
-			Assert::IsTrue(bMph.type == PmdFile::Morph::MorphType::MT_OTHER);
+			Assert::IsTrue(bMph.type == MorphType::MT_OTHER);
 			Assert::IsTrue(bMph.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_BONE);
 			Assert::IsTrue(bMph.offsCount == 14);
 
@@ -942,7 +1181,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(FloatEqual(offs0.boneOffs.offsPos.x, 0.f));
 				Assert::IsTrue(FloatEqual(offs0.boneOffs.offsPos.y, 0.f));
 				Assert::IsTrue(FloatEqual(offs0.boneOffs.offsPos.z, 0.f));
-				
+
 				MathUtil::Vector q = MathUtil::Vector::GenerateRotationQuaternionFromEuler(-9.945973f, -65.5116f, -30.5824f);
 
 				Assert::IsTrue(FloatEqual(offs0.boneOffs.offsRotQ.x, q.GetFloat4().x));

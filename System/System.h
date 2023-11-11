@@ -32,6 +32,20 @@ namespace System
 			*ptr = nullptr;
 		}
 	}
+
+	// 文字列比較
+	bool StringEqual(const void* _str1, const void* _str2);
+
+	// NULL文字を含む長さを返す
+	int GetStringLength(const char* const text);
+
+	// ディレクトリのパスを取得する関数
+	// dirpath	ディレクトリのパスを受け取るポインタ nullptrであること
+	//			内部でnewされるので、必ずdeleteすること
+	// filepath 元のポインタ
+	void NewArrayAndCopyDirPathFromFilePath(char** _dirpath, const char* const filepath);
+	
+	void NewArrayAndCopyAssetPath(char** _assetpath, const char* const dirpath, const char* const filename);
 }
 
 #endif // _SYSTEM_H_
