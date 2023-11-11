@@ -1231,7 +1231,8 @@ namespace MMDsdk
 		struct Header
 		{
 			TextBufferFixed<30> sigunature = {};
-		
+			TextBufferFixed<20> defaultModelName = {};
+
 			Header(); ~Header();
 		private:
 			Header(const Header&);

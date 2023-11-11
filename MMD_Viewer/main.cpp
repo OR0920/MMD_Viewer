@@ -62,7 +62,6 @@ int main()
 		SafeDeleteArray(&assetpath);
 	}
 	const char* filepath = "Test/Motion/シンプルウォーク.vmd";
-	auto Csigunature = "Vocaloid Mortion Data 0002";
 
 	MMDsdk::VmdFile walk(filepath);
 }
