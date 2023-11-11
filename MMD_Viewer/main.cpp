@@ -34,7 +34,7 @@ const auto mikuPath = "Test/Model/PMD/èââπÉ~ÉNVer2.pmd";
 void LoadAndCout(const char* filepath)
 {
 	MMDsdk::PmdFile model(filepath);
-	
+
 	//int slashCount = 0;
 	//for (int i = 0; filepath[i] != '\0'; ++i)
 	//{
@@ -75,7 +75,7 @@ void LoadAndCout(const char* filepath)
 
 	//	SafeDeleteArray(&texPath);
 	//}
-	
+
 
 }
 
@@ -91,16 +91,20 @@ int main()
 		LoadAndCout(testModelFilePath[i]);
 	}
 
-	MMDsdk::PmxFile stage(testModelFilePath[filepathCount - 1]);
+	MMDsdk::PmxFile kaban(kabanPath);
 
-	char* assetpath = nullptr;
-	NewArrayAndCopyAssetPath(&assetpath, &stage.GetDirectoryPathStart(), GetText(stage.GetTexturePath(0)));
+	for (int i = 0; i < kaban.GetTextureCount(); ++i)
+	{
+		char* assetpath = nullptr;
+		NewArrayAndCopyAssetPath(&assetpath, &kaban.GetDirectoryPathStart(), GetText(kaban.GetTexturePath(i)));
 
-	DebugMessage(assetpath);
-	FileReadBin tex(assetpath);
+		DebugMessage(assetpath);
+		FileReadBin tex(assetpath);
+		tex.Close();
 
-	SafeDeleteArray(&assetpath);
-	
+		SafeDeleteArray(&assetpath);
+	}
+
 	//stage.DebugOutAllData();
 
 	//MMDsdk::PmxFile kaban(kabanPath);
