@@ -170,18 +170,8 @@ PmdFile::PmdFile(const char* filepath)
 
 	file.Read(mHeader.version);
 
-
-	
-	file.ReadArray
-	(
-		const_cast<char*>(&mHeader.modelInfoJP.modelName.GetFirstChar()),
-		mHeader.modelInfoJP.modelName.GetLength()
-	);
-	file.ReadArray
-	(
-		const_cast<char*>(&mHeader.modelInfoJP.comment.GetFirstChar()),
-		mHeader.modelInfoJP.comment.GetLength()
-	);
+	LoadTextBufferFixed(file, mHeader.modelInfoJP.modelName);
+	LoadTextBufferFixed(file, mHeader.modelInfoJP.comment);
 
 	//頂点の読み込み
 	file.Read(mVertexCount);
@@ -217,11 +207,8 @@ PmdFile::PmdFile(const char* filepath)
 		file.Read(m.edgeFlag);
 
 		file.Read(m.vertexCount, 4);
-		file.ReadArray
-		(
-			const_cast<char*>(&m.texturePath.GetFirstChar()),
-			m.texturePath.GetLength()
-		);
+
+		LoadTextBufferFixed(file, m.texturePath);
 	}
 
 	//ボーン読み込み
@@ -230,7 +217,7 @@ PmdFile::PmdFile(const char* filepath)
 	for (uint32_t i = 0; i < mBoneCount; ++i)
 	{
 		auto& b = mBone[i];
-		file.Read(const_cast<char*>(&b.name.GetFirstChar()), b.name.GetLength());
+		LoadTextBufferFixed(file, b.name);
 		file.Read(b.parentIndex);
 		file.Read(b.childIndex);
 		file.Read(b.type);
@@ -259,7 +246,7 @@ PmdFile::PmdFile(const char* filepath)
 	{
 		auto& mph = mMorph[i];
 
-		file.ReadArray(const_cast<char*>(&mph.name.GetFirstChar()), mph.name.GetLength());
+		LoadTextBufferFixed(file, mph.name);
 		file.Read(mph.offsCount);
 		file.Read(mph.type);
 
@@ -278,11 +265,7 @@ PmdFile::PmdFile(const char* filepath)
 
 	for (uint8_t i = 0; i < mBoneNameForDisplayCount; ++i)
 	{
-		file.ReadArray
-		(
-			const_cast<char*>(&mBoneNameForDisplay[i].GetFirstChar()),
-			mBoneNameForDisplay[i].GetLength()
-		);
+		LoadTextBufferFixed(file, mBoneNameForDisplay[i]);
 	}
 
 	// ボーン枠用枠名の読み込み
@@ -302,36 +285,20 @@ PmdFile::PmdFile(const char* filepath)
 	if (mHeader.isEngAvailable == 1)
 	{
 		// モデル情報 //
-		file.ReadArray
-		(
-			const_cast<char*>(&mHeader.modelInfoEng.modelName.GetFirstChar()),
-			mHeader.modelInfoEng.modelName.GetLength()
-		);
-		file.ReadArray
-		(
-			const_cast<char*>(&mHeader.modelInfoEng.comment.GetFirstChar()),
-			mHeader.modelInfoEng.comment.GetLength()
-		);
+		LoadTextBufferFixed(file, mHeader.modelInfoEng.modelName);
+		LoadTextBufferFixed(file, mHeader.modelInfoEng.comment);
 
 		// ボーン名
 		for (uint16_t i = 0; i < mBoneCount; ++i)
 		{
-			file.ReadArray
-			(
-				const_cast<char*>(&mBone[i].nameEng.GetFirstChar()),
-				mBone[i].nameEng.GetLength()
-			);
+			LoadTextBufferFixed(file, mBone[i].nameEng);
 		}
 
 		// 表情名(モーフ名)
 		// baseは含まれないので添え字は1から
 		for (uint16_t i = 1; i < mMorphCount; ++i)
 		{
-			file.ReadArray
-			(
-				const_cast<char*>(&mMorph[i].nameEng.GetFirstChar()),
-				mMorph[i].nameEng.GetLength()
-			);
+			LoadTextBufferFixed(file, mMorph[i].nameEng);
 		}
 
 		// 表示用ボーン名
@@ -339,18 +306,14 @@ PmdFile::PmdFile(const char* filepath)
 		mBoneNameForDisplayEng = new TextBufferFixed<50>[mBoneNameForDisplayCount] {};
 		for (uint8_t i = 0; i < mBoneNameForDisplayCount; ++i)
 		{
-			file.ReadArray
-			(
-				const_cast<char*>(&mBoneNameForDisplayEng[i].GetFirstChar()),
-				mBoneNameForDisplayEng[i].GetLength()
-			);
+			LoadTextBufferFixed(file, mBoneNameForDisplayEng[i]);
 		}
 	}
 
 	// Toonテクスチャパス読み込み
 	for (int i = 0; i < 10; ++i)
 	{
-		file.ReadArray(const_cast<char*>(&mToonTexturePath[i].GetFirstChar()), mToonTexturePath[i].GetLength());
+		LoadTextBufferFixed(file, mToonTexturePath[i]);
 	}
 
 
@@ -360,7 +323,7 @@ PmdFile::PmdFile(const char* filepath)
 	for (uint32_t i = 0; i < mRigitbodyCount; ++i)
 	{
 		auto& r = mRigitbody[i];
-		file.ReadArray(const_cast<char*>(&r.name.GetFirstChar()), r.name.GetLength());
+		LoadTextBufferFixed(file, r.name);
 		file.Read(r.relationshipBoneID);
 		file.Read(r.group);
 		file.Read(r.groupTarget);
@@ -384,7 +347,7 @@ PmdFile::PmdFile(const char* filepath)
 	for (uint32_t i = 0; i < mJointCount; ++i)
 	{
 		auto& j = mJoint[i];
-		file.ReadArray(const_cast<char*>(&j.name.GetFirstChar()), j.name.GetLength());
+		LoadTextBufferFixed(file, j.name);
 
 		file.Read(j.rigitbodyIndexA);
 		file.Read(j.rigitbodyIndexB);

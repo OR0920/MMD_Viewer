@@ -1157,6 +1157,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(FloatEqual(jL.springPos.z, 0.00f));
 				Assert::IsTrue(FloatEqual(jL.springRot.x, 1000.f));
 				Assert::IsTrue(FloatEqual(jL.springRot.y, 0.f));
+
 				Assert::IsTrue(FloatEqual(jL.springRot.z, 1000.f));
 
 			}
