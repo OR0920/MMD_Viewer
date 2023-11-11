@@ -97,7 +97,10 @@ const char& TextBufferVariable::GetFirstChar() const
 template <size_t size>
 void LoadTextBufferFixed(System::FileReadBin& file, TextBufferFixed<size>& text)
 {
-	// 諸々考慮した結果、やむを得ずconst_cast
+	// 宣言時に長さが確定しているためテンプレートクラスにしたい
+	// ヘッダーに他コンポーネントのインクルードを書きたくない
+	// 文字列をconstにして安全にアクセスさせたい
+	// 上記理由により const_cast を採用。
 	file.ReadArray
 	(
 		const_cast<char*>(GetText(text)),
