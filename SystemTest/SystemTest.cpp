@@ -3,8 +3,6 @@
 
 #include"System.h"
 
-#include<string>
-
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace System;
 
@@ -26,11 +24,9 @@ namespace SystemTest
 			const char* filepath = "TestRoot/TestDir/TestFilePath.file";
 			char* dirpath = nullptr;
 
-			CopyDirectoryPath(&dirpath, filepath);
+			NewDirPathAndCopyFromFilePath(&dirpath, filepath);
 			
-			std::string dirpathStr(dirpath);
-
-			Assert::IsTrue(dirpathStr == "TestRoot/TestDir/");
+			Assert::IsTrue(StringEqual(dirpath, "TestRoot/TestDir/"));
 
 			SafeDeleteArray(&dirpath);
 		}

@@ -40,7 +40,7 @@ namespace System
 	// dirpath	ディレクトリのパスを受け取るポインタ nullptrであること
 	//			内部でnewされるので、必ずdeleteすること
 	// filepath 元のポインタ
-	void CopyDirectoryPath(char** _dirpath, const char* const filepath);
+	void NewDirPathAndCopyFromFilePath(char** _dirpath, const char* const filepath);
 	
 }
 

@@ -8,7 +8,7 @@ bool System::StringEqual(const void* _str1, const void* _str2)
 	return str1 == str2;
 }
 
-void System::CopyDirectoryPath(char** _dirpath, const char* const filepath)
+void System::NewDirPathAndCopyFromFilePath(char** _dirpath, const char* const filepath)
 {
 	auto& dirpath = *_dirpath;
 	if (dirpath != nullptr)

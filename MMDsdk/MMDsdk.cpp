@@ -171,7 +171,7 @@ PmdFile::PmdFile(const char* filepath)
 	}
 
 	// ディレクトリのパスを取得する
-	System::CopyDirectoryPath(&mDirectoryPath, filepath);
+	System::NewDirPathAndCopyFromFilePath(&mDirectoryPath, filepath);
 	DebugMessage(mDirectoryPath);
 	DebugMessageNewLine();
 
@@ -1254,7 +1254,7 @@ PmxFile::PmxFile(const char* filepath)
 		}
 	}
 
-	System::CopyDirectoryPath(&mDirectoryPath, filepath);
+	System::NewDirPathAndCopyFromFilePath(&mDirectoryPath, filepath);
 
 	file.Read(mHeader.version, 4);
 	file.Read(mHeader.fileConfigLength);
