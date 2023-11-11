@@ -13,10 +13,10 @@ using namespace MathUtil;
 
 namespace MMDsdkTest
 {
-	bool strCmpForTest(const char* _str1, const char* _str2)
+	bool StringEqual(const void* _str1, const void* _str2)
 	{
-		std::string str1(_str1);
-		std::string str2(_str2);
+		std::string str1(reinterpret_cast<const char*>(_str1));
+		std::string str2(reinterpret_cast<const char*>(_str2));
 		return str1 == str2;
 	}
 
@@ -26,10 +26,10 @@ namespace MMDsdkTest
 	{
 		TEST_METHOD(StrCmpTest)
 		{
-			Assert::IsTrue(strCmpForTest("agaraerafdasf", "agaraerafdasf"));
-			Assert::IsFalse(strCmpForTest("agaraerafdasf", "fasrerrefadfa"));
-			Assert::IsFalse(strCmpForTest("こんにちは", "こんばんは"));
-			Assert::IsFalse(strCmpForTest("abcdefg", "abcdef"));
+			Assert::IsTrue(StringEqual("agaraerafdasf", "agaraerafdasf"));
+			Assert::IsFalse(StringEqual("agaraerafdasf", "fasrerrefadfa"));
+			Assert::IsFalse(StringEqual("こんにちは", "こんばんは"));
+			Assert::IsFalse(StringEqual("abcdefg", "abcdef"));
 		}
 	};
 
@@ -42,7 +42,7 @@ namespace MMDsdkTest
 		{
 			PmdFile pmd(testPmdModelPath);
 
-			Assert::IsTrue(strCmpForTest(&pmd.GetDirectoryPathStart(), "Test/Model/PMD/"));
+			Assert::IsTrue(StringEqual(&pmd.GetDirectoryPathStart(), "Test/Model/PMD/"));
 
 			// 基本情報の読み込みテスト
 			Assert::IsTrue(pmd.GetHeader().version == 1.f);
@@ -122,14 +122,14 @@ namespace MMDsdkTest
 			Assert::IsTrue(mWithTex.toonIndex == 0);
 			Assert::IsTrue(mWithTex.edgeFlag == PmdFile::Material::MEE_DISABLE);
 			Assert::IsTrue(mWithTex.vertexCount == 432);
-			Assert::IsTrue(strCmpForTest(GetText(mWithTex.texturePath), "eyeM2.bmp"));
+			Assert::IsTrue(StringEqual(GetText(mWithTex.texturePath), "eyeM2.bmp"));
 
 			//ボーン読み込みテスト
 			Assert::IsTrue(pmd.GetBoneCount() == 140);
 
 			auto& b0 = pmd.GetBone(0);
-			Assert::IsTrue(strCmpForTest(GetText(b0.name), "センター"));
-			Assert::IsTrue(strCmpForTest(GetText(b0.nameEng), "center"));
+			Assert::IsTrue(StringEqual(GetText(b0.name), "センター"));
+			Assert::IsTrue(StringEqual(GetText(b0.nameEng), "center"));
 			Assert::IsTrue(b0.parentIndex == 65535);
 			Assert::IsTrue(b0.childIndex == 116);
 			Assert::IsTrue(b0.type == PmdFile::Bone::BT_ROTATE_AND_TRANSRATE);
@@ -139,8 +139,8 @@ namespace MMDsdkTest
 			Assert::IsTrue(FloatEqual(b0.headPos.z, 0.f));
 
 			auto& bL = pmd.GetBone(pmd.GetLastBoneID());
-			Assert::IsTrue(strCmpForTest(GetText(bL.name), "右腕捩3"));
-			Assert::IsTrue(strCmpForTest(GetText(bL.nameEng), "右腕捩3"));
+			Assert::IsTrue(StringEqual(GetText(bL.name), "右腕捩3"));
+			Assert::IsTrue(StringEqual(GetText(bL.nameEng), "右腕捩3"));
 			Assert::IsTrue(bL.parentIndex == 50);
 			Assert::IsTrue(bL.childIndex == 51);
 			Assert::IsTrue(bL.type == PmdFile::Bone::BT_ROTATION_MOVE);
@@ -176,8 +176,8 @@ namespace MMDsdkTest
 			auto& base = pmd.GetMorph(0);
 
 			auto& m1 = pmd.GetMorph(1);
-			Assert::IsTrue(strCmpForTest(GetText(m1.name), "真面目"));
-			Assert::IsTrue(strCmpForTest(GetText(m1.nameEng), "serious"));
+			Assert::IsTrue(StringEqual(GetText(m1.name), "真面目"));
+			Assert::IsTrue(StringEqual(GetText(m1.nameEng), "serious"));
 			Assert::IsTrue(m1.offsCount == 78);
 			Assert::IsTrue(m1.type == MorphType::MT_EYEBROW);
 
@@ -195,8 +195,8 @@ namespace MMDsdkTest
 
 
 			auto& mL = pmd.GetMorph(pmd.GetLastMorphID());
-			Assert::IsTrue(strCmpForTest(GetText(mL.name), "にやり"));
-			Assert::IsTrue(strCmpForTest(GetText(mL.nameEng), "grin"));
+			Assert::IsTrue(StringEqual(GetText(mL.name), "にやり"));
+			Assert::IsTrue(StringEqual(GetText(mL.nameEng), "grin"));
 			Assert::IsTrue(mL.offsCount == 45);
 			Assert::IsTrue(mL.type == MorphType::MT_LIP);
 
@@ -221,13 +221,13 @@ namespace MMDsdkTest
 
 			//　出力すると同じはずだが、なぜか通らない
 			// 「日本語名のみに」末尾に改行コードがある模様　
-			Assert::IsTrue(strCmpForTest(GetText(pmd.GetBoneNameForDisplay(0)), "ＩＫ\n"));
+			Assert::IsTrue(StringEqual(GetText(pmd.GetBoneNameForDisplay(0)), "ＩＫ\n"));
 
-			Assert::IsTrue(strCmpForTest(GetText(pmd.GetBoneNameForDisplayEng(0)), "IK"));
+			Assert::IsTrue(StringEqual(GetText(pmd.GetBoneNameForDisplayEng(0)), "IK"));
 			// 同上
-			Assert::IsTrue(strCmpForTest(GetText(pmd.GetBoneNameForDisplay(pmd.GetLastBoneNameForDisplayID())), "足\n"));
+			Assert::IsTrue(StringEqual(GetText(pmd.GetBoneNameForDisplay(pmd.GetLastBoneNameForDisplayID())), "足\n"));
 
-			Assert::IsTrue(strCmpForTest(GetText(pmd.GetBoneNameForDisplayEng(pmd.GetLastBoneNameForDisplayID())), "Legs"));
+			Assert::IsTrue(StringEqual(GetText(pmd.GetBoneNameForDisplayEng(pmd.GetLastBoneNameForDisplayID())), "Legs"));
 
 			// 表示用ボーンデータ
 			Assert::IsTrue(pmd.GetBoneForDisplayCount() == 87);
@@ -241,7 +241,7 @@ namespace MMDsdkTest
 			Assert::IsTrue(pmd.GetRigitbodyCount() == 45);
 
 			auto& body0 = pmd.GetRigitbody(0);
-			Assert::IsTrue(strCmpForTest(GetText(body0.name), "頭"));
+			Assert::IsTrue(StringEqual(GetText(body0.name), "頭"));
 			Assert::IsTrue(body0.relationshipBoneID == 3);
 			Assert::IsTrue(body0.group == 0);
 			Assert::IsTrue(body0.groupTarget == 0b1111111111111111);
@@ -262,7 +262,7 @@ namespace MMDsdkTest
 			Assert::IsTrue(body0.type == RigitbodyType::RT_BONE_FOLLOW);
 
 			auto& bodyL = pmd.GetRigitbody(pmd.GetLastRigitbodyID());
-			Assert::IsTrue(strCmpForTest(GetText(bodyL.name), "ネクタイ3"));
+			Assert::IsTrue(StringEqual(GetText(bodyL.name), "ネクタイ3"));
 			Assert::IsTrue(bodyL.relationshipBoneID == 8);
 			Assert::IsTrue(bodyL.group == 05);
 			Assert::IsTrue(bodyL.groupTarget == 0b1111111111011111);
@@ -288,7 +288,7 @@ namespace MMDsdkTest
 			Assert::IsTrue(pmd.GetJointCount() == 27);
 
 			auto& joint0 = pmd.GetJoint(0);
-			Assert::IsTrue(strCmpForTest(GetText(joint0.name), "右髪1"));
+			Assert::IsTrue(StringEqual(GetText(joint0.name), "右髪1"));
 			Assert::IsTrue(joint0.rigitbodyIndexA == 0);
 			Assert::IsTrue(joint0.rigitbodyIndexB == 1);
 			Assert::IsTrue(FloatEqual(joint0.position.x, -1.6482f));
@@ -317,7 +317,7 @@ namespace MMDsdkTest
 			Assert::IsTrue(FloatEqual(joint0.springRot.z, 100.f));
 
 			auto& jointL = pmd.GetJoint(pmd.GetLastJointID());
-			Assert::IsTrue(strCmpForTest(GetText(jointL.name), "左スカート前2"));
+			Assert::IsTrue(StringEqual(GetText(jointL.name), "左スカート前2"));
 			Assert::IsTrue(jointL.rigitbodyIndexA == 35);
 			Assert::IsTrue(jointL.rigitbodyIndexB == 37);
 			Assert::IsTrue(FloatEqual(jointL.position.x, 1.1f));
@@ -357,7 +357,7 @@ namespace MMDsdkTest
 		{
 			PmxFile pmx(testPmxModelPath);
 
-			Assert::IsTrue(strCmpForTest(&pmx.GetDirectoryPathStart(), "Test/Model/PMX/かばんちゃん/かばんちゃん/"));
+			Assert::IsTrue(StringEqual(&pmx.GetDirectoryPathStart(), "Test/Model/PMX/かばんちゃん/かばんちゃん/"));
 
 			{
 				auto& h = pmx.GetHeader();
@@ -373,7 +373,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(h.morphID_Size == 2);
 				Assert::IsTrue(h.rigitbodyID_Size == 1);
 
-				Assert::IsTrue(strCmpForTest(GetText(h.modelInfoJp.modelName), "かばんちゃん"));
+				Assert::IsTrue(StringEqual(GetText(h.modelInfoJp.modelName), "かばんちゃん"));
 			}
 
 			// 頂点データ読み込みテスト
@@ -507,17 +507,17 @@ namespace MMDsdkTest
 
 			// テクスチャ読み込みテスト
 			Assert::IsTrue(pmx.GetTextureCount() == 6);
-			Assert::IsTrue(strCmpForTest(GetText(pmx.GetTexturePath(0)), "hair.png"));
+			Assert::IsTrue(StringEqual(GetText(pmx.GetTexturePath(0)), "hair.png"));
 
 
-			Assert::IsTrue(strCmpForTest(GetText(pmx.GetTexturePath(pmx.GetLastTextureID())), "k拡張.png"));
+			Assert::IsTrue(StringEqual(GetText(pmx.GetTexturePath(pmx.GetLastTextureID())), "k拡張.png"));
 
 			// マテリアル読み込み
 			Assert::IsTrue(pmx.GetMaterialCount() == 42);
 			Assert::IsTrue(pmx.GetLastMaterialID() == pmx.GetMaterialCount() - 1);
 			{
 				auto& m0 = pmx.GetMaterial(0);
-				Assert::IsTrue(strCmpForTest(GetText(m0.name), "後髪"));
+				Assert::IsTrue(StringEqual(GetText(m0.name), "後髪"));
 				Assert::IsTrue(m0.nameEng.GetLength() == 0);
 				Assert::IsTrue(FloatEqual(m0.diffuse.x, 1.f));
 				Assert::IsTrue(FloatEqual(m0.diffuse.y, 1.f));
@@ -550,7 +550,7 @@ namespace MMDsdkTest
 			}
 			{
 				auto& mL = pmx.GetMaterial(pmx.GetLastMaterialID());
-				Assert::IsTrue(strCmpForTest(GetText(mL.name), "ガラス"));
+				Assert::IsTrue(StringEqual(GetText(mL.name), "ガラス"));
 				Assert::IsTrue(mL.nameEng.GetLength() == 0);
 				Assert::IsTrue(FloatEqual(mL.diffuse.x, 1.f));
 				Assert::IsTrue(FloatEqual(mL.diffuse.y, 1.f));
@@ -588,8 +588,8 @@ namespace MMDsdkTest
 			{
 				auto& b0 = pmx.GetBone(0);
 
-				Assert::IsTrue(strCmpForTest(GetText(b0.name), "全ての親"));
-				Assert::IsTrue(strCmpForTest(GetText(b0.nameEng), "master"));
+				Assert::IsTrue(StringEqual(GetText(b0.name), "全ての親"));
+				Assert::IsTrue(StringEqual(GetText(b0.nameEng), "master"));
 				Assert::IsTrue(FloatEqual(b0.position.x, 0.f));
 				Assert::IsTrue(FloatEqual(b0.position.y, 0.f));
 				Assert::IsTrue(FloatEqual(b0.position.z, -0.2195798f));
@@ -627,8 +627,8 @@ namespace MMDsdkTest
 			{
 				auto& boneWithIK = pmx.GetBone(71);
 
-				Assert::IsTrue(strCmpForTest(GetText(boneWithIK.name), "左足ＩＫ"));
-				Assert::IsTrue(strCmpForTest(GetText(boneWithIK.nameEng), "leg IK_R"));
+				Assert::IsTrue(StringEqual(GetText(boneWithIK.name), "左足ＩＫ"));
+				Assert::IsTrue(StringEqual(GetText(boneWithIK.nameEng), "leg IK_R"));
 				Assert::IsTrue(FloatEqual(boneWithIK.position.x, 0.7553458f));
 				Assert::IsTrue(FloatEqual(boneWithIK.position.y, 0.9500531f));
 				Assert::IsTrue(FloatEqual(boneWithIK.position.z, 0.1935074f));
@@ -686,7 +686,7 @@ namespace MMDsdkTest
 			{
 				auto& mph0 = pmx.GetMorph(0);
 
-				Assert::IsTrue(strCmpForTest(GetText(mph0.name), "まばたき"));
+				Assert::IsTrue(StringEqual(GetText(mph0.name), "まばたき"));
 				Assert::IsTrue(mph0.nameEng.GetLength() == 0);
 				Assert::IsTrue(mph0.type == MorphType::MT_EYE);
 				Assert::IsTrue(mph0.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_VERTEX);
@@ -711,7 +711,7 @@ namespace MMDsdkTest
 			{
 				auto& gMph = pmx.GetMorph(24);
 
-				Assert::IsTrue(strCmpForTest(GetText(gMph.name), "ハート"));
+				Assert::IsTrue(StringEqual(GetText(gMph.name), "ハート"));
 				Assert::IsTrue(gMph.nameEng.GetLength() == 0);
 				Assert::IsTrue(gMph.type == MorphType::MT_EYE);
 				Assert::IsTrue(gMph.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_GROUP);
@@ -732,7 +732,7 @@ namespace MMDsdkTest
 			{
 				auto& mMph = pmx.GetMorph(26);
 
-				Assert::IsTrue(strCmpForTest(GetText(mMph.name), "ハイライト消失"));
+				Assert::IsTrue(StringEqual(GetText(mMph.name), "ハイライト消失"));
 				Assert::IsTrue(mMph.nameEng.GetLength() == 0);
 				Assert::IsTrue(mMph.type == MorphType::MT_EYE);
 				Assert::IsTrue(mMph.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_MATERIAL);
@@ -774,7 +774,7 @@ namespace MMDsdkTest
 			{
 				auto& mMph2 = pmx.GetMorph(27);
 
-				Assert::IsTrue(strCmpForTest(GetText(mMph2.name), "瞳AL発光"));
+				Assert::IsTrue(StringEqual(GetText(mMph2.name), "瞳AL発光"));
 				Assert::IsTrue(mMph2.nameEng.GetLength() == 0);
 				Assert::IsTrue(mMph2.type == MorphType::MT_EYE);
 				Assert::IsTrue(mMph2.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_MATERIAL);
@@ -851,7 +851,7 @@ namespace MMDsdkTest
 			{
 				auto& uvMph = pmx.GetMorph(118);
 
-				Assert::IsTrue(strCmpForTest(GetText(uvMph.name), "口内色"));
+				Assert::IsTrue(StringEqual(GetText(uvMph.name), "口内色"));
 				Assert::IsTrue(uvMph.nameEng.GetLength() == 0);
 				Assert::IsTrue(uvMph.type == MorphType::MT_LIP);
 				Assert::IsTrue(uvMph.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_UV);
@@ -879,7 +879,7 @@ namespace MMDsdkTest
 			{
 				auto& mphL = pmx.GetMorph(pmx.GetLastMorphID());
 
-				Assert::IsTrue(strCmpForTest(GetText(mphL.name), "エッジ太さ"));
+				Assert::IsTrue(StringEqual(GetText(mphL.name), "エッジ太さ"));
 				Assert::IsTrue(mphL.nameEng.GetLength() == 0);
 				Assert::IsTrue(mphL.type == MorphType::MT_OTHER);
 				Assert::IsTrue(mphL.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_MATERIAL);
@@ -924,8 +924,8 @@ namespace MMDsdkTest
 			{
 				auto& d0 = pmx.GetDisplayFrame(0);
 
-				Assert::IsTrue(strCmpForTest(GetText(d0.name), "Root"));
-				Assert::IsTrue(strCmpForTest(GetText(d0.nameEng), "Root"));
+				Assert::IsTrue(StringEqual(GetText(d0.name), "Root"));
+				Assert::IsTrue(StringEqual(GetText(d0.nameEng), "Root"));
 				Assert::IsTrue(d0.type == PmxFile::DisplayFrame::DisplayFrameType::DFT_SPECIAL);
 				Assert::IsTrue(d0.frameElementCount == 1);
 				{
@@ -937,8 +937,8 @@ namespace MMDsdkTest
 			{
 				auto& d1 = pmx.GetDisplayFrame(1);
 
-				Assert::IsTrue(strCmpForTest(GetText(d1.name), "表情"));
-				Assert::IsTrue(strCmpForTest(GetText(d1.nameEng), "Exp"));
+				Assert::IsTrue(StringEqual(GetText(d1.name), "表情"));
+				Assert::IsTrue(StringEqual(GetText(d1.nameEng), "Exp"));
 				Assert::IsTrue(d1.type == PmxFile::DisplayFrame::DisplayFrameType::DFT_SPECIAL);
 				Assert::IsTrue(d1.frameElementCount == 130);
 				{
@@ -955,7 +955,7 @@ namespace MMDsdkTest
 			{
 				auto& dL = pmx.GetDisplayFrame(pmx.GetLastDisplayFrameID());
 
-				Assert::IsTrue(strCmpForTest(GetText(dL.name), "その他"));
+				Assert::IsTrue(StringEqual(GetText(dL.name), "その他"));
 				Assert::IsTrue(dL.nameEng.GetLength() == 0);
 				Assert::IsTrue(dL.type == PmxFile::DisplayFrame::DisplayFrameType::DFT_NORMAL);
 				Assert::IsTrue(dL.frameElementCount == 47);
@@ -978,7 +978,7 @@ namespace MMDsdkTest
 			{
 				auto& r0 = pmx.GetRigitbody(0);
 
-				Assert::IsTrue(strCmpForTest(GetText(r0.name), "頭"));
+				Assert::IsTrue(StringEqual(GetText(r0.name), "頭"));
 				Assert::IsTrue(r0.nameEng.GetLength() == 0);
 				Assert::IsTrue(r0.relationshipBoneID == 6);
 				Assert::IsTrue(r0.group == 0);
@@ -1003,7 +1003,7 @@ namespace MMDsdkTest
 				//auto& r1 = pmx.GetRigitbody(1);
 				auto& r1 = pmx.GetRigitbody(1);
 
-				Assert::IsTrue(strCmpForTest(GetText(r1.name), "前髪"));
+				Assert::IsTrue(StringEqual(GetText(r1.name), "前髪"));
 				Assert::IsTrue(r1.nameEng.GetLength() == 0);
 				Assert::IsTrue(r1.relationshipBoneID == 94);
 				Assert::IsTrue(r1.group == 4);
@@ -1029,7 +1029,7 @@ namespace MMDsdkTest
 				// auto& r18 = pmx.GetRigitbody(18);
 				auto& r18 = pmx.GetRigitbody(18);
 
-				Assert::IsTrue(strCmpForTest(GetText(r18.name), "帽子"));
+				Assert::IsTrue(StringEqual(GetText(r18.name), "帽子"));
 				Assert::IsTrue(r18.nameEng.GetLength() == 0);
 				Assert::IsTrue(r18.relationshipBoneID == 7);
 				Assert::IsTrue(r18.group == 1);
@@ -1053,7 +1053,7 @@ namespace MMDsdkTest
 				// 最後のデータ
 				auto& rL = pmx.GetRigitbody(pmx.GetLastRigitbodyID());
 
-				Assert::IsTrue(strCmpForTest(GetText(rL.name), "左羽元"));
+				Assert::IsTrue(StringEqual(GetText(rL.name), "左羽元"));
 				Assert::IsTrue(rL.nameEng.GetLength() == 0);
 				Assert::IsTrue(rL.relationshipBoneID == 11);
 				Assert::IsTrue(rL.group == 4);
@@ -1078,7 +1078,7 @@ namespace MMDsdkTest
 
 			{
 				auto& j0 = pmx.GetJoint(0);
-				Assert::IsTrue(strCmpForTest(GetText(j0.name), "前髪"));
+				Assert::IsTrue(StringEqual(GetText(j0.name), "前髪"));
 				Assert::IsTrue(j0.nameEng.GetLength() == 0);
 				Assert::IsTrue(j0.type == PmxFile::Joint::JointType::JT_SPRING_6_DOF);
 				Assert::IsTrue(j0.rigitbodyIndexA == 0);
@@ -1112,7 +1112,7 @@ namespace MMDsdkTest
 				// 回転が0ではないデータ
 				//auto& j17 = pmx.GetJoint(17);
 				auto& j17 = pmx.GetJoint(17);
-				Assert::IsTrue(strCmpForTest(GetText(j17.name), "右羽"));
+				Assert::IsTrue(StringEqual(GetText(j17.name), "右羽"));
 				Assert::IsTrue(j17.nameEng.GetLength() == 0);
 				Assert::IsTrue(j17.type == PmxFile::Joint::JointType::JT_SPRING_6_DOF);
 				Assert::IsTrue(j17.rigitbodyIndexA == 39);
@@ -1146,7 +1146,7 @@ namespace MMDsdkTest
 			{
 				// 最後のデータ
 				auto& jL = pmx.GetJoint(pmx.GetLastJointID());
-				Assert::IsTrue(strCmpForTest(GetText(jL.name), "_左羽"));
+				Assert::IsTrue(StringEqual(GetText(jL.name), "_左羽"));
 				Assert::IsTrue(jL.nameEng.GetLength() == 0);
 				Assert::IsTrue(jL.type == PmxFile::Joint::JointType::JT_SPRING_6_DOF);
 				Assert::IsTrue(jL.rigitbodyIndexA == 20);
@@ -1186,7 +1186,7 @@ namespace MMDsdkTest
 			PmxFile pmx2(testPmxModelPath2);
 			auto& bMph = pmx2.GetMorph(49);
 
-			Assert::IsTrue(strCmpForTest(GetText(bMph.name), "左手握り"));
+			Assert::IsTrue(StringEqual(GetText(bMph.name), "左手握り"));
 			Assert::IsTrue(bMph.nameEng.GetLength() == 0);
 			Assert::IsTrue(bMph.type == MorphType::MT_OTHER);
 			Assert::IsTrue(bMph.typeEX == PmxFile::Morph::MorphTypeEX::MTEX_BONE);
