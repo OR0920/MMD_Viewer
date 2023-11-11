@@ -5,6 +5,7 @@
 #include"MMDsdk.h"
 #include"MathUtil.h"
 
+#include<string>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace MMDsdk;
@@ -14,12 +15,9 @@ namespace MMDsdkTest
 {
 	bool strCmpForTest(const char* _str1, const char* _str2)
 	{
-		for (int i = 0; true; ++i)
-		{
-			if (_str1[i] != _str2[i]) return false;
-			if (_str1[i] == '\0' && _str2[i] == '\0') break;
-		}
-		return true;
+		std::string str1(_str1);
+		std::string str2(_str2);
+		return str1 == str2;
 	}
 
 	//bool strCmpFortest(const void* _str1, const void* _str2)
