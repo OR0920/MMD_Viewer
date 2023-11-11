@@ -34,49 +34,6 @@ const auto mikuPath = "Test/Model/PMD/èââπÉ~ÉNVer2.pmd";
 void LoadAndCout(const char* filepath)
 {
 	MMDsdk::PmdFile model(filepath);
-
-	//int slashCount = 0;
-	//for (int i = 0; filepath[i] != '\0'; ++i)
-	//{
-	//	if (filepath[i] == '/') ++slashCount;
-	//}
-
-	//int dirPathSize = 0;
-	//for (dirPathSize = 0; filepath[dirPathSize] != '\0'; ++dirPathSize)
-	//{
-	//	if (slashCount == 0)
-	//	{
-	//		break;
-	//	}
-	//	if (filepath[dirPathSize] == '/')
-	//	{
-	//		--slashCount;			
-	//	}
-	//}
-
-	//for (int j = 0; j < model.GetTextureCount(); ++j)
-	//{
-	//	auto& textureFileName = model.GetTexturePath(j);
-	//	auto texPathLength = (dirPathSize + textureFileName.GetLength());
-	//	char* texPath = new char[texPathLength] {'\0'};
-
-	//	for (int i = 0; i < dirPathSize; ++i)
-	//	{
-	//		texPath[i] = filepath[i];
-	//	}
-	//	for (int i = 0; i < textureFileName.GetLength(); ++i)
-	//	{
-	//		texPath[i + dirPathSize] = (GetText(textureFileName))[i];
-	//	}
-
-	//	DebugMessage(texPath);
-
-	//	FileReadBin texture(texPath);
-
-	//	SafeDeleteArray(&texPath);
-	//}
-
-
 }
 
 
@@ -104,49 +61,4 @@ int main()
 
 		SafeDeleteArray(&assetpath);
 	}
-
-	//stage.DebugOutAllData();
-
-	//MMDsdk::PmxFile kaban(kabanPath);
-	//
-	//kaban.DebugOutAllJoint();
-
-	//MMDsdk::PmdFile miku(mikuPath);
-
-	//miku.DebugOutAllData();
-
-	//kaban.DebugOutAllDisplayFrame();
-
-	//DebugOutParam(kaban.GetMaterialCount());
-	//kaban.DebugOutAllTexturePath();
-	//kaban.DebugOutAllMaterial();
-
-	//MMDsdk::PmdFile miku(testModelFilePath[9]);
-
-	//auto& text = miku.GetHeader().modelInfoEng.modelName;
-	//
-
-	//MMDsdk::PmxFile model(testModelFilePath[11]);
-	//bool bdef1 = false;
-	//bool bdef2 = false;
-	//bool bdef4 = false;
-	//bool sdef = false;
-
-	//model.GetHeader().DebugOut();
-	//for (int i = 0; i < model.GetVertexCount(); ++i)
-	//{
-	//	if (model.GetVertex(i).weightType == MMDsdk::PmxFile::Vertex::BDEF1 && bdef1 == false) { model.DebugOutVertex(i); bdef1 = true; }
-	//	if (model.GetVertex(i).weightType == MMDsdk::PmxFile::Vertex::BDEF2 && bdef2 == false) { model.DebugOutVertex(i);  bdef2 = true; }
-	//	if (model.GetVertex(i).weightType == MMDsdk::PmxFile::Vertex::BDEF4 && bdef4 == false) { model.DebugOutVertex(i); bdef4 = true; }
-	//	if (model.GetVertex(i).weightType == MMDsdk::PmxFile::Vertex::SDEF && sdef == false) { model.DebugOutVertex(i); sdef = true; }
-	//}
-
-
-	//MMDsdk::PmdFile miku(testModelFilePath[9]);
-	//miku.GetHeader().DebugOut();
-
-	//MMDsdk::PmxFile kaban(testModelFilePath[10]);
-	//kaban.GetHeader().DebugOut();
-
-	//miku.GetHeader().DebugOut();
 }
