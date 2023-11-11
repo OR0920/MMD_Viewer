@@ -33,11 +33,15 @@ namespace System
 		}
 	}
 
+	// 文字列比較
+	bool StringEqual(const void* _str1, const void* _str2);
+
 	// ディレクトリのパスを取得する関数
 	// dirpath	ディレクトリのパスを受け取るポインタ nullptrであること
 	//			内部でnewされるので、必ずdeleteすること
 	// filepath 元のポインタ
 	void CopyDirectoryPath(char** _dirpath, const char* const filepath);
+	
 }
 
 #endif // _SYSTEM_H_

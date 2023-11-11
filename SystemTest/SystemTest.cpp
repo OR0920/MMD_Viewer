@@ -13,6 +13,14 @@ namespace SystemTest
 	TEST_CLASS(SystemTest)
 	{
 	public:
+		TEST_METHOD(StrCmpTest)
+		{
+			Assert::IsTrue(StringEqual("agaraerafdasf", "agaraerafdasf"));
+			Assert::IsFalse(StringEqual("agaraerafdasf", "fasrerrefadfa"));
+			Assert::IsFalse(StringEqual("‚±‚ñ‚É‚¿‚Í", "‚±‚ñ‚Î‚ñ‚Í"));
+			Assert::IsFalse(StringEqual("abcdefg", "abcdef"));
+		}
+
 		TEST_METHOD(CopyDirectoryPathTest)
 		{
 			const char* filepath = "TestRoot/TestDir/TestFilePath.file";

@@ -1,5 +1,12 @@
 #include"System.h"
+#include<string>
 
+bool System::StringEqual(const void* _str1, const void* _str2)
+{
+	std::string str1(reinterpret_cast<const char*>(_str1));
+	std::string str2(reinterpret_cast<const char*>(_str2));
+	return str1 == str2;
+}
 
 void System::CopyDirectoryPath(char** _dirpath, const char* const filepath)
 {

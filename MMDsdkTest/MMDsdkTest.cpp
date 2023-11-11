@@ -4,34 +4,17 @@
 
 #include"MMDsdk.h"
 #include"MathUtil.h"
+#include"System.h"
 
 #include<string>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace MMDsdk;
 using namespace MathUtil;
+using System::StringEqual;
 
 namespace MMDsdkTest
 {
-	bool StringEqual(const void* _str1, const void* _str2)
-	{
-		std::string str1(reinterpret_cast<const char*>(_str1));
-		std::string str2(reinterpret_cast<const char*>(_str2));
-		return str1 == str2;
-	}
-
-	//bool strCmpFortest(const void* _str1, const void* _str2)
-
-	TEST_CLASS(UtilTest)
-	{
-		TEST_METHOD(StrCmpTest)
-		{
-			Assert::IsTrue(StringEqual("agaraerafdasf", "agaraerafdasf"));
-			Assert::IsFalse(StringEqual("agaraerafdasf", "fasrerrefadfa"));
-			Assert::IsFalse(StringEqual("‚±‚ñ‚É‚¿‚Í", "‚±‚ñ‚Î‚ñ‚Í"));
-			Assert::IsFalse(StringEqual("abcdefg", "abcdef"));
-		}
-	};
 
 	TEST_CLASS(PmdReadTest)
 	{
