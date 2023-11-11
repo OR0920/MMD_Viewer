@@ -612,7 +612,7 @@ namespace MMDsdk
 	public:
 		PmxFile(const char* filepath); ~PmxFile();
 
-		const char&	GetDirectoryPathStart() const;
+		const char& GetDirectoryPathStart() const;
 
 		// ÉwÉbÉ_èÓïÒ
 		struct Header
@@ -1167,8 +1167,8 @@ namespace MMDsdk
 			float3 posUpperLimit = {};
 			float3 rotLowerLimit = {};
 			float3 rotUpperLimit = {};
-			float3 springPos = { 3.f };
-			float3 springRot = { 3.f };
+			float3 springPos = {};
+			float3 springRot = {};
 
 			void DebugOut() const;
 			Joint(); ~Joint();
