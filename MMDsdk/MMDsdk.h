@@ -1221,8 +1221,32 @@ namespace MMDsdk
 		int32_t mJointCount;
 		Joint* mJoint;
 
-		//last
 	};
+
+	class VmdFile
+	{
+	public:
+		VmdFile(const char* const filepath); ~VmdFile();
+
+		struct Header
+		{
+			TextBufferFixed<30> sigunature = {};
+		
+			Header(); ~Header();
+		private:
+			Header(const Header&);
+			const Header& operator=(const Header&) const;
+		};
+		const Header& GetHeader() const;
+
+	private:
+		VmdFile(); VmdFile(VmdFile&);
+		const VmdFile& operator=(const VmdFile&) const;
+
+		Header mHeader;
+	};
+
+	//last
 
 }
 

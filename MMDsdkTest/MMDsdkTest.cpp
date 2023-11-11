@@ -18,7 +18,6 @@ namespace MMDsdkTest
 
 	TEST_CLASS(PmdReadTest)
 	{
-
 		const char* testPmdModelPath = "Test/Model/PMD/初音ミクVer2.pmd";
 
 		TEST_METHOD(ReadPmd)
@@ -329,6 +328,7 @@ namespace MMDsdkTest
 			Assert::IsTrue(FloatEqual(jointL.springRot.z, 0.00f));
 		}
 	};
+
 	TEST_CLASS(PmxReadTest)
 	{
 	public:
@@ -1204,8 +1204,18 @@ namespace MMDsdkTest
 				Assert::IsTrue(FloatEqual(offs0.boneOffs.offsRotQ.z, q.GetFloat4().z));
 				Assert::IsTrue(FloatEqual(offs0.boneOffs.offsRotQ.w, q.GetFloat4().w));
 			}
+		}
+	};
 
+	TEST_CLASS(VmdLoadTest)
+	{
+		const char* filepath = "Test/Mortion/シンプルウォーク.vmd";
 
+		TEST_METHOD(LoadTest)
+		{
+			VmdFile vmd(filepath);
+
+			Assert::IsTrue(StringEqual(GetText(vmd.GetHeader().sigunature), "Vocaloid Mortion Data 0002"));
 		}
 	};
 }

@@ -2448,5 +2448,25 @@ void PmxFile::DebugOutAllData() const
 	DebugOutAllJoint();
 }
 
+VmdFile::VmdFile(const char* const filepath)
+	:
+	mHeader()
+{
+
+}
+
+VmdFile::~VmdFile()
+{
+
+}
+
+VmdFile::Header::Header() {}
+VmdFile::Header::~Header() {}
+
+const VmdFile::Header& VmdFile::GetHeader() const
+{
+	return mHeader;
+}
+
 //last
 
