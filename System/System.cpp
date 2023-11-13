@@ -1,7 +1,7 @@
 #include"System.h"
 #include<string>
 
-bool System::StringEqual(const void* _str1, const void* _str2)
+bool System::StringEqual(const void* const _str1, const void* const _str2)
 {
 	std::string str1(reinterpret_cast<const char*>(_str1));
 	std::string str2(reinterpret_cast<const char*>(_str2));
@@ -16,26 +16,19 @@ void System::NewArrayAndCopyDirPathFromFilePath(char** _dirpath, const char* con
 		DebugMessage("The pointer is already used");
 	}
 
-	// パスの長さ文字数のため1始まり
-	int pathLength = 1;
-	// ディレクトリの取得
-	int dirCount = 0;
+	// ファイルパス末尾のID
+	int pathLastID = GetStringLength(filepath) - 1;
 
-	for (pathLength; filepath[pathLength - 1] != '\0'; ++pathLength)
+	for (int i = pathLastID; i >= 0; --i)
 	{
-		if (filepath[pathLength] == '/') ++dirCount;
-	}
-
-	for (int i = 0; i < pathLength; ++i)
-	{
-		if (filepath[i] == '/') --dirCount;
-		if (dirCount == 0)
+		if (filepath[i] == '/')
 		{
 			// ファイル名の最後のディレクトリ名までの文字数
 			// 最後の'/'までの文字数 + NULL文字分　//
 			const int dirPathLength = i + 2;
 
 			dirpath = new char[dirPathLength] {'\0'};
+
 			// 末尾のNULL文字は残し、それまでをコピー
 			for (int j = 0; j < dirPathLength - 1; ++j)
 			{
@@ -46,7 +39,7 @@ void System::NewArrayAndCopyDirPathFromFilePath(char** _dirpath, const char* con
 	}
 }
 
-// NULL文字を含む長さを返す	
+// NULL文字を含む文字列の長さを返す	
 int System::GetStringLength(const char* const text)
 {
 	if (text == nullptr)
