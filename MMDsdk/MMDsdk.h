@@ -62,8 +62,8 @@ namespace MMDsdk
 	};
 
 	// テキスト取得マクロ
-#define GetText(textBuffer) &textBuffer.GetFirstChar()
-
+	// 旧　GetText　設計ミスの名残
+#define GetTextMacro(textBuffer) textBuffer.GetText()
 	// テキストを格納、扱うクラス
 	// 可変長 //
 	class TextBufferVariable
@@ -75,12 +75,7 @@ namespace MMDsdk
 
 		const int GetLength() const;
 		// 文字列取得 
-		// 先頭の参照のみにアクセスさせる
-		// 上のマクロを使用可能
-		// 書き換えはできない
-		// 
-		// (&instance.GetFirstChar())[instance.GetLength()] <- 万死
-		const char& GetFirstChar() const;
+		const char* const GetText() const;
 	private:
 		// 内部でnewを行うため隔離
 		TextBufferVariable(const TextBufferVariable&);
@@ -105,14 +100,9 @@ namespace MMDsdk
 		}
 
 		// 文字列取得 
-		// 先頭の参照のみにアクセスさせる
-		// 上のマクロを使用可能
-		// 書き換えはできない
-		// 
-		// (&instance.GetFirstChar())[instance.GetLength()] <- 万死
-		const char& GetFirstChar() const
+		const char* const GetText() const
 		{
-			return mStr[0];
+			return mStr;
 		}
 	private:
 		TextBufferFixed(TextBufferFixed&);
