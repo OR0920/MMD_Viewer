@@ -1231,11 +1231,15 @@ namespace MMDsdk
 			const Header& operator=(const Header&) const;
 		};
 		const Header& GetHeader() const;
+
+		const int32_t& GetMortionDataCount() const;
 	private:
 		VmdFile(); VmdFile(VmdFile&);
 		const VmdFile& operator=(const VmdFile&) const;
 		
 		Header mHeader;
+
+		int32_t mMortionDataCount;
 	};
 
 	//last

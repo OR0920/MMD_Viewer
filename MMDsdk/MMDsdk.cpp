@@ -2420,12 +2420,17 @@ void PmxFile::DebugOutAllData() const
 
 VmdFile::VmdFile(const char* const filepath)
 	:
-	mHeader()
+	mHeader(),
+	mMortionDataCount(0)
+	//last
 {
 	System::FileReadBin file(filepath);
 
 	LoadTextBufferFixed(file, mHeader.sigunature);
 	LoadTextBufferFixed(file, mHeader.defaultModelName);
+
+	file.Read(mMortionDataCount);
+	//last
 }
 
 VmdFile::~VmdFile()
@@ -2439,6 +2444,11 @@ VmdFile::Header::~Header() {}
 const VmdFile::Header& VmdFile::GetHeader() const
 {
 	return mHeader;
+}
+
+const int32_t& VmdFile::GetMortionDataCount() const
+{
+	return mMortionDataCount;
 }
 
 //last

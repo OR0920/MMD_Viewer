@@ -1218,6 +1218,8 @@ namespace MMDsdkTest
 
 			Assert::IsTrue(StringEqual(GetTextMacro(vmd.GetHeader().sigunature), "Vocaloid Motion Data 0002"));
 			Assert::IsTrue(StringEqual(GetTextMacro(vmd.GetHeader().defaultModelName), "‰‰¹ƒ~ƒN(ƒƒ^ƒ‹•)"));
+
+			Assert::IsTrue(vmd.GetMortionDataCount() == 97);
 		}
 	};
 }
