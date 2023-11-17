@@ -24,7 +24,7 @@ namespace MMDsdkTest
 		{
 			PmdFile pmd(testPmdModelPath);
 
-			Assert::IsTrue(StringEqual(&pmd.GetDirectoryPath(), "Test/Model/PMD/"));
+			Assert::IsTrue(StringEqual(pmd.GetDirectoryPath(), "Test/Model/PMD/"));
 
 			// 基本情報の読み込みテスト
 			Assert::IsTrue(pmd.GetHeader().version == 1.f);
@@ -340,7 +340,7 @@ namespace MMDsdkTest
 		{
 			PmxFile pmx(testPmxModelPath);
 
-			Assert::IsTrue(StringEqual(&pmx.GetDirectoryPathStart(), "Test/Model/PMX/かばんちゃん/かばんちゃん/"));
+			Assert::IsTrue(StringEqual(pmx.GetDirectoryPathStart(), "Test/Model/PMX/かばんちゃん/かばんちゃん/"));
 
 			{
 				auto& h = pmx.GetHeader();
