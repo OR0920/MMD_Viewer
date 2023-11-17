@@ -1219,7 +1219,13 @@ namespace MMDsdkTest
 			Assert::IsTrue(StringEqual(GetTextMacro(vmd.GetHeader().sigunature), "Vocaloid Motion Data 0002"));
 			Assert::IsTrue(StringEqual(GetTextMacro(vmd.GetHeader().defaultModelName), "初音ミク(メタル服)"));
 
-			Assert::IsTrue(vmd.GetMortionDataCount() == 97);
+			Assert::IsTrue(vmd.GetMortionCount() == 97);
+			
+			// モーションデータ読み込みテスト
+			{
+				auto& m = vmd.GetMortion(0);
+				Assert::IsTrue(StringEqual(m.name.GetText(), "センター"));
+			}
 		}
 	};
 }

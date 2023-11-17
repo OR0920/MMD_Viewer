@@ -1232,14 +1232,25 @@ namespace MMDsdk
 		};
 		const Header& GetHeader() const;
 
-		const int32_t& GetMortionDataCount() const;
+		const int32_t& GetMortionCount() const;
+		struct Mortion
+		{
+			TextBufferFixed<15> name = {};
+
+			Mortion(); ~Mortion();
+		private:
+			Mortion(const Mortion&);
+			const Mortion& operator=(const Mortion&) const;
+		};
+		const Mortion& GetMortion(const int32_t i) const;
 	private:
 		VmdFile(); VmdFile(VmdFile&);
 		const VmdFile& operator=(const VmdFile&) const;
 		
 		Header mHeader;
 
-		int32_t mMortionDataCount;
+		int32_t mMortionCount;
+		Mortion* mMortion;
 	};
 
 	//last

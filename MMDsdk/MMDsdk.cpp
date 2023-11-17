@@ -1171,7 +1171,6 @@ PmxFile::PmxFile(const char* const filepath)
 	mRigitbody(nullptr),
 	mJointCount(0),
 	mJoint(nullptr)
-	//last
 {
 	System::FileReadBin file(filepath);
 
@@ -1442,11 +1441,8 @@ PmxFile::PmxFile(const char* const filepath)
 		file.Read(j.rotLowerLimit);
 		file.Read(j.rotUpperLimit);
 		file.Read(j.springPos);
-		file.Read(j.springRot);
+			file.Read(j.springRot);
 	}
-
-	DebugMessageNewLine();
-	//last
 }
 
 PmxFile::~PmxFile()
@@ -2421,7 +2417,8 @@ void PmxFile::DebugOutAllData() const
 VmdFile::VmdFile(const char* const filepath)
 	:
 	mHeader(),
-	mMortionDataCount(0)
+	mMortionCount(0),
+	mMortion(nullptr)
 	//last
 {
 	System::FileReadBin file(filepath);
@@ -2429,13 +2426,20 @@ VmdFile::VmdFile(const char* const filepath)
 	LoadTextBufferFixed(file, mHeader.sigunature);
 	LoadTextBufferFixed(file, mHeader.defaultModelName);
 
-	file.Read(mMortionDataCount);
+	file.Read(mMortionCount);
+
+	mMortion = new Mortion[mMortionCount]{};
+	for (int i = 0; i < 1; ++i)
+	{
+		auto& m = mMortion[i];
+		LoadTextBufferFixed(file, m.name);
+	}
 	//last
 }
 
 VmdFile::~VmdFile()
 {
-
+	SafeDeleteArray(&mMortion);
 }
 
 VmdFile::Header::Header() {}
@@ -2446,9 +2450,21 @@ const VmdFile::Header& VmdFile::GetHeader() const
 	return mHeader;
 }
 
-const int32_t& VmdFile::GetMortionDataCount() const
+const int32_t& VmdFile::GetMortionCount() const
 {
-	return mMortionDataCount;
+	return mMortionCount;
+}
+
+VmdFile::Mortion::Mortion() {}
+VmdFile::Mortion::~Mortion() {}
+
+const VmdFile::Mortion& VmdFile::GetMortion(const int32_t i) const
+{
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mMortion, mMortionCount);
+	IS_OUT_OF_RANGE(mMortion, i, mMortionCount);
+
+	return mMortion[i];
 }
 
 //last
