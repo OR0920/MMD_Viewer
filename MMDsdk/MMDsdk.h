@@ -63,7 +63,9 @@ namespace MMDsdk
 
 	// テキスト取得マクロ
 	// 旧　GetText　設計ミスの名残
+	// 互換性保持のため一応残している
 #define GetTextMacro(textBuffer) textBuffer.GetText()
+
 	// テキストを格納、扱うクラス
 	// 可変長 //
 	class TextBufferVariable
