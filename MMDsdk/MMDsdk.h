@@ -126,11 +126,11 @@ namespace MMDsdk
 	public:
 		// ファイルを指定してインスタンスを生成すること
 		// コンストラクタの処理で一気にファイルを読み込み閉じる
-		PmdFile(const char* filepath);  ~PmdFile();
+		PmdFile(const char* const filepath);  ~PmdFile();
 
 		// ディレクトリのパスを取得する
 		// テクスチャなどのファイルはすべて同じディレクトリに入れること //
-		const char& GetDirectoryPathStart() const;
+		const char* const GetDirectoryPath() const;
 
 		// 以下データの構造体とその取得関数をペアで記述する
 		// 内部に配列を持つ場合は専用のロード関数を用意している
@@ -602,9 +602,9 @@ namespace MMDsdk
 	class PmxFile
 	{
 	public:
-		PmxFile(const char* filepath); ~PmxFile();
+		PmxFile(const char* const filepath); ~PmxFile();
 
-		const char& GetDirectoryPathStart() const;
+		const char* const GetDirectoryPathStart() const;
 
 		// ヘッダ情報
 		struct Header

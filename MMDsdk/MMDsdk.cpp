@@ -102,7 +102,7 @@ void LoadTextBufferFixed(System::FileReadBin& file, TextBufferFixed<size>& text)
 }
 
 
-PmdFile::PmdFile(const char* filepath)
+PmdFile::PmdFile(const char* const filepath)
 	:
 	mDirectoryPath(nullptr),
 	mHeader(),
@@ -383,9 +383,9 @@ PmdFile::~PmdFile()
 	SafeDeleteArray(&mDirectoryPath);
 }
 
-const char& PmdFile::GetDirectoryPathStart() const
+const char* const PmdFile::GetDirectoryPath() const
 {
-	return mDirectoryPath[0];
+	return mDirectoryPath;
 }
 
 PmdFile::Header::ModelInfo::ModelInfo() {}
@@ -1149,7 +1149,7 @@ void LoadID_AsInt32(System::FileReadBin& file, int32_t& buf, const size_t idByte
 	}
 }
 
-PmxFile::PmxFile(const char* filepath)
+PmxFile::PmxFile(const char* const filepath)
 	:
 	mDirectoryPath(nullptr),
 	mHeader(),
@@ -1463,9 +1463,9 @@ PmxFile::~PmxFile()
 	SafeDeleteArray(&mDirectoryPath);
 }
 
-const char& PmxFile::GetDirectoryPathStart() const
+const char* const PmxFile::GetDirectoryPathStart() const
 {
-	return mDirectoryPath[0];
+	return mDirectoryPath;
 }
 
 PmxFile::Header::ModelInfo::ModelInfo() {}
