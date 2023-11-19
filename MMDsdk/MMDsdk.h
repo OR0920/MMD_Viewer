@@ -1237,15 +1237,24 @@ namespace MMDsdk
 		{
 			TextBufferFixed<15> name = {};
 			int frameNumber = 0;
-			float3 position = { -1.f };
-			float4 rotation = { -1.f };
+			float3 position = { 0.f };
+			float4 rotation = { 0.f };
 
+		private:
+			char bezierParam[64] = {};
+		public:
+
+			const char& GetBezierParam(const int32_t i) const;
+
+			void LoadBezierParam(void* _file);
 			Mortion(); ~Mortion();
 		private:
 			Mortion(const Mortion&);
 			const Mortion& operator=(const Mortion&) const;
 		};
 		const Mortion& GetMortion(const int32_t i) const;
+		const int32_t GetLastMortionID() const;
+
 	private:
 		VmdFile(); VmdFile(VmdFile&);
 		const VmdFile& operator=(const VmdFile&) const;

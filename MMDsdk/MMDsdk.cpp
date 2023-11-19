@@ -2429,14 +2429,15 @@ VmdFile::VmdFile(const char* const filepath)
 	file.Read(mMortionCount);
 
 	mMortion = new Mortion[mMortionCount]{};
-	for (int i = 0; i < 1; ++i)
+	for (int i = 0; i < mMortionCount; ++i)
 	{
 		auto& m = mMortion[i];
 		LoadTextBufferFixed(file, m.name);
 		file.Read(m.frameNumber);
 		file.Read(m.position);
 		file.Read(m.rotation);
-
+		
+		m.LoadBezierParam(&file);
 		DebugOutFloat3(m.position);
 	}
 	//last
@@ -2460,6 +2461,18 @@ const int32_t& VmdFile::GetMortionCount() const
 	return mMortionCount;
 }
 
+const char& VmdFile::Mortion::GetBezierParam(const int32_t i) const
+{
+	IS_OUT_OF_RANGE(bezierParam, i, 64);
+	return bezierParam[i];
+}
+
+void VmdFile::Mortion::LoadBezierParam(void* _file)
+{
+	auto& file = GetFile(_file);
+	file.ReadArray(bezierParam, 64);
+}
+
 VmdFile::Mortion::Mortion() {}
 VmdFile::Mortion::~Mortion() {}
 
@@ -2470,6 +2483,11 @@ const VmdFile::Mortion& VmdFile::GetMortion(const int32_t i) const
 	IS_OUT_OF_RANGE(mMortion, i, mMortionCount);
 
 	return mMortion[i];
+}
+
+const int32_t VmdFile::GetLastMortionID() const
+{
+	return mMortionCount - 1;
 }
 
 //last

@@ -1233,6 +1233,26 @@ namespace MMDsdkTest
 				Assert::IsTrue(FloatEqual(m.rotation.y, 0.f));
 				Assert::IsTrue(FloatEqual(m.rotation.z, 0.f));
 				Assert::IsTrue(FloatEqual(m.rotation.w, 1.f));
+				// 本来はここでベジエ曲線の値をテストするべきだが、
+				// 面倒なので次のパラメータの文字列が読み込めて入れば問題ないとする。
+			}
+
+			{
+				auto& m1 = vmd.GetMortion(1);
+				Assert::IsTrue(StringEqual(m1.name.GetText(), "上半身"));
+			}
+
+			{
+				auto& m = vmd.GetMortion(vmd.GetLastMortionID());
+				Assert::IsTrue(StringEqual(m.name.GetText(), "頭"));
+				Assert::IsTrue(m.frameNumber == 0x28);
+				Assert::IsTrue(FloatEqual(m.position.x, 0.f));
+				Assert::IsTrue(FloatEqual(m.position.y,	0.f));
+				Assert::IsTrue(FloatEqual(m.position.z, 0.f));
+				Assert::IsTrue(FloatEqual(m.rotation.x, 0.00499f));
+				Assert::IsTrue(FloatEqual(m.rotation.y, 0.f));
+				Assert::IsTrue(FloatEqual(m.rotation.z, 0.f));
+				Assert::IsTrue(FloatEqual(m.rotation.w, 0.99998f));
 			}
 		}
 	};
