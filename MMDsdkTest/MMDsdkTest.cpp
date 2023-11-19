@@ -1220,11 +1220,19 @@ namespace MMDsdkTest
 			Assert::IsTrue(StringEqual(GetTextMacro(vmd.GetHeader().defaultModelName), "初音ミク(メタル服)"));
 
 			Assert::IsTrue(vmd.GetMortionCount() == 97);
-			
+
 			// モーションデータ読み込みテスト
 			{
 				auto& m = vmd.GetMortion(0);
 				Assert::IsTrue(StringEqual(m.name.GetText(), "センター"));
+				Assert::IsTrue(m.frameNumber == 16);
+				Assert::IsTrue(FloatEqual(m.position.x, 0.f));
+				Assert::IsTrue(FloatEqual(m.position.y, -0.45f));
+				Assert::IsTrue(FloatEqual(m.position.z, -0.45f));
+				Assert::IsTrue(FloatEqual(m.rotation.x, 0.f));
+				Assert::IsTrue(FloatEqual(m.rotation.y, 0.f));
+				Assert::IsTrue(FloatEqual(m.rotation.z, 0.f));
+				Assert::IsTrue(FloatEqual(m.rotation.w, 1.f));
 			}
 		}
 	};

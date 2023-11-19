@@ -1236,6 +1236,9 @@ namespace MMDsdk
 		struct Mortion
 		{
 			TextBufferFixed<15> name = {};
+			int frameNumber = 0;
+			float3 position = { -1.f };
+			float4 rotation = { -1.f };
 
 			Mortion(); ~Mortion();
 		private:
@@ -1246,7 +1249,7 @@ namespace MMDsdk
 	private:
 		VmdFile(); VmdFile(VmdFile&);
 		const VmdFile& operator=(const VmdFile&) const;
-		
+
 		Header mHeader;
 
 		int32_t mMortionCount;

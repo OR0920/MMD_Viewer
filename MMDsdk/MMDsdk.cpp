@@ -60,7 +60,7 @@ void TextBufferVariable::Load(void* _file, EncodeType encode)
 		return;
 	}
 
-	
+
 	auto& file = GetFile(_file);
 	file.Read(mLength);
 
@@ -1441,7 +1441,7 @@ PmxFile::PmxFile(const char* const filepath)
 		file.Read(j.rotLowerLimit);
 		file.Read(j.rotUpperLimit);
 		file.Read(j.springPos);
-			file.Read(j.springRot);
+		file.Read(j.springRot);
 	}
 }
 
@@ -2433,6 +2433,11 @@ VmdFile::VmdFile(const char* const filepath)
 	{
 		auto& m = mMortion[i];
 		LoadTextBufferFixed(file, m.name);
+		file.Read(m.frameNumber);
+		file.Read(m.position);
+		file.Read(m.rotation);
+
+		DebugOutFloat3(m.position);
 	}
 	//last
 }
