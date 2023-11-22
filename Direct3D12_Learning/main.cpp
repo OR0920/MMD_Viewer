@@ -12,10 +12,14 @@ void SafeRelease(C** ptr)
 	}
 }
 
-
 // window size
 static const int gWindowWidth = 1280;
 static const int gWindowHeight = 720;
+
+static const int gBufferCount = 2;
+
+// std lib
+#include<vector>
 
 // direct3d lib
 #include<d3d12.h>
@@ -29,10 +33,15 @@ IDXGISwapChain4* gSwapChain = nullptr;
 ID3D12CommandAllocator* gCmdAllocator = nullptr;
 ID3D12GraphicsCommandList* gCmdList = nullptr;
 ID3D12CommandQueue* gCmdQueue = nullptr;
+std::vector<ID3D12Resource*> gBackBuffers(gBufferCount);
 
 
 void SafeReleaseAll_D3D_Interface()
 {
+	for (int i = 0; i < gBufferCount; i++)
+	{
+		SafeRelease(&gBackBuffers[i]);
+	}
 	SafeRelease(&gCmdQueue);
 	SafeRelease(&gCmdList);
 	SafeRelease(&gCmdAllocator);
@@ -209,7 +218,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		scd.SampleDesc.Count = 1;
 		scd.SampleDesc.Quality = 0;
 		scd.BufferUsage = DXGI_USAGE_BACK_BUFFER;
-		scd.BufferCount = 2;
+		scd.BufferCount = gBufferCount;
 		scd.Scaling = DXGI_SCALING::DXGI_SCALING_STRETCH;
 		scd.SwapEffect = DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		scd.AlphaMode = DXGI_ALPHA_MODE::DXGI_ALPHA_MODE_UNSPECIFIED;
@@ -229,6 +238,46 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{
 			DebugOutParamHex(result);
 			return ReturnWithErrorMessage("Failed Create Swap Chain !");
+		}
+	}
+
+	// RTV の作成
+	{
+		// ディスクリプタヒープの作成
+		D3D12_DESCRIPTOR_HEAP_DESC hd = {};
+
+		hd.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		hd.NodeMask = 0;
+		hd.NumDescriptors = gBufferCount;
+		hd.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+
+		ID3D12DescriptorHeap* rtvHeaps = nullptr;
+
+		auto result = gDevice->CreateDescriptorHeap(&hd, IID_PPV_ARGS(&rtvHeaps));
+		if (result != S_OK)
+		{
+			SafeRelease(&rtvHeaps);
+			return ReturnWithErrorMessage("Failed Create RTV Heap !");
+		}
+
+		DXGI_SWAP_CHAIN_DESC scd = {};
+		result = gSwapChain->GetDesc(&scd);
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Get SwapchainDesc to Create RenderTargetView !");
+		}
+
+		for (int idx = 0; idx < scd.BufferCount; ++idx)
+		{
+			result = gSwapChain->GetBuffer(idx, IID_PPV_ARGS(&gBackBuffers[idx]));
+			if (result != S_OK)
+			{
+				DebugOutParamI(idx);
+				return ReturnWithErrorMessage("Failed Get Buffer to Create RenderTargetView !");
+			}
+			auto handle = rtvHeaps->GetCPUDescriptorHandleForHeapStart();
+			handle.ptr += idx * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+			gDevice->CreateRenderTargetView(gBackBuffers[idx], nullptr, handle);
 		}
 	}
 
