@@ -102,11 +102,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			wcEx.hInstance,
 			nullptr
 		);
+	if (hwnd == nullptr)
+	{
+		return ReturnWithErrorMessage("Failed Create Window !");
+	}
 	ShowWindow(hwnd, SW_SHOW);
 
 
 	// Direct3D 初期化
-		// デバイスの作成
+	{
+		ID3D12Debug* debugLayer = nullptr;
+		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugLayer)))) {
+			debugLayer->EnableDebugLayer();
+			SafeRelease(&debugLayer);
+		}
+	}
+
+
+	// デバイスの作成
 	{
 		D3D_FEATURE_LEVEL levels[] =
 		{
@@ -133,29 +146,41 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		return ReturnWithErrorMessage("Failed Create D3D Device !");
 	}
 
-	// コマンドリスト、コマンドアロケータの作成
-	auto result =
-		gDevice->CreateCommandAllocator
-		(
-			D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT,
-			IID_PPV_ARGS(&gCmdAllocator)
-		);
-	if (result != S_OK)
 	{
-		return ReturnWithErrorMessage("Failed To Create Command Allocator !");
+		auto result = CreateDXGIFactory1(IID_PPV_ARGS(&gDxgiFactory));
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Create Dxgi Factory !");
+		}
 	}
-	result =
-		gDevice->CreateCommandList
-		(
-			0,
-			D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT,
-			gCmdAllocator,
-			nullptr,
-			IID_PPV_ARGS(&gCmdList)
-		);
-	if (result != S_OK)
+
+	// コマンドリスト、コマンドアロケータの作成
 	{
-		return ReturnWithErrorMessage("Failed To Create Command List !");
+		auto result =
+			gDevice->CreateCommandAllocator
+			(
+				D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT,
+				IID_PPV_ARGS(&gCmdAllocator)
+			);
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed To Create Command Allocator !");
+		}
+	}
+	{
+		auto result =
+			gDevice->CreateCommandList
+			(
+				0,
+				D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT,
+				gCmdAllocator,
+				nullptr,
+				IID_PPV_ARGS(&gCmdList)
+			);
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed To Create Command List !");
+		}
 	}
 
 	// コマンドキューの作成
@@ -166,13 +191,46 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		cqd.Priority = D3D12_COMMAND_QUEUE_PRIORITY::D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
 		cqd.Type = D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT;
 
-		result = gDevice->CreateCommandQueue(&cqd, IID_PPV_ARGS(&gCmdQueue));
+		auto result = gDevice->CreateCommandQueue(&cqd, IID_PPV_ARGS(&gCmdQueue));
 		if (result != S_OK)
 		{
 			return ReturnWithErrorMessage("Failed To Create Command Queue !");
 		}
 	}
 
+	// スワップチェーンの作成
+	{
+		DXGI_SWAP_CHAIN_DESC1 scd = {};
+
+		scd.Width = gWindowWidth;
+		scd.Height = gWindowHeight;
+		scd.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
+		scd.Stereo = false;
+		scd.SampleDesc.Count = 1;
+		scd.SampleDesc.Quality = 0;
+		scd.BufferUsage = DXGI_USAGE_BACK_BUFFER;
+		scd.BufferCount = 2;
+		scd.Scaling = DXGI_SCALING::DXGI_SCALING_STRETCH;
+		scd.SwapEffect = DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		scd.AlphaMode = DXGI_ALPHA_MODE::DXGI_ALPHA_MODE_UNSPECIFIED;
+		scd.Flags = DXGI_SWAP_CHAIN_FLAG::DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+		auto result =
+			gDxgiFactory->CreateSwapChainForHwnd
+			(
+				gCmdQueue,
+				hwnd,
+				&scd,
+				nullptr,
+				nullptr,
+				reinterpret_cast<IDXGISwapChain1**>(&gSwapChain)
+			);
+
+		if (result != S_OK)
+		{
+			DebugOutParamHex(result);
+			return ReturnWithErrorMessage("Failed Create Swap Chain !");
+		}
+	}
 
 
 	// メッセージループ
