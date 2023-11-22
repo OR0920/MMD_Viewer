@@ -60,7 +60,7 @@ void TextBufferVariable::Load(void* _file, EncodeType encode)
 		return;
 	}
 
-	
+
 	auto& file = GetFile(_file);
 	file.Read(mLength);
 
@@ -82,20 +82,27 @@ const int TextBufferVariable::GetLength() const
 	return mLength;
 }
 
-const char& TextBufferVariable::GetFirstChar() const
+const char* const TextBufferVariable::GetText() const
 {
-	if (mStr == nullptr)
-	{
-		// データが存在しない
-		return '\0';
-	}
+	return mStr;
+}
 
-
-	return *mStr;
+template <size_t size>
+void LoadTextBufferFixed(System::FileReadBin& file, TextBufferFixed<size>& text)
+{
+	// 宣言時に長さが確定しているためテンプレートクラスにしたい
+	// ヘッダーに他コンポーネントのインクルードを書きたくない
+	// 文字列をconstにして安全にアクセスさせたい
+	// 上記理由により const_cast を採用。
+	file.ReadArray
+	(
+		const_cast<char*>(GetTextMacro(text)),
+		text.GetLength()
+	);
 }
 
 
-PmdFile::PmdFile(const char* filepath)
+PmdFile::PmdFile(const char* const filepath)
 	:
 	mDirectoryPath(nullptr),
 	mHeader(),
@@ -159,18 +166,8 @@ PmdFile::PmdFile(const char* filepath)
 
 	file.Read(mHeader.version);
 
-	// 諸々考慮した結果、やむを得ずconst_cast
-	// テキスト読み込み以外では使用していない //
-	file.ReadArray
-	(
-		const_cast<char*>(&mHeader.modelInfoJP.modelName.GetFirstChar()),
-		mHeader.modelInfoJP.modelName.GetLength()
-	);
-	file.ReadArray
-	(
-		const_cast<char*>(&mHeader.modelInfoJP.comment.GetFirstChar()),
-		mHeader.modelInfoJP.comment.GetLength()
-	);
+	LoadTextBufferFixed(file, mHeader.modelInfoJP.modelName);
+	LoadTextBufferFixed(file, mHeader.modelInfoJP.comment);
 
 	//頂点の読み込み
 	file.Read(mVertexCount);
@@ -206,11 +203,8 @@ PmdFile::PmdFile(const char* filepath)
 		file.Read(m.edgeFlag);
 
 		file.Read(m.vertexCount, 4);
-		file.ReadArray
-		(
-			const_cast<char*>(&m.texturePath.GetFirstChar()),
-			m.texturePath.GetLength()
-		);
+
+		LoadTextBufferFixed(file, m.texturePath);
 	}
 
 	//ボーン読み込み
@@ -219,7 +213,7 @@ PmdFile::PmdFile(const char* filepath)
 	for (uint32_t i = 0; i < mBoneCount; ++i)
 	{
 		auto& b = mBone[i];
-		file.Read(const_cast<char*>(&b.name.GetFirstChar()), b.name.GetLength());
+		LoadTextBufferFixed(file, b.name);
 		file.Read(b.parentIndex);
 		file.Read(b.childIndex);
 		file.Read(b.type);
@@ -248,7 +242,7 @@ PmdFile::PmdFile(const char* filepath)
 	{
 		auto& mph = mMorph[i];
 
-		file.ReadArray(const_cast<char*>(&mph.name.GetFirstChar()), mph.name.GetLength());
+		LoadTextBufferFixed(file, mph.name);
 		file.Read(mph.offsCount);
 		file.Read(mph.type);
 
@@ -267,11 +261,7 @@ PmdFile::PmdFile(const char* filepath)
 
 	for (uint8_t i = 0; i < mBoneNameForDisplayCount; ++i)
 	{
-		file.ReadArray
-		(
-			const_cast<char*>(&mBoneNameForDisplay[i].GetFirstChar()),
-			mBoneNameForDisplay[i].GetLength()
-		);
+		LoadTextBufferFixed(file, mBoneNameForDisplay[i]);
 	}
 
 	// ボーン枠用枠名の読み込み
@@ -291,36 +281,20 @@ PmdFile::PmdFile(const char* filepath)
 	if (mHeader.isEngAvailable == 1)
 	{
 		// モデル情報 //
-		file.ReadArray
-		(
-			const_cast<char*>(&mHeader.modelInfoEng.modelName.GetFirstChar()),
-			mHeader.modelInfoEng.modelName.GetLength()
-		);
-		file.ReadArray
-		(
-			const_cast<char*>(&mHeader.modelInfoEng.comment.GetFirstChar()),
-			mHeader.modelInfoEng.comment.GetLength()
-		);
+		LoadTextBufferFixed(file, mHeader.modelInfoEng.modelName);
+		LoadTextBufferFixed(file, mHeader.modelInfoEng.comment);
 
 		// ボーン名
 		for (uint16_t i = 0; i < mBoneCount; ++i)
 		{
-			file.ReadArray
-			(
-				const_cast<char*>(&mBone[i].nameEng.GetFirstChar()),
-				mBone[i].nameEng.GetLength()
-			);
+			LoadTextBufferFixed(file, mBone[i].nameEng);
 		}
 
 		// 表情名(モーフ名)
 		// baseは含まれないので添え字は1から
 		for (uint16_t i = 1; i < mMorphCount; ++i)
 		{
-			file.ReadArray
-			(
-				const_cast<char*>(&mMorph[i].nameEng.GetFirstChar()),
-				mMorph[i].nameEng.GetLength()
-			);
+			LoadTextBufferFixed(file, mMorph[i].nameEng);
 		}
 
 		// 表示用ボーン名
@@ -328,18 +302,14 @@ PmdFile::PmdFile(const char* filepath)
 		mBoneNameForDisplayEng = new TextBufferFixed<50>[mBoneNameForDisplayCount] {};
 		for (uint8_t i = 0; i < mBoneNameForDisplayCount; ++i)
 		{
-			file.ReadArray
-			(
-				const_cast<char*>(&mBoneNameForDisplayEng[i].GetFirstChar()),
-				mBoneNameForDisplayEng[i].GetLength()
-			);
+			LoadTextBufferFixed(file, mBoneNameForDisplayEng[i]);
 		}
 	}
 
 	// Toonテクスチャパス読み込み
 	for (int i = 0; i < 10; ++i)
 	{
-		file.ReadArray(const_cast<char*>(&mToonTexturePath[i].GetFirstChar()), mToonTexturePath[i].GetLength());
+		LoadTextBufferFixed(file, mToonTexturePath[i]);
 	}
 
 
@@ -349,7 +319,7 @@ PmdFile::PmdFile(const char* filepath)
 	for (uint32_t i = 0; i < mRigitbodyCount; ++i)
 	{
 		auto& r = mRigitbody[i];
-		file.ReadArray(const_cast<char*>(&r.name.GetFirstChar()), r.name.GetLength());
+		LoadTextBufferFixed(file, r.name);
 		file.Read(r.relationshipBoneID);
 		file.Read(r.group);
 		file.Read(r.groupTarget);
@@ -373,7 +343,7 @@ PmdFile::PmdFile(const char* filepath)
 	for (uint32_t i = 0; i < mJointCount; ++i)
 	{
 		auto& j = mJoint[i];
-		file.ReadArray(const_cast<char*>(&j.name.GetFirstChar()), j.name.GetLength());
+		LoadTextBufferFixed(file, j.name);
 
 		file.Read(j.rigitbodyIndexA);
 		file.Read(j.rigitbodyIndexB);
@@ -413,9 +383,9 @@ PmdFile::~PmdFile()
 	SafeDeleteArray(&mDirectoryPath);
 }
 
-const char& PmdFile::GetDirectoryPathStart() const
+const char* const PmdFile::GetDirectoryPath() const
 {
-	return mDirectoryPath[0];
+	return mDirectoryPath;
 }
 
 PmdFile::Header::ModelInfo::ModelInfo() {}
@@ -426,14 +396,14 @@ void PmdFile::Header::DebugOut() const
 {
 #ifdef _DEBUG
 	DebugMessage("PMDFile /////////////////////////////////////////");
-	DebugMessage(GetText(modelInfoJP.modelName));
+	DebugMessage(GetTextMacro(modelInfoJP.modelName));
 	DebugMessageNewLine();
-	DebugMessage(GetText(modelInfoJP.comment));
+	DebugMessage(GetTextMacro(modelInfoJP.comment));
 	DebugMessageNewLine();
 	if (isEngAvailable == 1)
 	{
-		DebugMessage(GetText(modelInfoEng.modelName));
-		DebugMessage(GetText(modelInfoEng.comment));
+		DebugMessage(GetTextMacro(modelInfoEng.modelName));
+		DebugMessage(GetTextMacro(modelInfoEng.comment));
 	}
 	DebugMessageNewLine();
 	DebugOutParam(version);
@@ -564,7 +534,7 @@ void PmdFile::Material::DebugOut() const
 	DebugOutParamI(toonIndex);
 	DebugOutParamI(edgeFlag);
 	DebugOutParamI(vertexCount);
-	DebugOutString(GetText(texturePath));
+	DebugOutString(GetTextMacro(texturePath));
 	DebugMessageNewLine();
 }
 
@@ -606,8 +576,8 @@ const uint16_t& PmdFile::GetBoneCount() const
 
 void PmdFile::Bone::DebugOut() const
 {
-	DebugOutString(GetText(name));
-	DebugOutString(GetText(nameEng));
+	DebugOutString(GetTextMacro(name));
+	DebugOutString(GetTextMacro(nameEng));
 	DebugOutParamI(parentIndex);
 	DebugOutParamI(childIndex);
 	DebugOutParamI(type);
@@ -759,8 +729,8 @@ void PmdFile::Morph::LoadSkinVertex(void* _file)
 void PmdFile::Morph::DebugOut(bool isOutVertexData) const
 {
 #ifdef _DEBUG
-	DebugOutString(GetText(name));
-	DebugOutString(GetText(nameEng));
+	DebugOutString(GetTextMacro(name));
+	DebugOutString(GetTextMacro(nameEng));
 	DebugOutParamI(offsCount);
 	DebugOutParamI(type);
 	if (isOutVertexData == true)
@@ -847,7 +817,7 @@ void PmdFile::DebugOutMorphIndexForDisplay(const uint8_t i) const
 	DebugMessage
 	(
 		" -> " <<
-		GetText
+		GetTextMacro
 		(
 			GetMorph(GetMorphIndexForDisplay(i)).name
 		)
@@ -892,8 +862,8 @@ const TextBufferFixed<50>& PmdFile::GetBoneNameForDisplayEng(const uint8_t i) co
 
 void PmdFile::DebugOutBoneNameForDisplay(const uint8_t i) const
 {
-	DebugMessage(ToString(mBoneNameForDisplay) << "[" << static_cast<int>(i) << "] = " << GetText(GetBoneNameForDisplay(i)));
-	DebugMessage(ToString(mBoneNameForDisplayEng) << "[" << static_cast<int>(i) << "] = " << GetText(GetBoneNameForDisplayEng(i)));
+	DebugMessage(ToString(mBoneNameForDisplay) << "[" << static_cast<int>(i) << "] = " << GetTextMacro(GetBoneNameForDisplay(i)));
+	DebugMessage(ToString(mBoneNameForDisplayEng) << "[" << static_cast<int>(i) << "] = " << GetTextMacro(GetBoneNameForDisplayEng(i)));
 	DebugMessageNewLine();
 }
 
@@ -958,7 +928,7 @@ const TextBufferFixed<100>& PmdFile::GetToonTexturePath(const uint8_t i) const
 
 void PmdFile::DebugOutToonTexturePath(const uint8_t i) const
 {
-	DebugMessage(ToString(mToonTexturePath) << "[" << static_cast<int>(i) << "] = " << GetText(GetToonTexturePath(i)));
+	DebugMessage(ToString(mToonTexturePath) << "[" << static_cast<int>(i) << "] = " << GetTextMacro(GetToonTexturePath(i)));
 	DebugMessageNewLine();
 }
 
@@ -1004,7 +974,7 @@ inline const float3 DegreeToRagianFloat3(float3 f3)
 
 void PmdFile::Rigitbody::DebugOut() const
 {
-	DebugOutString(GetText(name));
+	DebugOutString(GetTextMacro(name));
 	DebugOutParamI(relationshipBoneID);
 	DebugOutParamI(group);
 	DebugOutParamBin(groupTarget, 16);
@@ -1062,7 +1032,7 @@ const uint32_t& PmdFile::GetJointCount() const
 
 void PmdFile::Joint::DebugOut() const
 {
-	DebugOutString(GetText(name));
+	DebugOutString(GetTextMacro(name));
 
 	DebugOutParamI(rigitbodyIndexA);
 	DebugOutParamI(rigitbodyIndexB);
@@ -1179,7 +1149,7 @@ void LoadID_AsInt32(System::FileReadBin& file, int32_t& buf, const size_t idByte
 	}
 }
 
-PmxFile::PmxFile(const char* filepath)
+PmxFile::PmxFile(const char* const filepath)
 	:
 	mDirectoryPath(nullptr),
 	mHeader(),
@@ -1201,7 +1171,6 @@ PmxFile::PmxFile(const char* filepath)
 	mRigitbody(nullptr),
 	mJointCount(0),
 	mJoint(nullptr)
-	//last
 {
 	System::FileReadBin file(filepath);
 
@@ -1474,9 +1443,6 @@ PmxFile::PmxFile(const char* filepath)
 		file.Read(j.springPos);
 		file.Read(j.springRot);
 	}
-
-	DebugMessageNewLine();
-	//last
 }
 
 PmxFile::~PmxFile()
@@ -1493,9 +1459,9 @@ PmxFile::~PmxFile()
 	SafeDeleteArray(&mDirectoryPath);
 }
 
-const char& PmxFile::GetDirectoryPathStart() const
+const char* const PmxFile::GetDirectoryPathStart() const
 {
-	return mDirectoryPath[0];
+	return mDirectoryPath;
 }
 
 PmxFile::Header::ModelInfo::ModelInfo() {}
@@ -1505,15 +1471,15 @@ void PmxFile::Header::DebugOut() const
 {
 	DebugMessage("PMXFile /////////////////////////////////////////");
 	DebugMessage("<<<<ModelName>>>");
-	DebugMessage(GetText(modelInfoJp.modelName));
+	DebugMessage(GetTextMacro(modelInfoJp.modelName));
 	DebugMessage("<<<<ModelName Eng>>>");
-	DebugMessage(GetText(modelInfoEng.modelName));
+	DebugMessage(GetTextMacro(modelInfoEng.modelName));
 	DebugMessageNewLine();
 	DebugMessage("<<<<Comment>>>");
-	DebugMessage(GetText(modelInfoJp.comment));
+	DebugMessage(GetTextMacro(modelInfoJp.comment));
 	DebugMessageNewLine();
 	DebugMessage("<<<<Comment Eng>>>");
-	DebugMessage(GetText(modelInfoEng.comment));
+	DebugMessage(GetTextMacro(modelInfoEng.comment));
 	DebugMessageNewLine();
 	DebugOutParam(version);
 	DebugOutParamI(encode);
@@ -1712,7 +1678,7 @@ const int32_t PmxFile::GetLastTextureID() const
 void PmxFile::DebugOutTexturePath(const int32_t i) const
 {
 	DebugMessage("Texture [" << i << "]");
-	DebugMessage(GetText(GetTexturePath(i)));
+	DebugMessage(GetTextMacro(GetTexturePath(i)));
 	DebugMessageNewLine();
 }
 
@@ -1738,8 +1704,8 @@ bool PmxFile::Material::GetDrawConfig(DrawConfig bitflag) const
 
 void PmxFile::Material::DebugOut() const
 {
-	DebugMessage(GetText(name));
-	DebugMessage(GetText(nameEng));
+	DebugMessage(GetTextMacro(name));
+	DebugMessage(GetTextMacro(nameEng));
 	DebugOutFloat4(diffuse);
 	DebugOutFloat3(specular);
 	DebugOutParam(specularity);
@@ -1753,7 +1719,7 @@ void PmxFile::Material::DebugOut() const
 	DebugOutParamI(toonMode);
 	DebugOutParamI(toonTextureID);
 	DebugMessage("<<< memo >>>");
-	DebugMessage(GetText(memo));
+	DebugMessage(GetTextMacro(memo));
 	DebugOutParamI(vertexCount / 3);
 	DebugMessageNewLine();
 }
@@ -1834,8 +1800,8 @@ void PmxFile::Bone::LoadIK_Link(void* _file, const size_t boneID_Size)
 void PmxFile::Bone::DebugOut() const
 {
 #ifdef _DEBUG
-	DebugMessage(GetText(name));
-	DebugMessage(GetText(nameEng));
+	DebugMessage(GetTextMacro(name));
+	DebugMessage(GetTextMacro(nameEng));
 	DebugOutFloat3(position);
 	DebugOutParamI(parentBoneID);
 	DebugOutParamI(transformHierarchy);
@@ -2055,8 +2021,8 @@ void PmxFile::Morph::LoadOffsData(void* _file, const size_t idByteSize)
 void PmxFile::Morph::DebugOut(bool isOutOffsData) const
 {
 #ifdef _DEBUG
-	DebugMessage(GetText(name));
-	DebugMessage(GetText(nameEng));
+	DebugMessage(GetTextMacro(name));
+	DebugMessage(GetTextMacro(nameEng));
 	switch (type)
 	{
 	case MorphType::MT_BASE:
@@ -2224,8 +2190,8 @@ void PmxFile::DisplayFrame::LoadFrameElement(void* _file, const size_t boneID_Si
 void PmxFile::DisplayFrame::DebugOut() const
 {
 #ifdef _DEBUG
-	DebugMessage(GetText(name));
-	DebugMessage(GetText(nameEng));
+	DebugMessage(GetTextMacro(name));
+	DebugMessage(GetTextMacro(nameEng));
 	switch (type)
 	{
 	case MMDsdk::PmxFile::DisplayFrame::DFT_NORMAL:
@@ -2303,8 +2269,8 @@ const int32_t& PmxFile::GetRigitbodyCount() const
 
 void PmxFile::Rigitbody::DebugOut() const
 {
-	DebugOutString(GetText(name));
-	DebugOutString(GetText(nameEng));
+	DebugOutString(GetTextMacro(name));
+	DebugOutString(GetTextMacro(nameEng));
 	DebugOutParamI(relationshipBoneID);
 	DebugOutParamI(group);
 	DebugOutParamBin(groupTarget, 16);
@@ -2363,8 +2329,8 @@ const int32_t& PmxFile::GetJointCount() const
 
 void PmxFile::Joint::DebugOut() const
 {
-	DebugOutString(GetText(name));
-	DebugOutString(GetText(nameEng));
+	DebugOutString(GetTextMacro(name));
+	DebugOutString(GetTextMacro(nameEng));
 
 	switch (type)
 	{
@@ -2446,6 +2412,82 @@ void PmxFile::DebugOutAllData() const
 	DebugOutAllRigitbody();
 	DebugOutParamI(mJointCount);
 	DebugOutAllJoint();
+}
+
+VmdFile::VmdFile(const char* const filepath)
+	:
+	mHeader(),
+	mMortionCount(0),
+	mMortion(nullptr)
+	//last
+{
+	System::FileReadBin file(filepath);
+
+	LoadTextBufferFixed(file, mHeader.sigunature);
+	LoadTextBufferFixed(file, mHeader.defaultModelName);
+
+	file.Read(mMortionCount);
+
+	mMortion = new Mortion[mMortionCount]{};
+	for (int i = 0; i < mMortionCount; ++i)
+	{
+		auto& m = mMortion[i];
+		LoadTextBufferFixed(file, m.name);
+		file.Read(m.frameNumber);
+		file.Read(m.position);
+		file.Read(m.rotation);
+		
+		m.LoadBezierParam(&file);
+		DebugOutFloat3(m.position);
+	}
+	//last
+}
+
+VmdFile::~VmdFile()
+{
+	SafeDeleteArray(&mMortion);
+}
+
+VmdFile::Header::Header() {}
+VmdFile::Header::~Header() {}
+
+const VmdFile::Header& VmdFile::GetHeader() const
+{
+	return mHeader;
+}
+
+const int32_t& VmdFile::GetMortionCount() const
+{
+	return mMortionCount;
+}
+
+const char& VmdFile::Mortion::GetBezierParam(const int32_t i) const
+{
+	IS_OUT_OF_RANGE(bezierParam, i, 64);
+	return bezierParam[i];
+}
+
+void VmdFile::Mortion::LoadBezierParam(void* _file)
+{
+	auto& file = GetFile(_file);
+	file.ReadArray(bezierParam, 64);
+}
+
+VmdFile::Mortion::Mortion() {}
+VmdFile::Mortion::~Mortion() {}
+
+const VmdFile::Mortion& VmdFile::GetMortion(const int32_t i) const
+{
+	ID_IS_NO_REF(i);
+	ALLAY_HAS_NO_DATA(mMortion, mMortionCount);
+	IS_OUT_OF_RANGE(mMortion, i, mMortionCount);
+
+	return mMortion[i];
+}
+
+const int32_t VmdFile::GetLastMortionID() const
+{
+	return mMortionCount - 1;
 }
 
 //last

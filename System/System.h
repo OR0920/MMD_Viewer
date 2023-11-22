@@ -34,17 +34,22 @@ namespace System
 	}
 
 	// 文字列比較
-	bool StringEqual(const void* _str1, const void* _str2);
+	bool StringEqual(const void* const _str1, const void* const _str2);
 
 	// NULL文字を含む長さを返す
 	int GetStringLength(const char* const text);
 
 	// ディレクトリのパスを取得する関数
-	// dirpath	ディレクトリのパスを受け取るポインタ nullptrであること
-	//			内部でnewされるので、必ずdeleteすること
-	// filepath 元のポインタ
+	// dirpath	:ディレクトリのパスを受け取るポインタ nullptrであること。内部でnewされるので、必ずdeleteすること
+	// filepath :元のポインタ
 	void NewArrayAndCopyDirPathFromFilePath(char** _dirpath, const char* const filepath);
 	
+	// 特定のディレクトリへのパスとアセットファイル名から、ファイルを開くためのパスを返す関数
+	// assetpath	:アセットへのパスを受け取るポインタ nullptrであること。内部でnewされるので、必ずdeleteすること
+	// dirpath		:ディレクトリのパス
+	// filename		:アセットファイル名
+	// 動作のイメージ
+	// assetpath = dirpath + filename
 	void NewArrayAndCopyAssetPath(char** _assetpath, const char* const dirpath, const char* const filename);
 }
 

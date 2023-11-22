@@ -62,7 +62,9 @@ namespace MMDsdk
 	};
 
 	// テキスト取得マクロ
-#define GetText(textBuffer) &textBuffer.GetFirstChar()
+	// 旧　GetText　設計ミスの名残
+	// 互換性保持のため一応残している
+#define GetTextMacro(textBuffer) textBuffer.GetText()
 
 	// テキストを格納、扱うクラス
 	// 可変長 //
@@ -75,12 +77,7 @@ namespace MMDsdk
 
 		const int GetLength() const;
 		// 文字列取得 
-		// 先頭の参照のみにアクセスさせる
-		// 上のマクロを使用可能
-		// 書き換えはできない
-		// 
-		// (&instance.GetFirstChar())[instance.GetLength()] <- 万死
-		const char& GetFirstChar() const;
+		const char* const GetText() const;
 	private:
 		// 内部でnewを行うため隔離
 		TextBufferVariable(const TextBufferVariable&);
@@ -105,14 +102,9 @@ namespace MMDsdk
 		}
 
 		// 文字列取得 
-		// 先頭の参照のみにアクセスさせる
-		// 上のマクロを使用可能
-		// 書き換えはできない
-		// 
-		// (&instance.GetFirstChar())[instance.GetLength()] <- 万死
-		const char& GetFirstChar() const
+		const char* const GetText() const
 		{
-			return mStr[0];
+			return mStr;
 		}
 	private:
 		TextBufferFixed(TextBufferFixed&);
@@ -134,11 +126,11 @@ namespace MMDsdk
 	public:
 		// ファイルを指定してインスタンスを生成すること
 		// コンストラクタの処理で一気にファイルを読み込み閉じる
-		PmdFile(const char* filepath);  ~PmdFile();
+		PmdFile(const char* const filepath);  ~PmdFile();
 
 		// ディレクトリのパスを取得する
 		// テクスチャなどのファイルはすべて同じディレクトリに入れること //
-		const char& GetDirectoryPathStart() const;
+		const char* const GetDirectoryPath() const;
 
 		// 以下データの構造体とその取得関数をペアで記述する
 		// 内部に配列を持つ場合は専用のロード関数を用意している
@@ -610,9 +602,9 @@ namespace MMDsdk
 	class PmxFile
 	{
 	public:
-		PmxFile(const char* filepath); ~PmxFile();
+		PmxFile(const char* const filepath); ~PmxFile();
 
-		const char& GetDirectoryPathStart() const;
+		const char* const GetDirectoryPathStart() const;
 
 		// ヘッダ情報
 		struct Header
@@ -1221,8 +1213,59 @@ namespace MMDsdk
 		int32_t mJointCount;
 		Joint* mJoint;
 
-		//last
 	};
+
+	class VmdFile
+	{
+	public:
+		VmdFile(const char* const filepath); ~VmdFile();
+
+		struct Header
+		{
+			TextBufferFixed<30> sigunature = {};
+			TextBufferFixed<20> defaultModelName = {};
+
+			Header(); ~Header();
+		private:
+			Header(const Header&);
+			const Header& operator=(const Header&) const;
+		};
+		const Header& GetHeader() const;
+
+		const int32_t& GetMortionCount() const;
+		struct Mortion
+		{
+			TextBufferFixed<15> name = {};
+			int frameNumber = 0;
+			float3 position = { 0.f };
+			float4 rotation = { 0.f };
+
+		private:
+			char bezierParam[64] = {};
+		public:
+
+			const char& GetBezierParam(const int32_t i) const;
+
+			void LoadBezierParam(void* _file);
+			Mortion(); ~Mortion();
+		private:
+			Mortion(const Mortion&);
+			const Mortion& operator=(const Mortion&) const;
+		};
+		const Mortion& GetMortion(const int32_t i) const;
+		const int32_t GetLastMortionID() const;
+
+	private:
+		VmdFile(); VmdFile(VmdFile&);
+		const VmdFile& operator=(const VmdFile&) const;
+
+		Header mHeader;
+
+		int32_t mMortionCount;
+		Mortion* mMortion;
+	};
+
+	//last
 
 }
 
