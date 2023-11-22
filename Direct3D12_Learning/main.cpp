@@ -2,6 +2,11 @@
 #include<Windows.h>
 #include<tchar.h>
 
+#include<wrl.h>
+
+template <class C>
+using ComPtr = Microsoft::WRL::ComPtr<C>;
+
 template<class C>
 void SafeRelease(C** ptr)
 {
@@ -27,32 +32,32 @@ static const int gBufferCount = 2;
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 
-ID3D12Device* gDevice = nullptr;
-IDXGIFactory6* gDxgiFactory = nullptr;
-IDXGISwapChain4* gSwapChain = nullptr;
-ID3D12CommandAllocator* gCmdAllocator = nullptr;
-ID3D12GraphicsCommandList* gCmdList = nullptr;
-ID3D12CommandQueue* gCmdQueue = nullptr;
-ID3D12DescriptorHeap* gRtvHeaps = nullptr;
-std::vector<ID3D12Resource*> gBackBuffers(gBufferCount);
+ComPtr<ID3D12Device> gDevice = nullptr;
+ComPtr<IDXGIFactory6> gDxgiFactory = nullptr;
+ComPtr<IDXGISwapChain4> gSwapChain = nullptr;
+ComPtr<ID3D12CommandAllocator> gCmdAllocator = nullptr;
+ComPtr<ID3D12GraphicsCommandList> gCmdList = nullptr;
+ComPtr<ID3D12CommandQueue> gCmdQueue = nullptr;
+ComPtr<ID3D12DescriptorHeap> gRtvHeaps = nullptr;
+std::vector<ComPtr<ID3D12Resource>> gBackBuffers(gBufferCount);
 
-ID3D12Fence* gFence = nullptr;
+ComPtr<ID3D12Fence> gFence = nullptr;
 UINT64 gFenceVal = 0;
 
 void SafeReleaseAll_D3D_Interface()
 {
-	for (int i = 0; i < gBufferCount; i++)
+	SafeRelease(gFence.GetAddressOf());
+	for (int i = 0; i < gBufferCount; ++i)
 	{
-		SafeRelease(&gBackBuffers[i]);
+		SafeRelease(gBackBuffers[i].GetAddressOf());
 	}
-	SafeRelease(&gRtvHeaps);
-	SafeRelease(&gCmdQueue);
-	SafeRelease(&gCmdList);
-	SafeRelease(&gCmdAllocator);
-
-	SafeRelease(&gSwapChain);
-	SafeRelease(&gDxgiFactory);
-	SafeRelease(&gDevice);
+	SafeRelease(gRtvHeaps.GetAddressOf());
+	SafeRelease(gCmdQueue.GetAddressOf());
+	SafeRelease(gCmdList.GetAddressOf());
+	SafeRelease(gCmdAllocator.GetAddressOf());
+	SafeRelease(gSwapChain.GetAddressOf());
+	SafeRelease(gDxgiFactory.GetAddressOf());
+	SafeRelease(gDevice.GetAddressOf());
 }
 
 // debug memory leak
@@ -85,7 +90,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 	// メモリリークチェック
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-
 
 	// ウィンドウクラス作成・登録
 	WNDCLASSEX wcEx = {};
@@ -193,7 +197,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			(
 				0,
 				D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT,
-				gCmdAllocator,
+				gCmdAllocator.Get(),
 				nullptr,
 				IID_PPV_ARGS(&gCmdList)
 			);
@@ -202,7 +206,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			return ReturnWithErrorMessage("Failed To Create Command List !");
 		}
 
-		gCmdList->Close();
 	}
 
 	// コマンドキューの作成
@@ -239,12 +242,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		auto result =
 			gDxgiFactory->CreateSwapChainForHwnd
 			(
-				gCmdQueue,
+				gCmdQueue.Get(),
 				hwnd,
 				&scd,
 				nullptr,
 				nullptr,
-				reinterpret_cast<IDXGISwapChain1**>(&gSwapChain)
+				reinterpret_cast<IDXGISwapChain1**>(gSwapChain.GetAddressOf())
 			);
 
 		if (result != S_OK)
@@ -290,7 +293,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			}
 			auto handle = gRtvHeaps->GetCPUDescriptorHandleForHeapStart();
 			handle.ptr += idx * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-			gDevice->CreateRenderTargetView(gBackBuffers[idx], nullptr, handle);
+			gDevice->CreateRenderTargetView(gBackBuffers[idx].Get(), nullptr, handle);
 		}
 	}
 
@@ -331,8 +334,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	SafeReleaseAll_D3D_Interface();
 
-	// メモリリークチェック
-	_CrtDumpMemoryLeaks();
 	return 0;
 }
 
@@ -348,6 +349,48 @@ LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
 int Frame()
 {
+	auto bbidx = gSwapChain->GetCurrentBackBufferIndex();
+
+	D3D12_RESOURCE_BARRIER bd = {};
+	bd.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	bd.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	bd.Transition.pResource = gBackBuffers[bbidx].Get();
+	bd.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	bd.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+	bd.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	gCmdList->ResourceBarrier(1, &bd);
+
+	auto rtvH = gRtvHeaps->GetCPUDescriptorHandleForHeapStart();
+	rtvH.ptr += static_cast<ULONG_PTR>(bbidx * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
+	gCmdList->OMSetRenderTargets(1, &rtvH, false, nullptr);
+
+	float color[] = { 1.f, 1.f, 0.f, 1.f };
+	gCmdList->ClearRenderTargetView(rtvH, color, 0, nullptr);
+
+	bd.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	bd.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+	gCmdList->ResourceBarrier(1, &bd);
+
+	gCmdList->Close();
+
+	ID3D12CommandList* cmdlists[] = { gCmdList.Get()};
+	gCmdQueue->ExecuteCommandLists(1, cmdlists);
+
+	gCmdQueue->Signal(gFence.Get(), ++gFenceVal);
+
+	if (gFence->GetCompletedValue() != gFenceVal)
+	{
+		auto event = CreateEvent(nullptr, false, false, nullptr);
+		gFence->SetEventOnCompletion(gFenceVal, event);
+		WaitForSingleObject(event, INFINITE);
+		CloseHandle(event);
+	}
+
+	gCmdAllocator->Reset();
+	gCmdList->Reset(gCmdAllocator.Get(), nullptr);
+
+	gSwapChain->Present(1, 0);
+
 	return 0;
 }
 
