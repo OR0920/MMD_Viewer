@@ -33,8 +33,11 @@ IDXGISwapChain4* gSwapChain = nullptr;
 ID3D12CommandAllocator* gCmdAllocator = nullptr;
 ID3D12GraphicsCommandList* gCmdList = nullptr;
 ID3D12CommandQueue* gCmdQueue = nullptr;
+ID3D12DescriptorHeap* gRtvHeaps = nullptr;
 std::vector<ID3D12Resource*> gBackBuffers(gBufferCount);
 
+ID3D12Fence* gFence = nullptr;
+UINT64 gFenceVal = 0;
 
 void SafeReleaseAll_D3D_Interface()
 {
@@ -42,6 +45,7 @@ void SafeReleaseAll_D3D_Interface()
 	{
 		SafeRelease(&gBackBuffers[i]);
 	}
+	SafeRelease(&gRtvHeaps);
 	SafeRelease(&gCmdQueue);
 	SafeRelease(&gCmdList);
 	SafeRelease(&gCmdAllocator);
@@ -68,6 +72,8 @@ int ReturnWithErrorMessage(const char* const message)
 	SafeReleaseAll_D3D_Interface();
 	return -1;
 }
+
+int Frame();
 
 LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
 
@@ -156,7 +162,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 
 	{
+#ifdef _DEBUG
+		auto result = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&gDxgiFactory));
+#else
 		auto result = CreateDXGIFactory1(IID_PPV_ARGS(&gDxgiFactory));
+#endif // _DEBUG
+
 		if (result != S_OK)
 		{
 			return ReturnWithErrorMessage("Failed Create Dxgi Factory !");
@@ -190,6 +201,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{
 			return ReturnWithErrorMessage("Failed To Create Command List !");
 		}
+
+		gCmdList->Close();
 	}
 
 	// コマンドキューの作成
@@ -251,15 +264,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		hd.NumDescriptors = gBufferCount;
 		hd.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-		ID3D12DescriptorHeap* rtvHeaps = nullptr;
 
-		auto result = gDevice->CreateDescriptorHeap(&hd, IID_PPV_ARGS(&rtvHeaps));
+		auto result = gDevice->CreateDescriptorHeap(&hd, IID_PPV_ARGS(&gRtvHeaps));
 		if (result != S_OK)
 		{
-			SafeRelease(&rtvHeaps);
 			return ReturnWithErrorMessage("Failed Create RTV Heap !");
 		}
 
+		// スワップチェーンの情報を取得
 		DXGI_SWAP_CHAIN_DESC scd = {};
 		result = gSwapChain->GetDesc(&scd);
 		if (result != S_OK)
@@ -267,6 +279,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			return ReturnWithErrorMessage("Failed Get SwapchainDesc to Create RenderTargetView !");
 		}
 
+		// 全レンダーターゲットを作成
 		for (int idx = 0; idx < scd.BufferCount; ++idx)
 		{
 			result = gSwapChain->GetBuffer(idx, IID_PPV_ARGS(&gBackBuffers[idx]));
@@ -275,12 +288,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 				DebugOutParamI(idx);
 				return ReturnWithErrorMessage("Failed Get Buffer to Create RenderTargetView !");
 			}
-			auto handle = rtvHeaps->GetCPUDescriptorHandleForHeapStart();
+			auto handle = gRtvHeaps->GetCPUDescriptorHandleForHeapStart();
 			handle.ptr += idx * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 			gDevice->CreateRenderTargetView(gBackBuffers[idx], nullptr, handle);
 		}
 	}
 
+	// フェンスの作成
+	{
+		auto result = gDevice->CreateFence(gFenceVal, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&gFence));
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Create Fence");
+		}
+	}
 
 	// メッセージループ
 	MSG msg = {};
@@ -296,6 +317,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		if (msg.message == WM_QUIT)
 		{
 			break;
+		}
+
+		if (Frame() == -1)
+		{
+			return ReturnWithErrorMessage("Error in Main Loop !");
 		}
 	}
 
@@ -318,5 +344,43 @@ LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 		return 0;
 	}
 	return DefWindowProc(hwnd, msg, wp, lp);
+}
+
+int Frame()
+{
+	gCmdList->Close();
+
+	auto result = gCmdAllocator->Reset();
+	if (result != S_OK)
+	{
+		DebugOutParamHex(result);
+		return ReturnWithErrorMessage("Failed Reset Command Allocator !");
+	}
+
+	gCmdList->Reset(gCmdAllocator, nullptr);
+
+	auto bbIdx = gSwapChain->GetCurrentBackBufferIndex();
+
+	auto rtvH = gRtvHeaps->GetCPUDescriptorHandleForHeapStart();
+	rtvH.ptr += bbIdx * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	gCmdList->OMSetRenderTargets(1, &rtvH, true, nullptr);
+
+	float color[] = { 1.f, 1.f, 0.f, 1.f };
+	gCmdList->ClearRenderTargetView(rtvH, color, 0, nullptr);
+	gCmdList->Close();
+
+	ID3D12CommandList* cmdlists[] = { gCmdList };
+	gCmdQueue->ExecuteCommandLists(1, cmdlists);
+	
+	gCmdQueue->Signal(gFence, ++gFenceVal);
+	while (gFence->GetCompletedValue() != gFenceVal)
+	{
+		;
+	}
+
+	gCmdAllocator->Reset();
+	gCmdList->Reset(gCmdAllocator, nullptr);
+
+	gSwapChain->Present(1, 0);
 }
 
