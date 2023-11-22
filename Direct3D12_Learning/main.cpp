@@ -348,39 +348,6 @@ LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
 int Frame()
 {
-	gCmdList->Close();
-
-	auto result = gCmdAllocator->Reset();
-	if (result != S_OK)
-	{
-		DebugOutParamHex(result);
-		return ReturnWithErrorMessage("Failed Reset Command Allocator !");
-	}
-
-	gCmdList->Reset(gCmdAllocator, nullptr);
-
-	auto bbIdx = gSwapChain->GetCurrentBackBufferIndex();
-
-	auto rtvH = gRtvHeaps->GetCPUDescriptorHandleForHeapStart();
-	rtvH.ptr += bbIdx * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	gCmdList->OMSetRenderTargets(1, &rtvH, true, nullptr);
-
-	float color[] = { 1.f, 1.f, 0.f, 1.f };
-	gCmdList->ClearRenderTargetView(rtvH, color, 0, nullptr);
-	gCmdList->Close();
-
-	ID3D12CommandList* cmdlists[] = { gCmdList };
-	gCmdQueue->ExecuteCommandLists(1, cmdlists);
-	
-	gCmdQueue->Signal(gFence, ++gFenceVal);
-	while (gFence->GetCompletedValue() != gFenceVal)
-	{
-		;
-	}
-
-	gCmdAllocator->Reset();
-	gCmdList->Reset(gCmdAllocator, nullptr);
-
-	gSwapChain->Present(1, 0);
+	return 0;
 }
 
