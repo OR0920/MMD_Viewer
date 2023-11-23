@@ -49,6 +49,18 @@ UINT64 gFenceVal = 0;
 
 ComPtr<ID3D12Resource> gVertexBuffer = nullptr;
 D3D12_VERTEX_BUFFER_VIEW gVertexBufferView = {};
+D3D12_INPUT_ELEMENT_DESC gInputLayout[] =
+{
+	{
+		"POSITION", 
+		0, 
+		DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 
+		0, 
+		D3D12_APPEND_ALIGNED_ELEMENT, 
+		D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 
+		0
+	}
+};
 
 ComPtr<ID3DBlob> gVsBlob = nullptr;
 ComPtr<ID3DBlob> gPsBlob = nullptr;
@@ -425,6 +437,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			return ReturnWithErrorMessage("Failed Compile Pixel Shader");
 		}
 	}
+
+
 
 	// メッセージループ
 	MSG msg = {};
