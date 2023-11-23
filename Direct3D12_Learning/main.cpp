@@ -62,6 +62,9 @@ D3D12_INPUT_ELEMENT_DESC gInputLayout[] =
 	}
 };
 
+ComPtr<ID3D12Resource> gIndexBuffer = nullptr;
+D3D12_INDEX_BUFFER_VIEW gIndexBufferView = {};
+
 ComPtr<ID3DBlob> gVsBlob = nullptr;
 ComPtr<ID3DBlob> gPsBlob = nullptr;
 
@@ -103,11 +106,21 @@ void SafeReleaseAll_D3D_Interface()
 
 
 // 頂点データ
+int gVertexCount = 0;
 MathUtil::float3 triangle[] =
 {
-	{ -0.5f, -0.7f,  0.f },
-	{   0.f,  0.7f,  0.f },
-	{  0.5f, -0.7f,  0.f }
+	{ -0.4f, -0.7f,  0.f },
+	{ -0.4f,  0.7f,  0.f },
+	{  0.4f, -0.7f,  0.f },
+	{  0.4f,  0.7f,  0.f }
+};
+
+// インデックスデータ
+int gIndexCount = 0;
+unsigned short indices[] =
+{
+	0, 1, 2,
+	2, 1, 3
 };
 
 
@@ -373,7 +386,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		vrd.SampleDesc.Quality = 0;
 		vrd.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 		vrd.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-		
+
 
 		// リソースを作成
 		auto result = gDevice->CreateCommittedResource
@@ -408,6 +421,67 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		gVertexBufferView.BufferLocation = gVertexBuffer->GetGPUVirtualAddress();
 		gVertexBufferView.SizeInBytes = sizeof(triangle);
 		gVertexBufferView.StrideInBytes = sizeof(triangle[0]);
+
+		gVertexCount = _countof(triangle);
+	}
+
+	// インデックスバッファの作成
+	{
+		// ヒープの設定
+		D3D12_HEAP_PROPERTIES heapProp = {};
+		heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD;
+		heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
+
+		// リソースの設定
+		D3D12_RESOURCE_DESC ird = {};
+		ird.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
+		ird.Width = sizeof(indices);
+		ird.Height = 1;
+		ird.DepthOrArraySize = 1;
+		ird.MipLevels = 1;
+		ird.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
+		ird.SampleDesc.Count = 1;
+		ird.SampleDesc.Quality = 0;
+		ird.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+		ird.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+
+		// リソースを作成
+		auto result = gDevice->CreateCommittedResource
+		(
+			&heapProp,
+			D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+			&ird,
+			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(gIndexBuffer.GetAddressOf())
+		);
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Create Vertex Buffer Resource !");
+		}
+
+		// 確保されているリソース領域を取得
+		unsigned short* indexBufferMap = nullptr;
+		result = gIndexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&indexBufferMap));
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Map Vertex Buffer !");
+		}
+
+		// 取得したリソース領域に、頂点データを書き込む
+		std::copy(std::begin(indices), std::end(indices), indexBufferMap);
+
+		// リソース領域はいったん使用しないため、マップを解除
+		gIndexBuffer->Unmap(0, nullptr);
+
+		// 作成した頂点バッファのビューを作成
+		gIndexBufferView.BufferLocation = gIndexBuffer->GetGPUVirtualAddress();
+		gIndexBufferView.SizeInBytes = sizeof(indices);
+		gIndexBufferView.Format = DXGI_FORMAT::DXGI_FORMAT_R16_UINT;
+
+		gIndexCount = _countof(indices);
 	}
 
 	// シェーダーのコンパイル
@@ -455,7 +529,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	// ルートシグネチャの作成
 	{
 		D3D12_ROOT_SIGNATURE_DESC rsd = {};
-		rsd.Flags = 
+		rsd.Flags =
 			D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
 		ComPtr<ID3DBlob> rsb = nullptr;
@@ -551,9 +625,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	gViewport.MinDepth = 0.f;
 
 	gScissorRect.top = 0;
-	gScissorRect.left= 0;
+	gScissorRect.left = 0;
 	gScissorRect.right = gScissorRect.left + gWindowWidth;
-	gScissorRect.bottom = gScissorRect.top + gWindowHeight;	
+	gScissorRect.bottom = gScissorRect.top + gWindowHeight;
 
 	// メッセージループ
 	MSG msg = {};
@@ -607,7 +681,7 @@ int Frame()
 	bd.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	bd.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 	bd.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	gCmdList->ResourceBarrier(1, &bd);	
+	gCmdList->ResourceBarrier(1, &bd);
 
 	auto rtvH = gRtvHeaps->GetCPUDescriptorHandleForHeapStart();
 	rtvH.ptr += static_cast<ULONG_PTR>(bbidx * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
@@ -622,7 +696,8 @@ int Frame()
 	gCmdList->RSSetScissorRects(1, &gScissorRect);
 	gCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	gCmdList->IASetVertexBuffers(0, 1, &gVertexBufferView);
-	gCmdList->DrawInstanced(3, 1, 0, 0);
+	gCmdList->IASetIndexBuffer(&gIndexBufferView);
+	gCmdList->DrawIndexedInstanced(gIndexCount, 1, 0, 0, 0);
 
 	bd.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	bd.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
