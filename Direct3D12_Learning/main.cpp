@@ -52,12 +52,12 @@ D3D12_VERTEX_BUFFER_VIEW gVertexBufferView = {};
 D3D12_INPUT_ELEMENT_DESC gInputLayout[] =
 {
 	{
-		"POSITION", 
-		0, 
-		DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 
-		0, 
-		D3D12_APPEND_ALIGNED_ELEMENT, 
-		D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 
+		"POSITION",
+		0,
+		DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT,
+		0,
+		D3D12_APPEND_ALIGNED_ELEMENT,
+		D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
 		0
 	}
 };
@@ -65,6 +65,7 @@ D3D12_INPUT_ELEMENT_DESC gInputLayout[] =
 ComPtr<ID3DBlob> gVsBlob = nullptr;
 ComPtr<ID3DBlob> gPsBlob = nullptr;
 
+ComPtr<ID3D12RootSignature> gRootSignature = nullptr;
 ComPtr<ID3D12PipelineState> gPipelineState = nullptr;
 
 void SafeReleaseAll_D3D_Interface()
@@ -441,14 +442,49 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 	}
 
-	
+	// ルートシグネチャの作成
+	{
+		D3D12_ROOT_SIGNATURE_DESC rsd = {};
+		rsd.Flags = 
+			D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+		ComPtr<ID3DBlob> rsb = nullptr;
+		ComPtr<ID3DBlob> err = nullptr;
+
+		auto result = D3D12SerializeRootSignature
+		(
+			&rsd,
+			D3D_ROOT_SIGNATURE_VERSION::D3D_ROOT_SIGNATURE_VERSION_1_0,
+			rsb.GetAddressOf(),
+			err.GetAddressOf()
+		);
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Serialize RootSigunature !");
+		}
+
+		result = gDevice->CreateRootSignature
+		(
+			0,
+			rsb->GetBufferPointer(),
+			rsb->GetBufferSize(),
+			IID_PPV_ARGS(gRootSignature.GetAddressOf())
+		);
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Create RootSignature !");
+		}
+
+		SafeRelease(rsb.GetAddressOf());
+		SafeRelease(err.GetAddressOf());
+	}
 
 	// パイプラインステートの作成
 	{
 		// パイプラインステートの設定
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC plsd = {};
 		// ルートシグネチャの設定
-		plsd.pRootSignature = nullptr;
+		plsd.pRootSignature = gRootSignature.Get();
 
 		// シェーダをセット
 		plsd.VS.pShaderBytecode = gVsBlob->GetBufferPointer();
@@ -495,7 +531,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			DebugOutParamHex(result);
 			return ReturnWithErrorMessage("Failed Create PIpeline state !");
 		}
-	}	
+	}
 
 
 	// メッセージループ
