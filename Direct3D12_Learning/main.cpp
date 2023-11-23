@@ -65,8 +65,11 @@ D3D12_INPUT_ELEMENT_DESC gInputLayout[] =
 ComPtr<ID3DBlob> gVsBlob = nullptr;
 ComPtr<ID3DBlob> gPsBlob = nullptr;
 
+ComPtr<ID3D12PipelineState> gPipelineState = nullptr;
+
 void SafeReleaseAll_D3D_Interface()
 {
+	SafeRelease(gPipelineState.GetAddressOf());
 	SafeRelease(gPsBlob.GetAddressOf());
 	SafeRelease(gVsBlob.GetAddressOf());
 	SafeRelease(gVertexBuffer.GetAddressOf());
@@ -438,6 +441,61 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 	}
 
+	
+
+	// パイプラインステートの作成
+	{
+		// パイプラインステートの設定
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC plsd = {};
+		// ルートシグネチャの設定
+		plsd.pRootSignature = nullptr;
+
+		// シェーダをセット
+		plsd.VS.pShaderBytecode = gVsBlob->GetBufferPointer();
+		plsd.VS.BytecodeLength = gVsBlob->GetBufferSize();
+		plsd.PS.pShaderBytecode = gPsBlob->GetBufferPointer();
+		plsd.PS.BytecodeLength = gPsBlob->GetBufferSize();
+
+		// サンプリングの設定
+		plsd.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
+		plsd.RasterizerState.MultisampleEnable = false;
+		plsd.RasterizerState.CullMode = D3D12_CULL_MODE::D3D12_CULL_MODE_NONE;
+		plsd.RasterizerState.FillMode = D3D12_FILL_MODE::D3D12_FILL_MODE_SOLID;
+		plsd.RasterizerState.DepthClipEnable = true;
+
+		// ブレンドの設定
+		plsd.BlendState.AlphaToCoverageEnable = false;
+		plsd.BlendState.IndependentBlendEnable = false;
+		D3D12_RENDER_TARGET_BLEND_DESC rtBlendDesc = {};
+		rtBlendDesc.BlendEnable = false;
+		rtBlendDesc.LogicOpEnable = false;
+		rtBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE::D3D12_COLOR_WRITE_ENABLE_ALL;
+		plsd.BlendState.RenderTarget[0] = rtBlendDesc;
+
+		// 頂点の設定
+		plsd.InputLayout.pInputElementDescs = gInputLayout;
+		plsd.InputLayout.NumElements = _countof(gInputLayout);
+		plsd.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE::D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
+
+		// プリミティブトポロジーの設定
+		plsd.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+		// レンダーターゲットの設定
+		plsd.NumRenderTargets = 1;
+		plsd.RTVFormats[0] = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
+
+		// アンチエイリアシングの設定
+		plsd.SampleDesc.Count = 1;
+		plsd.SampleDesc.Quality = 0;
+
+		// パイプラインステートオブジェクトの生成
+		auto result = gDevice->CreateGraphicsPipelineState(&plsd, IID_PPV_ARGS(gPipelineState.GetAddressOf()));
+		if (result != S_OK)
+		{
+			DebugOutParamHex(result);
+			return ReturnWithErrorMessage("Failed Create PIpeline state !");
+		}
+	}	
 
 
 	// メッセージループ
