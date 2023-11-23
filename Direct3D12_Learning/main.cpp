@@ -83,8 +83,12 @@ ComPtr<ID3D12PipelineState> gPipelineState = nullptr;
 D3D12_VIEWPORT gViewport = {};
 D3D12_RECT gScissorRect = {};
 
+ComPtr<ID3D12DescriptorHeap> gTexDescHeap = nullptr;
+ComPtr<ID3D12Resource> gTexBuffer = nullptr;
+
 void SafeReleaseAll_D3D_Interface()
 {
+	SafeRelease(gTexDescHeap.GetAddressOf());
 	SafeRelease(gPipelineState.GetAddressOf());
 	SafeRelease(gPsBlob.GetAddressOf());
 	SafeRelease(gVsBlob.GetAddressOf());
@@ -136,6 +140,15 @@ unsigned short gIndices[] =
 	0, 1, 2,
 	2, 1, 3
 };
+
+struct TexRGBA
+{
+	unsigned char r, g, b, a;
+};
+
+const int gTexSize = 256;
+
+std::vector<TexRGBA> gTextureData;
 
 
 int ReturnWithErrorMessage(const char* const message)
@@ -502,21 +515,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	{
 		// 実験的に元リソースをスコープ内に置く
 		// エラーが出るならグローバルに
-		struct TexRGBA
+
+		gTextureData.resize(gTexSize * gTexSize);
+
+		for (auto& rgba : gTextureData)
 		{
-			unsigned char r, g, b, a;
-		};
-
-		const int texSize = 256;
-
-		std::vector<TexRGBA> texturedata(texSize * texSize);
-
-		for (auto& rgba : texturedata)
-		{
-			rgba.r = rand() % texSize;
-			rgba.g = rand() % texSize;
-			rgba.b = rand() % texSize;
-			rgba.a = rand() % texSize;
+			rgba.r = rand() % gTexSize;
+			rgba.g = rand() % gTexSize;
+			rgba.b = rand() % gTexSize;
+			rgba.a = rand() % gTexSize;
 		}
 
 		{
@@ -529,15 +536,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 			D3D12_RESOURCE_DESC resDesc = {};
 			resDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
-			resDesc.Width = resDesc.Height = texSize;
+			resDesc.Width = gTexSize;
+			resDesc.Height = gTexSize;
 			resDesc.DepthOrArraySize = 1;
-			resDesc.SampleDesc = { 1, 0 };
+			resDesc.SampleDesc.Count = 1;
+			resDesc.SampleDesc.Quality = 0;
 			resDesc.MipLevels = 1;
 			resDesc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 			resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
 			resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 
-			ComPtr<ID3D12Resource> texBuffer = nullptr;
 			auto result = gDevice->CreateCommittedResource
 			(
 				&heapProp,
@@ -545,13 +553,44 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 				&resDesc,
 				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 				nullptr,
-				IID_PPV_ARGS(texBuffer.GetAddressOf())
+				IID_PPV_ARGS(gTexBuffer.GetAddressOf())
 			);
-
 			if (result != S_OK)
 			{
 				return ReturnWithErrorMessage("Failed Create Texture Resource !");
 			}
+
+			result = gTexBuffer->WriteToSubresource
+			(
+				0,
+				nullptr,
+				gTextureData.data(),
+				sizeof(TexRGBA) * gTexSize,
+				sizeof(TexRGBA) * gTextureData.size()
+			);
+			if (result != S_OK)
+			{
+				return ReturnWithErrorMessage("Failed Write Texture Data !");
+			}
+
+			D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc = {};
+			descHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+			descHeapDesc.NodeMask = 0;
+			descHeapDesc.NumDescriptors = 1;
+			descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+			result = gDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(gTexDescHeap.GetAddressOf()));
+			if (result != S_OK)
+			{
+				return ReturnWithErrorMessage("Failed Create Texture Descriptor Heap");
+			}
+
+			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+			srvDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
+			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2D;
+			srvDesc.Texture2D.MipLevels = 1;
+
+			gDevice->CreateShaderResourceView(gTexBuffer.Get(), &srvDesc, gTexDescHeap->GetCPUDescriptorHandleForHeapStart());
 		}
 	}
 
@@ -599,7 +638,37 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	// ルートシグネチャの作成
 	{
+		// ルートパラメータにディスクリプタテーブルを設定
+		D3D12_ROOT_PARAMETER rootParam = {};
+		rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_PIXEL;
+
+		D3D12_DESCRIPTOR_RANGE descTableRange = {};
+		descTableRange.NumDescriptors = 1;
+		descTableRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+		descTableRange.BaseShaderRegister = 0;
+		descTableRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+		rootParam.DescriptorTable.pDescriptorRanges = &descTableRange;
+		rootParam.DescriptorTable.NumDescriptorRanges = 1;
+
+		// サンプラーの設定
+		D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
+		samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+		samplerDesc.Filter = D3D12_FILTER::D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+		samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+		samplerDesc.MinLOD = 0.f;
+		samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_PIXEL;
+		samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NEVER;
+
 		D3D12_ROOT_SIGNATURE_DESC rsd = {};
+		rsd.pParameters = &rootParam;
+		rsd.NumParameters = 1;
+		rsd.pStaticSamplers = &samplerDesc;
+		rsd.NumStaticSamplers = 1;
 		rsd.Flags =
 			D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
@@ -763,11 +832,17 @@ int Frame()
 
 	gCmdList->SetPipelineState(gPipelineState.Get());
 	gCmdList->SetGraphicsRootSignature(gRootSignature.Get());
+
+	gCmdList->SetDescriptorHeaps(1, gTexDescHeap.GetAddressOf());
+	gCmdList->SetGraphicsRootDescriptorTable(0, gTexDescHeap->GetGPUDescriptorHandleForHeapStart());
+
 	gCmdList->RSSetViewports(1, &gViewport);
 	gCmdList->RSSetScissorRects(1, &gScissorRect);
+
 	gCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	gCmdList->IASetVertexBuffers(0, 1, &gVertexBufferView);
 	gCmdList->IASetIndexBuffer(&gIndexBufferView);
+
 	gCmdList->DrawIndexedInstanced(gIndexCount, 1, 0, 0, 0);
 
 	bd.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
