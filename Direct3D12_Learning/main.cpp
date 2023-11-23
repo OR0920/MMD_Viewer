@@ -105,9 +105,9 @@ void SafeReleaseAll_D3D_Interface()
 // 頂点データ
 MathUtil::float3 triangle[] =
 {
-	{ -1.f, -1.f,  0.f },
-	{ -1.f,  1.f,  0.f },
-	{  1.f, -1.f,  0.f }
+	{ -0.5f, -0.7f,  0.f },
+	{   0.f,  0.7f,  0.f },
+	{  0.5f, -0.7f,  0.f }
 };
 
 
@@ -206,15 +206,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 
 	{
+		ComPtr<IDXGIFactory2> dxgiF = nullptr;
 #ifdef _DEBUG
-		auto result = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&gDxgiFactory));
+		auto result = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(dxgiF.GetAddressOf()));
 #else
-		auto result = CreateDXGIFactory1(IID_PPV_ARGS(&gDxgiFactory));
+		auto result = CreateDXGIFactory1(IID_PPV_ARGS(dxgiF.GetAddressOf()));
 #endif // _DEBUG
-
 		if (result != S_OK)
 		{
-			return ReturnWithErrorMessage("Failed Create Dxgi Factory !");
+			return ReturnWithErrorMessage("Failed Create DXGI Factory2 !");
+		}
+		result = dxgiF->QueryInterface(gDxgiFactory.GetAddressOf());
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Query Interface from DXGI Factory2 to 6");
 		}
 	}
 
@@ -365,8 +370,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		vrd.MipLevels = 1;
 		vrd.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
 		vrd.SampleDesc.Count = 1;
+		vrd.SampleDesc.Quality = 0;
 		vrd.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 		vrd.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+		
 
 		// リソースを作成
 		auto result = gDevice->CreateCommittedResource
@@ -602,16 +609,20 @@ int Frame()
 	bd.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	gCmdList->ResourceBarrier(1, &bd);	
 
-	gCmdList->SetPipelineState(gPipelineState.Get());
-	gCmdList->SetGraphicsRootDescriptorTable(gRootSignature.Get());
-	
-
 	auto rtvH = gRtvHeaps->GetCPUDescriptorHandleForHeapStart();
 	rtvH.ptr += static_cast<ULONG_PTR>(bbidx * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
 	gCmdList->OMSetRenderTargets(1, &rtvH, false, nullptr);
 
-	float color[] = { 1.f, 1.f, 0.f, 1.f };
+	float color[] = { 0.f, 0.f, 0.5f, 1.f };
 	gCmdList->ClearRenderTargetView(rtvH, color, 0, nullptr);
+
+	gCmdList->SetPipelineState(gPipelineState.Get());
+	gCmdList->SetGraphicsRootSignature(gRootSignature.Get());
+	gCmdList->RSSetViewports(1, &gViewport);
+	gCmdList->RSSetScissorRects(1, &gScissorRect);
+	gCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	gCmdList->IASetVertexBuffers(0, 1, &gVertexBufferView);
+	gCmdList->DrawInstanced(3, 1, 0, 0);
 
 	bd.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	bd.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
