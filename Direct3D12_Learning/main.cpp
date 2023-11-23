@@ -32,6 +32,9 @@ static const int gBufferCount = 2;
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 
+#include<d3dcompiler.h>
+#pragma comment(lib, "d3dcompiler.lib")
+
 ComPtr<ID3D12Device> gDevice = nullptr;
 ComPtr<IDXGIFactory6> gDxgiFactory = nullptr;
 ComPtr<IDXGISwapChain4> gSwapChain = nullptr;
@@ -44,8 +47,17 @@ std::vector<ComPtr<ID3D12Resource>> gBackBuffers(gBufferCount);
 ComPtr<ID3D12Fence> gFence = nullptr;
 UINT64 gFenceVal = 0;
 
+ComPtr<ID3D12Resource> gVertexBuffer = nullptr;
+D3D12_VERTEX_BUFFER_VIEW gVertexBufferView = {};
+
+ComPtr<ID3DBlob> gVsBlob = nullptr;
+ComPtr<ID3DBlob> gPsBlob = nullptr;
+
 void SafeReleaseAll_D3D_Interface()
 {
+	SafeRelease(gPsBlob.GetAddressOf());
+	SafeRelease(gVsBlob.GetAddressOf());
+	SafeRelease(gVertexBuffer.GetAddressOf());
 	SafeRelease(gFence.GetAddressOf());
 	for (int i = 0; i < gBufferCount; ++i)
 	{
@@ -292,7 +304,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		// 全レンダーターゲットを作成
-		for (int idx = 0; idx < scd.BufferCount; ++idx)
+		for (unsigned int idx = 0; idx < scd.BufferCount; ++idx)
 		{
 			result = gSwapChain->GetBuffer(idx, IID_PPV_ARGS(&gBackBuffers[idx]));
 			if (result != S_OK)
@@ -319,11 +331,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	// リソースの作成
 	// 頂点バッファ
 	{
+		// ヒープの設定
 		D3D12_HEAP_PROPERTIES heapProp = {};
 		heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD;
 		heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
 		heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
 
+		// リソースの設定
 		D3D12_RESOURCE_DESC vrd = {};
 		vrd.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
 		vrd.Width = sizeof(triangle);
@@ -335,8 +349,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		vrd.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 		vrd.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-		ComPtr<ID3D12Resource> vertexBuffer = nullptr;
-
+		// リソースを作成
 		auto result = gDevice->CreateCommittedResource
 		(
 			&heapProp,
@@ -344,15 +357,74 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			&vrd,
 			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
-			IID_PPV_ARGS(vertexBuffer.GetAddressOf())
+			IID_PPV_ARGS(gVertexBuffer.GetAddressOf())
 		);
-
 		if (result != S_OK)
 		{
 			return ReturnWithErrorMessage("Failed Create Vertex Buffer Resource !");
 		}
+
+		// 確保されているリソース領域を取得
+		MathUtil::float3* vertexBufferMap = nullptr;
+		result = gVertexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&vertexBufferMap));
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Map Vertex Buffer !");
+		}
+
+		// 取得したリソース領域に、頂点データを書き込む
+		std::copy(std::begin(triangle), std::end(triangle), vertexBufferMap);
+
+		// リソース領域はいったん使用しないため、マップを解除
+		gVertexBuffer->Unmap(0, nullptr);
+
+		// 作成した頂点バッファのビューを作成
+		gVertexBufferView.BufferLocation = gVertexBuffer->GetGPUVirtualAddress();
+		gVertexBufferView.SizeInBytes = sizeof(triangle);
+		gVertexBufferView.StrideInBytes = sizeof(triangle[0]);
 	}
 
+	// シェーダーのコンパイル
+	{
+		// 頂点シェーダー
+		ComPtr<ID3DBlob> errorBlob = nullptr;
+		auto result = D3DCompileFromFile
+		(
+			_T("BasicVertexShader.hlsl"),
+			nullptr,
+			D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			"BasicVS",
+			"vs_5_0",
+			D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+			0,
+			gVsBlob.GetAddressOf(),
+			errorBlob.GetAddressOf()
+		);
+		if (result != S_OK)
+		{
+			SafeRelease(errorBlob.GetAddressOf());
+			return ReturnWithErrorMessage("Failed Compile Vertex Shader !");
+		}
+
+		// ピクセルシェーダー
+		result = D3DCompileFromFile
+		(
+			_T("BasicPixelShader.hlsl"),
+			nullptr,
+			D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			"BasicPS",
+			"ps_5_0",
+			D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+			0,
+			gPsBlob.GetAddressOf(),
+			errorBlob.GetAddressOf()
+		);
+		if (result != S_OK)
+		{
+			SafeRelease(errorBlob.GetAddressOf());
+			return ReturnWithErrorMessage("Failed Compile Pixel Shader");
+		}
+	}
 
 	// メッセージループ
 	MSG msg = {};
