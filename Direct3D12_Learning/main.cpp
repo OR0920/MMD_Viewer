@@ -71,6 +71,15 @@ void SafeReleaseAll_D3D_Interface()
 #include"MMDsdk.h"
 
 
+// 頂点データ
+MathUtil::float3 triangle[] =
+{
+	{ -1.f, -1.f,  0.f },
+	{ -1.f,  1.f,  0.f },
+	{  1.f, -1.f,  0.f }
+};
+
+
 int ReturnWithErrorMessage(const char* const message)
 {
 	DebugMessage(message);
@@ -306,6 +315,45 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 	}
 
+
+	// リソースの作成
+	// 頂点バッファ
+	{
+		D3D12_HEAP_PROPERTIES heapProp = {};
+		heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD;
+		heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
+
+		D3D12_RESOURCE_DESC vrd = {};
+		vrd.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
+		vrd.Width = sizeof(triangle);
+		vrd.Height = 1;
+		vrd.DepthOrArraySize = 1;
+		vrd.MipLevels = 1;
+		vrd.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
+		vrd.SampleDesc.Count = 1;
+		vrd.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+		vrd.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+		ComPtr<ID3D12Resource> vertexBuffer = nullptr;
+
+		auto result = gDevice->CreateCommittedResource
+		(
+			&heapProp,
+			D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+			&vrd,
+			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(vertexBuffer.GetAddressOf())
+		);
+
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Create Vertex Buffer Resource !");
+		}
+	}
+
+
 	// メッセージループ
 	MSG msg = {};
 	while (true)
@@ -373,7 +421,7 @@ int Frame()
 
 	gCmdList->Close();
 
-	ID3D12CommandList* cmdlists[] = { gCmdList.Get()};
+	ID3D12CommandList* cmdlists[] = { gCmdList.Get() };
 	gCmdQueue->ExecuteCommandLists(1, cmdlists);
 
 	gCmdQueue->Signal(gFence.Get(), ++gFenceVal);
