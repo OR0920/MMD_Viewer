@@ -59,6 +59,15 @@ D3D12_INPUT_ELEMENT_DESC gInputLayout[] =
 		D3D12_APPEND_ALIGNED_ELEMENT,
 		D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
 		0
+	},
+	{
+		"TEXCOORD",
+		0,
+		DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT,
+		0,
+		D3D12_APPEND_ALIGNED_ELEMENT,
+		D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+		0
 	}
 };
 
@@ -107,17 +116,22 @@ void SafeReleaseAll_D3D_Interface()
 
 // 頂点データ
 int gVertexCount = 0;
-MathUtil::float3 triangle[] =
+struct Vertex
 {
-	{ -0.4f, -0.7f,  0.f },
-	{ -0.4f,  0.7f,  0.f },
-	{  0.4f, -0.7f,  0.f },
-	{  0.4f,  0.7f,  0.f }
+	MathUtil::float3 pos;
+	MathUtil::float2 uv;
+};
+Vertex gMesh[] =
+{
+	{ { -0.4f, -0.7f,  0.f }, { 0.f, 1.f } },
+	{ { -0.4f,  0.7f,  0.f }, { 0.f, 0.f } },
+	{ {  0.4f, -0.7f,  0.f }, { 1.f, 1.f } },
+	{ {  0.4f,  0.7f,  0.f }, { 1.f, 0.f } },
 };
 
 // インデックスデータ
 int gIndexCount = 0;
-unsigned short indices[] =
+unsigned short gIndices[] =
 {
 	0, 1, 2,
 	2, 1, 3
@@ -377,7 +391,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		// リソースの設定
 		D3D12_RESOURCE_DESC vrd = {};
 		vrd.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
-		vrd.Width = sizeof(triangle);
+		vrd.Width = sizeof(gMesh);
 		vrd.Height = 1;
 		vrd.DepthOrArraySize = 1;
 		vrd.MipLevels = 1;
@@ -404,7 +418,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		// 確保されているリソース領域を取得
-		MathUtil::float3* vertexBufferMap = nullptr;
+		Vertex* vertexBufferMap = nullptr;
 		result = gVertexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&vertexBufferMap));
 		if (result != S_OK)
 		{
@@ -412,17 +426,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		// 取得したリソース領域に、頂点データを書き込む
-		std::copy(std::begin(triangle), std::end(triangle), vertexBufferMap);
+		std::copy(std::begin(gMesh), std::end(gMesh), vertexBufferMap);
 
 		// リソース領域はいったん使用しないため、マップを解除
 		gVertexBuffer->Unmap(0, nullptr);
 
 		// 作成した頂点バッファのビューを作成
 		gVertexBufferView.BufferLocation = gVertexBuffer->GetGPUVirtualAddress();
-		gVertexBufferView.SizeInBytes = sizeof(triangle);
-		gVertexBufferView.StrideInBytes = sizeof(triangle[0]);
+		gVertexBufferView.SizeInBytes = sizeof(gMesh);
+		gVertexBufferView.StrideInBytes = sizeof(gMesh[0]);
 
-		gVertexCount = _countof(triangle);
+		gVertexCount = _countof(gMesh);
 	}
 
 	// インデックスバッファの作成
@@ -436,7 +450,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		// リソースの設定
 		D3D12_RESOURCE_DESC ird = {};
 		ird.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
-		ird.Width = sizeof(indices);
+		ird.Width = sizeof(gIndices);
 		ird.Height = 1;
 		ird.DepthOrArraySize = 1;
 		ird.MipLevels = 1;
@@ -471,17 +485,74 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		// 取得したリソース領域に、頂点データを書き込む
-		std::copy(std::begin(indices), std::end(indices), indexBufferMap);
+		std::copy(std::begin(gIndices), std::end(gIndices), indexBufferMap);
 
 		// リソース領域はいったん使用しないため、マップを解除
 		gIndexBuffer->Unmap(0, nullptr);
 
 		// 作成した頂点バッファのビューを作成
 		gIndexBufferView.BufferLocation = gIndexBuffer->GetGPUVirtualAddress();
-		gIndexBufferView.SizeInBytes = sizeof(indices);
+		gIndexBufferView.SizeInBytes = sizeof(gIndices);
 		gIndexBufferView.Format = DXGI_FORMAT::DXGI_FORMAT_R16_UINT;
 
-		gIndexCount = _countof(indices);
+		gIndexCount = _countof(gIndices);
+	}
+
+	// テクスチャデータの作成
+	{
+		// 実験的に元リソースをスコープ内に置く
+		// エラーが出るならグローバルに
+		struct TexRGBA
+		{
+			unsigned char r, g, b, a;
+		};
+
+		const int texSize = 256;
+
+		std::vector<TexRGBA> texturedata(texSize * texSize);
+
+		for (auto& rgba : texturedata)
+		{
+			rgba.r = rand() % texSize;
+			rgba.g = rand() % texSize;
+			rgba.b = rand() % texSize;
+			rgba.a = rand() % texSize;
+		}
+
+		{
+			D3D12_HEAP_PROPERTIES heapProp = {};
+			heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_CUSTOM;
+			heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+			heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_L0;
+			heapProp.CreationNodeMask = 0;
+			heapProp.VisibleNodeMask = 0;
+
+			D3D12_RESOURCE_DESC resDesc = {};
+			resDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
+			resDesc.Width = resDesc.Height = texSize;
+			resDesc.DepthOrArraySize = 1;
+			resDesc.SampleDesc = { 1, 0 };
+			resDesc.MipLevels = 1;
+			resDesc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+			resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
+			resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+
+			ComPtr<ID3D12Resource> texBuffer = nullptr;
+			auto result = gDevice->CreateCommittedResource
+			(
+				&heapProp,
+				D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+				&resDesc,
+				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+				nullptr,
+				IID_PPV_ARGS(texBuffer.GetAddressOf())
+			);
+
+			if (result != S_OK)
+			{
+				return ReturnWithErrorMessage("Failed Create Texture Resource !");
+			}
+		}
 	}
 
 	// シェーダーのコンパイル
