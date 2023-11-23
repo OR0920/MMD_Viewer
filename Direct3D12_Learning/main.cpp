@@ -68,6 +68,9 @@ ComPtr<ID3DBlob> gPsBlob = nullptr;
 ComPtr<ID3D12RootSignature> gRootSignature = nullptr;
 ComPtr<ID3D12PipelineState> gPipelineState = nullptr;
 
+D3D12_VIEWPORT gViewport = {};
+D3D12_RECT gScissorRect = {};
+
 void SafeReleaseAll_D3D_Interface()
 {
 	SafeRelease(gPipelineState.GetAddressOf());
@@ -533,6 +536,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 	}
 
+	gViewport.Width = gWindowWidth;
+	gViewport.Height = gWindowHeight;
+	gViewport.TopLeftX = 0;
+	gViewport.TopLeftY = 0;
+	gViewport.MaxDepth = 1.f;
+	gViewport.MinDepth = 0.f;
+
+	gScissorRect.top = 0;
+	gScissorRect.left= 0;
+	gScissorRect.right = gScissorRect.left + gWindowWidth;
+	gScissorRect.bottom = gScissorRect.top + gWindowHeight;	
 
 	// メッセージループ
 	MSG msg = {};
@@ -586,7 +600,11 @@ int Frame()
 	bd.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	bd.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 	bd.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	gCmdList->ResourceBarrier(1, &bd);
+	gCmdList->ResourceBarrier(1, &bd);	
+
+	gCmdList->SetPipelineState(gPipelineState.Get());
+	gCmdList->SetGraphicsRootDescriptorTable(gRootSignature.Get());
+	
 
 	auto rtvH = gRtvHeaps->GetCPUDescriptorHandleForHeapStart();
 	rtvH.ptr += static_cast<ULONG_PTR>(bbidx * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
