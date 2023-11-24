@@ -18,8 +18,8 @@ void SafeRelease(C** ptr)
 }
 
 // window size
-static const int gWindowWidth = 1280;
-static const int gWindowHeight = 720;
+static const int gWindowWidth = 1080;
+static const int gWindowHeight = 1080;
 
 static const int gBufferCount = 2;
 
@@ -88,17 +88,18 @@ ComPtr<ID3D12PipelineState> gPipelineState = nullptr;
 D3D12_VIEWPORT gViewport = {};
 D3D12_RECT gScissorRect = {};
 
-ComPtr<ID3D12DescriptorHeap> gTexDescHeap = nullptr;
+ComPtr<ID3D12DescriptorHeap> gBasicDescHeap = nullptr;
 ComPtr<ID3D12Resource> gTexBuffer = nullptr;
-
 ComPtr<ID3D12Resource> gUploadBuff = nullptr;
 
+ComPtr<ID3D12Resource> gConstBuffer = nullptr;
 
 void SafeReleaseAll_D3D_Interface()
 {
+	SafeRelease(gConstBuffer.GetAddressOf());
 	SafeRelease(gUploadBuff.GetAddressOf());
 	SafeRelease(gTexBuffer.GetAddressOf());
-	SafeRelease(gTexDescHeap.GetAddressOf());
+	SafeRelease(gBasicDescHeap.GetAddressOf());
 	SafeRelease(gPipelineState.GetAddressOf());
 	SafeRelease(gPsBlob.GetAddressOf());
 	SafeRelease(gVsBlob.GetAddressOf());
@@ -137,10 +138,10 @@ struct Vertex
 };
 Vertex gMesh[] =
 {
-	{ { -0.4f, -0.7f,  0.f }, { 0.f, 1.f } },
-	{ { -0.4f,  0.7f,  0.f }, { 0.f, 0.f } },
-	{ {  0.4f, -0.7f,  0.f }, { 1.f, 1.f } },
-	{ {  0.4f,  0.7f,  0.f }, { 1.f, 0.f } },
+	{ { -1.f, -1.f,  0.f }, { 0.f, 1.f } },
+	{ { -1.f,  1.f,  0.f }, { 0.f, 0.f } },
+	{ {  1.f, -1.f,  0.f }, { 1.f, 1.f } },
+	{ {  1.f,  1.f,  0.f }, { 1.f, 0.f } },
 };
 
 // インデックスデータ
@@ -163,6 +164,9 @@ DirectX::TexMetadata metadata = {};
 DirectX::ScratchImage scratchImg = {};
 
 const MMDsdk::PmxFile model("D:/_3DModel/かばんちゃん/かばんちゃん/かばんちゃん.pmx");
+
+auto gMatrix = DirectX::XMMatrixIdentity();
+DirectX::XMMATRIX* map = nullptr;
 
 int ReturnWithErrorMessage(const char* const message)
 {
@@ -775,25 +779,77 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			//	}
 		}
 
+
+	}
+
+
+	// 定数バッファの作成
+	{
+		int gSize = (sizeof(gMatrix) + 0xff) & ~0xff;
+
+		auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD);
+		auto resouceDesc = CD3DX12_RESOURCE_DESC::Buffer(UINT64(gSize));
+
+		auto result = gDevice->CreateCommittedResource
+		(
+			&heapProp,
+			D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+			&resouceDesc,
+			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(gConstBuffer.GetAddressOf())
+		);
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Create ConstantBuffer Resource !");
+		}
+
+		result = gConstBuffer->Map(0, nullptr, reinterpret_cast<void**>(&map));
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Map ConstantBuffer !");
+		}
+		*map = gMatrix;
+
+	}
+
+	// 定数バッファビューとシェーダーリソースビュー(テクスチャ用ビュー)は同じディスクリプタヒープに置ける
+	{
+		// ディスクリプタヒープを作成する
 		D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc = {};
 		descHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		descHeapDesc.NodeMask = 0;
-		descHeapDesc.NumDescriptors = 1;
+		descHeapDesc.NumDescriptors = 2;
 		descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-		result = gDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(gTexDescHeap.GetAddressOf()));
+		auto result = gDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(gBasicDescHeap.GetAddressOf()));
 		if (result != S_OK)
 		{
 			return ReturnWithErrorMessage("Failed Create Texture Descriptor Heap");
 		}
 
+		// ディスクリプタヒープ上にビューを作成・配置する
+
+		// SRV　→　CBVの順で配置する
+		auto basicHeapHandle = gBasicDescHeap->GetCPUDescriptorHandleForHeapStart();
+		// シェーダーリソースビューの作成
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Format = metadata.format;
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = 1;
 
-		gDevice->CreateShaderResourceView(gTexBuffer.Get(), &srvDesc, gTexDescHeap->GetCPUDescriptorHandleForHeapStart());
+		gDevice->CreateShaderResourceView(gTexBuffer.Get(), &srvDesc, basicHeapHandle);
+
+		// コンスタントバッファービューの位置に移動
+		basicHeapHandle.ptr += gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		// コンスタントバッファービューを作成
+		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+		cbvDesc.BufferLocation = gConstBuffer->GetGPUVirtualAddress();
+		cbvDesc.SizeInBytes = gConstBuffer->GetDesc().Width;
+
+		gDevice->CreateConstantBufferView(&cbvDesc, basicHeapHandle);
 	}
 
 	// シェーダーのコンパイル
@@ -840,32 +896,38 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	// ルートシグネチャの作成
 	{
+		//D3D12_DESCRIPTOR_RANGE descTableRange = {};
+		//descTableRange.NumDescriptors = 1;
+		//descTableRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+		//descTableRange.BaseShaderRegister = 0;
+		//descTableRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-
-
-		/*D3D12_DESCRIPTOR_RANGE descTableRange = {};
-		descTableRange.NumDescriptors = 1;
-		descTableRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		descTableRange.BaseShaderRegister = 0;
-		descTableRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;*/
-
-		auto descTableRange = CD3DX12_DESCRIPTOR_RANGE
-		(
-			D3D12_DESCRIPTOR_RANGE_TYPE
-			::D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-			1,
-			0
-		);
+		D3D12_DESCRIPTOR_RANGE descTableRange[2] = { {} };
+		descTableRange[0] = CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+		descTableRange[1] = CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
 
 		// ルートパラメータにディスクリプタテーブルを設定
-		//D3D12_ROOT_PARAMETER rootParam = {};
-		//rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		//rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_PIXEL;
-		//rootParam.DescriptorTable.pDescriptorRanges = &descTableRange;
-		//rootParam.DescriptorTable.NumDescriptorRanges = 1;
+		//D3D12_ROOT_PARAMETER rootParam[2] = { {} };
+		//rootParam[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		//rootParam[0].ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_PIXEL;
+		//rootParam[0].DescriptorTable.pDescriptorRanges = &descTableRange[0];
+		//rootParam[0].DescriptorTable.NumDescriptorRanges = 1;
 
-		CD3DX12_ROOT_PARAMETER rootParam = {};
-		rootParam.InitAsDescriptorTable(1, &descTableRange);
+		//rootParam[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		//rootParam[1].ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_VERTEX;
+		//rootParam[1].DescriptorTable.pDescriptorRanges = &descTableRange[1];
+		//rootParam[1].DescriptorTable.NumDescriptorRanges = 1;
+
+		D3D12_ROOT_PARAMETER rootParam = {};
+		rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_ALL;
+		rootParam.DescriptorTable.pDescriptorRanges = descTableRange;
+		rootParam.DescriptorTable.NumDescriptorRanges = 2;
+
+
+		//CD3DX12_ROOT_PARAMETER rootParam[2] = { {} };
+		//rootParam[0].InitAsDescriptorTable(1, &descTableRange[0]);
+		//rootParam[1].InitAsDescriptorTable(1, &descTableRange[2]);
 
 		// サンプラーの設定
 		D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
@@ -978,12 +1040,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	gViewport.TopLeftY = 0;
 	gViewport.MaxDepth = 1.f;
 	gViewport.MinDepth = 0.f;
-	
 
 	gScissorRect.top = 0;
 	gScissorRect.left = 0;
 	gScissorRect.right = gScissorRect.left + gWindowWidth;
 	gScissorRect.bottom = gScissorRect.top + gWindowHeight;
+
 
 
 	// メッセージループ
@@ -1027,8 +1089,20 @@ LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	return DefWindowProc(hwnd, msg, wp, lp);
 }
 
+
+
 int Frame()
 {
+	static int frameCount = 0;
+	++frameCount;
+
+	float deg = 1.f;
+	float rot = deg * (frameCount % static_cast<int>(360.f / deg));
+	
+	*map = DirectX::XMMatrixScaling(1.f, 0.5f, 0.5f);
+	*map *= DirectX::XMMatrixRotationZ(MathUtil::DegreeToRadian(rot));
+	
+
 	gCmdAllocator->Reset();
 	gCmdList->Reset(gCmdAllocator.Get(), nullptr);
 
@@ -1059,8 +1133,8 @@ int Frame()
 	gCmdList->SetPipelineState(gPipelineState.Get());
 	gCmdList->SetGraphicsRootSignature(gRootSignature.Get());
 
-	gCmdList->SetDescriptorHeaps(1, gTexDescHeap.GetAddressOf());
-	gCmdList->SetGraphicsRootDescriptorTable(0, gTexDescHeap->GetGPUDescriptorHandleForHeapStart());
+	gCmdList->SetDescriptorHeaps(1, gBasicDescHeap.GetAddressOf());
+	gCmdList->SetGraphicsRootDescriptorTable(0, gBasicDescHeap->GetGPUDescriptorHandleForHeapStart());
 
 	gCmdList->RSSetViewports(1, &gViewport);
 	gCmdList->RSSetScissorRects(1, &gScissorRect);
@@ -1095,8 +1169,6 @@ int Frame()
 		WaitForSingleObject(event, INFINITE);
 		CloseHandle(event);
 	}
-
-
 
 	gSwapChain->Present(1, 0);
 
