@@ -774,11 +774,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			//		return ReturnWithErrorMessage("Failed Write Texture Data !");
 			//	}
 		}
+
 		D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc = {};
 		descHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		descHeapDesc.NodeMask = 0;
 		descHeapDesc.NumDescriptors = 1;
 		descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
 		result = gDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(gTexDescHeap.GetAddressOf()));
 		if (result != S_OK)
 		{
@@ -838,19 +840,32 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	// ルートシグネチャの作成
 	{
-		// ルートパラメータにディスクリプタテーブルを設定
-		D3D12_ROOT_PARAMETER rootParam = {};
-		rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_PIXEL;
 
-		D3D12_DESCRIPTOR_RANGE descTableRange = {};
+
+
+		/*D3D12_DESCRIPTOR_RANGE descTableRange = {};
 		descTableRange.NumDescriptors = 1;
 		descTableRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		descTableRange.BaseShaderRegister = 0;
-		descTableRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+		descTableRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;*/
 
-		rootParam.DescriptorTable.pDescriptorRanges = &descTableRange;
-		rootParam.DescriptorTable.NumDescriptorRanges = 1;
+		auto descTableRange = CD3DX12_DESCRIPTOR_RANGE
+		(
+			D3D12_DESCRIPTOR_RANGE_TYPE
+			::D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+			1,
+			0
+		);
+
+		// ルートパラメータにディスクリプタテーブルを設定
+		//D3D12_ROOT_PARAMETER rootParam = {};
+		//rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		//rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_PIXEL;
+		//rootParam.DescriptorTable.pDescriptorRanges = &descTableRange;
+		//rootParam.DescriptorTable.NumDescriptorRanges = 1;
+
+		CD3DX12_ROOT_PARAMETER rootParam = {};
+		rootParam.InitAsDescriptorTable(1, &descTableRange);
 
 		// サンプラーの設定
 		D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
@@ -963,11 +978,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	gViewport.TopLeftY = 0;
 	gViewport.MaxDepth = 1.f;
 	gViewport.MinDepth = 0.f;
+	
 
 	gScissorRect.top = 0;
 	gScissorRect.left = 0;
 	gScissorRect.right = gScissorRect.left + gWindowWidth;
 	gScissorRect.bottom = gScissorRect.top + gWindowHeight;
+
 
 	// メッセージループ
 	MSG msg = {};
