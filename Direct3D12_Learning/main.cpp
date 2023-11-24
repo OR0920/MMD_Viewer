@@ -38,6 +38,8 @@ static const int gBufferCount = 2;
 #include<DirectXTex.h>
 #pragma comment(lib, "DirectXTex.lib")
 
+#include"d3dx12.h"
+
 ComPtr<ID3D12Device> gDevice = nullptr;
 ComPtr<IDXGIFactory6> gDxgiFactory = nullptr;
 ComPtr<IDXGISwapChain4> gSwapChain = nullptr;
