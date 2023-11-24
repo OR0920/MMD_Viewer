@@ -365,7 +365,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		hd.NumDescriptors = gBufferCount;
 		hd.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-
 		auto result = gDevice->CreateDescriptorHeap(&hd, IID_PPV_ARGS(&gRtvHeaps));
 		if (result != S_OK)
 		{
@@ -471,24 +470,27 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	// インデックスバッファの作成
 	{
 		// ヒープの設定
-		D3D12_HEAP_PROPERTIES heapProp = {};
-		heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD;
-		heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-		heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
+		//D3D12_HEAP_PROPERTIES heapProp = {};
+		//heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD;
+		//heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		//heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
+
+		auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD);
 
 		// リソースの設定
-		D3D12_RESOURCE_DESC ird = {};
-		ird.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
-		ird.Width = sizeof(gIndices);
-		ird.Height = 1;
-		ird.DepthOrArraySize = 1;
-		ird.MipLevels = 1;
-		ird.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
-		ird.SampleDesc.Count = 1;
-		ird.SampleDesc.Quality = 0;
-		ird.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
-		ird.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+		//D3D12_RESOURCE_DESC ird = {};
+		//ird.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
+		//ird.Width = sizeof(gIndices);
+		//ird.Height = 1;
+		//ird.DepthOrArraySize = 1;
+		//ird.MipLevels = 1;
+		//ird.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
+		//ird.SampleDesc.Count = 1;
+		//ird.SampleDesc.Quality = 0;
+		//ird.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+		//ird.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
+		auto ird = CD3DX12_RESOURCE_DESC::Buffer(sizeof(gIndices));
 
 		// リソースを作成
 		auto result = gDevice->CreateCommittedResource
@@ -504,6 +506,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{
 			return ReturnWithErrorMessage("Failed Create Vertex Buffer Resource !");
 		}
+
+
 
 		// 確保されているリソース領域を取得
 		unsigned short* indexBufferMap = nullptr;
@@ -565,25 +569,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		auto img = scratchImg.GetImage(0, 0, 0);
 
 		{
-			D3D12_HEAP_PROPERTIES uploadHeapProp = {};
-			uploadHeapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD;
-			uploadHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-			uploadHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
-			uploadHeapProp.CreationNodeMask = 0;
-			uploadHeapProp.VisibleNodeMask = 0;
+			//D3D12_HEAP_PROPERTIES uploadHeapProp = {};
+			//uploadHeapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD;
+			//uploadHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+			//uploadHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
+			//uploadHeapProp.CreationNodeMask = 0;
+			//uploadHeapProp.VisibleNodeMask = 0;
 
-			D3D12_RESOURCE_DESC resDesc = {};
-			resDesc.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
-			resDesc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
-			resDesc.Width = img->slicePitch;
-			resDesc.Height = 1;
-			resDesc.DepthOrArraySize = 1;
-			resDesc.MipLevels = 1;
-			resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-			resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
-			resDesc.SampleDesc.Count = 1;
-			resDesc.SampleDesc.Quality = 0;
+			auto uploadHeapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD, 0, 0);
 
+			//D3D12_RESOURCE_DESC resDesc = {};
+			//resDesc.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
+			//resDesc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
+			//resDesc.Width = img->slicePitch;
+			//resDesc.Height = 1;
+			//resDesc.DepthOrArraySize = 1;
+			//resDesc.MipLevels = 1;
+			//resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+			//resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+			//resDesc.SampleDesc.Count = 1;
+			//resDesc.SampleDesc.Quality = 0;
+
+			auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(img->slicePitch);
 
 			result = gDevice->CreateCommittedResource
 			(
@@ -600,21 +607,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 				return ReturnWithErrorMessage("Failed Create Upload Resource");
 			}
 
-			D3D12_HEAP_PROPERTIES texHeapProp = {};
-			texHeapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT;
-			texHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-			texHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
-			texHeapProp.CreationNodeMask = 0;
-			texHeapProp.VisibleNodeMask = 0;
+			//D3D12_HEAP_PROPERTIES texHeapProp = {};
+			//texHeapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT;
+			//texHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+			//texHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
+			//texHeapProp.CreationNodeMask = 0;
+			//texHeapProp.VisibleNodeMask = 0;
+
+			auto texHeapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT, 0, 0);
 
 			// 必要なところだけ変更
-			resDesc.Format = metadata.format;
-			resDesc.Width = metadata.width;
-			resDesc.Height = metadata.height;
-			resDesc.DepthOrArraySize = metadata.arraySize;
-			resDesc.MipLevels = metadata.mipLevels;
-			resDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
-			resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
+			//resDesc.Format = metadata.format;
+			//resDesc.Width = metadata.width;
+			//resDesc.Height = metadata.height;
+			//resDesc.DepthOrArraySize = metadata.arraySize;
+			//resDesc.MipLevels = metadata.mipLevels;
+			//resDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
+			//resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
+
+			resDesc = CD3DX12_RESOURCE_DESC::Tex2D(metadata.format, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels);
 
 			// テクスチャリソースをコピー先として作成
 			// あとでテクスチャ用に状態を変える必要がある。
@@ -648,39 +659,60 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 			// コピー元、先を表す構造体
-			D3D12_TEXTURE_COPY_LOCATION from = {};
-			from.pResource = gUploadBuff.Get();
+			//D3D12_TEXTURE_COPY_LOCATION from = {};
+			//from.pResource = gUploadBuff.Get();
+			//from.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+			//from.PlacedFootprint.Offset = 0;
+			//from.PlacedFootprint.Footprint.Width = metadata.width;
+			//from.PlacedFootprint.Footprint.Height = metadata.height;
+			//from.PlacedFootprint.Footprint.Depth = metadata.depth;
+			//from.PlacedFootprint.Footprint.RowPitch = img->rowPitch;
+			//from.PlacedFootprint.Footprint.Format = img->format;
+
+			auto from = CD3DX12_TEXTURE_COPY_LOCATION(gUploadBuff.Get());
 			from.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
 			from.PlacedFootprint.Offset = 0;
-			from.PlacedFootprint.Footprint.Width = metadata.width;
-			from.PlacedFootprint.Footprint.Height = metadata.height;
-			from.PlacedFootprint.Footprint.Depth = metadata.depth;
-			from.PlacedFootprint.Footprint.RowPitch = img->rowPitch;
-			from.PlacedFootprint.Footprint.Format = img->format;
+			from.PlacedFootprint.Footprint =
+				CD3DX12_SUBRESOURCE_FOOTPRINT
+				(
+					img->format,
+					metadata.width,
+					metadata.height,
+					metadata.depth,
+					img->rowPitch
+				);
 
-			D3D12_TEXTURE_COPY_LOCATION to = {};
-			to.pResource = gTexBuffer.Get();
-			to.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-			to.SubresourceIndex = 0;
+			//D3D12_TEXTURE_COPY_LOCATION to = {};
+			//to.pResource = gTexBuffer.Get();
+			//to.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+			//to.SubresourceIndex = 0;
+
+			auto to = CD3DX12_TEXTURE_COPY_LOCATION(gTexBuffer.Get(), 0);
 
 			// コピー本体
 			gCmdList->CopyTextureRegion(&to, 0, 0, 0, &from, nullptr);
 
 			// テクスチャリソースの状態を、コピー先から、テクスチャ用に変える
-			D3D12_RESOURCE_BARRIER bd = {};
-			bd.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-			bd.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
-			bd.Transition.pResource = gTexBuffer.Get();
-			bd.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-			bd.Transition.StateBefore = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST;
-			bd.Transition.StateAfter = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			//D3D12_RESOURCE_BARRIER bd = {};
+			//bd.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+			//bd.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+			//bd.Transition.pResource = gTexBuffer.Get();
+			//bd.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+			//bd.Transition.StateBefore = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST;
+			//bd.Transition.StateAfter = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+			auto bd = CD3DX12_RESOURCE_BARRIER::Transition
+			(
+				gTexBuffer.Get(),
+				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST,
+				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+			);
 
 			gCmdList->ResourceBarrier(1, &bd);
 			gCmdList->Close();
 
 			ID3D12CommandList* cmdlist[] = { gCmdList.Get() };
 			gCmdQueue->ExecuteCommandLists(1, cmdlist);
-
 			gCmdQueue->Signal(gFence.Get(), ++gFenceVal);
 
 			if (gFence->GetCompletedValue() != gFenceVal)
@@ -985,13 +1017,19 @@ int Frame()
 
 	auto bbidx = gSwapChain->GetCurrentBackBufferIndex();
 
-	D3D12_RESOURCE_BARRIER bd = {};
-	bd.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	bd.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	bd.Transition.pResource = gBackBuffers[bbidx].Get();
-	bd.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	bd.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-	bd.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	//D3D12_RESOURCE_BARRIER bd = {};
+	//bd.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	//bd.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	//bd.Transition.pResource = gBackBuffers[bbidx].Get();
+	//bd.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	//bd.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+	//bd.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	auto bd = CD3DX12_RESOURCE_BARRIER::Transition
+	(
+		gBackBuffers[bbidx].Get(),
+		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PRESENT,
+		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET
+	);
 	gCmdList->ResourceBarrier(1, &bd);
 
 	auto rtvH = gRtvHeaps->GetCPUDescriptorHandleForHeapStart();
@@ -1016,8 +1054,14 @@ int Frame()
 
 	gCmdList->DrawIndexedInstanced(gIndexCount, 1, 0, 0, 0);
 
-	bd.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	bd.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+	//bd.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	//bd.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+	bd = CD3DX12_RESOURCE_BARRIER::Transition
+	(
+		gBackBuffers[bbidx].Get(),
+		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET,
+		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PRESENT
+	);
 	gCmdList->ResourceBarrier(1, &bd);
 
 	gCmdList->Close();
