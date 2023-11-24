@@ -89,8 +89,13 @@ D3D12_RECT gScissorRect = {};
 ComPtr<ID3D12DescriptorHeap> gTexDescHeap = nullptr;
 ComPtr<ID3D12Resource> gTexBuffer = nullptr;
 
+ComPtr<ID3D12Resource> gUploadBuff = nullptr;
+
+
 void SafeReleaseAll_D3D_Interface()
 {
+	SafeRelease(gUploadBuff.GetAddressOf());
+	SafeRelease(gTexBuffer.GetAddressOf());
 	SafeRelease(gTexDescHeap.GetAddressOf());
 	SafeRelease(gPipelineState.GetAddressOf());
 	SafeRelease(gPsBlob.GetAddressOf());
@@ -150,8 +155,10 @@ struct TexRGBA
 };
 
 static const int gTexSize = 256;
-
 std::vector<TexRGBA> gTextureData;
+
+DirectX::TexMetadata metadata = {};
+DirectX::ScratchImage scratchImg = {};
 
 const MMDsdk::PmxFile model("D:/_3DModel/かばんちゃん/かばんちゃん/かばんちゃん.pmx");
 
@@ -527,8 +534,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			rgba.a = rand() % gTexSize;
 		}
 
-		DirectX::TexMetadata metadata = {};
-		DirectX::ScratchImage scratchImg = {};
+
 
 		char* texPath = nullptr;
 		System::NewArrayAndCopyAssetPath(&texPath, model.GetDirectoryPath(), model.GetTexturePath(0).GetText());
@@ -554,71 +560,201 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		auto img = scratchImg.GetImage(0, 0, 0);
 
 		{
-			D3D12_HEAP_PROPERTIES heapProp = {};
-			heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_CUSTOM;
-			heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-			heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_L0;
-			heapProp.CreationNodeMask = 0;
-			heapProp.VisibleNodeMask = 0;
+			D3D12_HEAP_PROPERTIES uploadHeapProp = {};
+			uploadHeapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD;
+			uploadHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+			uploadHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
+			uploadHeapProp.CreationNodeMask = 0;
+			uploadHeapProp.VisibleNodeMask = 0;
 
 			D3D12_RESOURCE_DESC resDesc = {};
-			resDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
-			resDesc.Width = gTexSize;
-			resDesc.Height = gTexSize;
+			resDesc.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
+			resDesc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
+			resDesc.Width = img->slicePitch;
+			resDesc.Height = 1;
 			resDesc.DepthOrArraySize = 1;
+			resDesc.MipLevels = 1;
+			resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+			resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 			resDesc.SampleDesc.Count = 1;
 			resDesc.SampleDesc.Quality = 0;
-			resDesc.MipLevels = 1;
-			resDesc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-			resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-			resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+
 
 			result = gDevice->CreateCommittedResource
 			(
-				&heapProp,
+				&uploadHeapProp,
 				D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
 				&resDesc,
-				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ,
 				nullptr,
-				IID_PPV_ARGS(gTexBuffer.GetAddressOf())
+				IID_PPV_ARGS(gUploadBuff.GetAddressOf())
 			);
 			if (result != S_OK)
 			{
-				return ReturnWithErrorMessage("Failed Create Texture Resource !");
+				SafeRelease(gUploadBuff.GetAddressOf());
+				return ReturnWithErrorMessage("Failed Create Upload Resource");
 			}
 
-			result = gTexBuffer->WriteToSubresource
+			D3D12_HEAP_PROPERTIES texHeapProp = {};
+			texHeapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT;
+			texHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+			texHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
+			texHeapProp.CreationNodeMask = 0;
+			texHeapProp.VisibleNodeMask = 0;
+
+			// 必要なところだけ変更
+			resDesc.Format = metadata.format;
+			resDesc.Width = metadata.width;
+			resDesc.Height = metadata.height;
+			resDesc.DepthOrArraySize = metadata.arraySize;
+			resDesc.MipLevels = metadata.mipLevels;
+			resDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
+			resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
+
+			// テクスチャリソースをコピー先として作成
+			// あとでテクスチャ用に状態を変える必要がある。
+			result = gDevice->CreateCommittedResource
 			(
-				0,
+				&texHeapProp,
+				D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+				&resDesc,
+				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST,
 				nullptr,
-				gTextureData.data(),
-				sizeof(TexRGBA) * gTexSize,
-				sizeof(TexRGBA) * gTextureData.size()
+				IID_PPV_ARGS(&gTexBuffer)
 			);
+
 			if (result != S_OK)
 			{
-				return ReturnWithErrorMessage("Failed Write Texture Data !");
+				SafeRelease(gUploadBuff.GetAddressOf());
+				return ReturnWithErrorMessage("Failed Create Texture Resource");
 			}
 
-			D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc = {};
-			descHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-			descHeapDesc.NodeMask = 0;
-			descHeapDesc.NumDescriptors = 1;
-			descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-			result = gDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(gTexDescHeap.GetAddressOf()));
+			uint8_t* mapForImg = nullptr;
+			result = gUploadBuff->Map(0, nullptr, reinterpret_cast<void**>(&mapForImg));
+
 			if (result != S_OK)
 			{
-				return ReturnWithErrorMessage("Failed Create Texture Descriptor Heap");
+				SafeRelease(gUploadBuff.GetAddressOf());
+				return ReturnWithErrorMessage("Failed Map Upload Resource");
 			}
 
-			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-			srvDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
-			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-			srvDesc.ViewDimension = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2D;
-			srvDesc.Texture2D.MipLevels = 1;
+			std::copy_n(img->pixels, img->slicePitch, mapForImg);
+			gUploadBuff->Unmap(0, nullptr);
 
-			gDevice->CreateShaderResourceView(gTexBuffer.Get(), &srvDesc, gTexDescHeap->GetCPUDescriptorHandleForHeapStart());
+
+			// コピー元、先を表す構造体
+			D3D12_TEXTURE_COPY_LOCATION from = {};
+			from.pResource = gUploadBuff.Get();
+			from.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+			from.PlacedFootprint.Offset = 0;
+			from.PlacedFootprint.Footprint.Width = metadata.width;
+			from.PlacedFootprint.Footprint.Height = metadata.height;
+			from.PlacedFootprint.Footprint.Depth = metadata.depth;
+			from.PlacedFootprint.Footprint.RowPitch = img->rowPitch;
+			from.PlacedFootprint.Footprint.Format = img->format;
+
+			D3D12_TEXTURE_COPY_LOCATION to = {};
+			to.pResource = gTexBuffer.Get();
+			to.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+			to.SubresourceIndex = 0;
+
+			// コピー本体
+			gCmdList->CopyTextureRegion(&to, 0, 0, 0, &from, nullptr);
+
+			// テクスチャリソースの状態を、コピー先から、テクスチャ用に変える
+			D3D12_RESOURCE_BARRIER bd = {};
+			bd.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+			bd.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+			bd.Transition.pResource = gTexBuffer.Get();
+			bd.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+			bd.Transition.StateBefore = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST;
+			bd.Transition.StateAfter = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+			gCmdList->ResourceBarrier(1, &bd);
+			gCmdList->Close();
+
+			ID3D12CommandList* cmdlist[] = { gCmdList.Get() };
+			gCmdQueue->ExecuteCommandLists(1, cmdlist);
+
+			gCmdQueue->Signal(gFence.Get(), ++gFenceVal);
+
+			if (gFence->GetCompletedValue() != gFenceVal)
+			{
+				auto event = CreateEvent(nullptr, false, false, nullptr);
+				gFence->SetEventOnCompletion(gFenceVal, event);
+				WaitForSingleObject(event, INFINITE);
+				CloseHandle(event);
+			}
 		}
+
+		{
+			// WriteToSubResource()関数を用いた方法
+			// 公式非推奨
+			//{
+			//	D3D12_HEAP_PROPERTIES heapProp = {};
+			//	heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_CUSTOM;
+			//	heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+			//	heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_L0;
+			//	heapProp.CreationNodeMask = 0;
+			//	heapProp.VisibleNodeMask = 0;
+
+			//	D3D12_RESOURCE_DESC resDesc = {};
+			//	resDesc.Format = metadata.format;
+			//	resDesc.Width = metadata.width;
+			//	resDesc.Height = metadata.height;
+			//	resDesc.DepthOrArraySize = metadata.arraySize;
+			//	resDesc.SampleDesc.Count = 1;
+			//	resDesc.SampleDesc.Quality = 0;
+			//	resDesc.MipLevels = metadata.mipLevels;
+			//	resDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
+			//	resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
+			//	resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+
+			//	result = gDevice->CreateCommittedResource
+			//	(
+			//		&heapProp,
+			//		D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+			//		&resDesc,
+			//		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+			//		nullptr,
+			//		IID_PPV_ARGS(gTexBuffer.GetAddressOf())
+			//	);
+			//	if (result != S_OK)
+			//	{
+			//		return ReturnWithErrorMessage("Failed Create Texture Resource !");
+			//	}
+
+			//	result = gTexBuffer->WriteToSubresource
+			//	(
+			//		0,
+			//		nullptr,
+			//		img->pixels,
+			//		img->rowPitch,
+			//		img->slicePitch
+			//	);
+			//	if (result != S_OK)
+			//	{
+			//		return ReturnWithErrorMessage("Failed Write Texture Data !");
+			//	}
+		}
+		D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc = {};
+		descHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		descHeapDesc.NodeMask = 0;
+		descHeapDesc.NumDescriptors = 1;
+		descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		result = gDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(gTexDescHeap.GetAddressOf()));
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Create Texture Descriptor Heap");
+		}
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = metadata.format;
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MipLevels = 1;
+
+		gDevice->CreateShaderResourceView(gTexBuffer.Get(), &srvDesc, gTexDescHeap->GetCPUDescriptorHandleForHeapStart());
 	}
 
 	// シェーダーのコンパイル
@@ -839,6 +975,9 @@ LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
 int Frame()
 {
+	gCmdAllocator->Reset();
+	gCmdList->Reset(gCmdAllocator.Get(), nullptr);
+
 	auto bbidx = gSwapChain->GetCurrentBackBufferIndex();
 
 	D3D12_RESOURCE_BARRIER bd = {};
@@ -891,8 +1030,7 @@ int Frame()
 		CloseHandle(event);
 	}
 
-	gCmdAllocator->Reset();
-	gCmdList->Reset(gCmdAllocator.Get(), nullptr);
+
 
 	gSwapChain->Present(1, 0);
 

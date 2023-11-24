@@ -69,6 +69,7 @@ void TextBufferVariable::Load(void* _file, EncodeType encode)
 
 	if (encode == EncodeType::UTF16)
 	{
+		// apiベタ打ちなので後でラッピングする
 		auto bytesize = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, NULL, 0, NULL, NULL);
 		mStr = new char[bytesize] {};
 		WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, (LPSTR)mStr, bytesize, NULL, NULL);
