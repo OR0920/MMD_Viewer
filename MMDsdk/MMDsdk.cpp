@@ -1459,7 +1459,7 @@ PmxFile::~PmxFile()
 	SafeDeleteArray(&mDirectoryPath);
 }
 
-const char* const PmxFile::GetDirectoryPathStart() const
+const char* const PmxFile::GetDirectoryPath() const
 {
 	return mDirectoryPath;
 }

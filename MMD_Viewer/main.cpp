@@ -53,7 +53,7 @@ int main()
 	for (int i = 0; i < kaban.GetTextureCount(); ++i)
 	{
 		char* assetpath = nullptr;
-		NewArrayAndCopyAssetPath(&assetpath, kaban.GetDirectoryPathStart(), GetTextMacro(kaban.GetTexturePath(i)));
+		NewArrayAndCopyAssetPath(&assetpath, kaban.GetDirectoryPath(), GetTextMacro(kaban.GetTexturePath(i)));
 
 		DebugMessage(assetpath);
 		FileReadBin tex(assetpath);

@@ -604,7 +604,7 @@ namespace MMDsdk
 	public:
 		PmxFile(const char* const filepath); ~PmxFile();
 
-		const char* const GetDirectoryPathStart() const;
+		const char* const GetDirectoryPath() const;
 
 		// ƒwƒbƒ_î•ñ
 		struct Header

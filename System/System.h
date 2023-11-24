@@ -40,12 +40,12 @@ namespace System
 	int GetStringLength(const char* const text);
 
 	// ディレクトリのパスを取得する関数
-	// dirpath	:ディレクトリのパスを受け取るポインタ nullptrであること。内部でnewされるので、必ずdeleteすること
+	// dirpath	:ディレクトリのパスを受け取るポインタ nullptrであること。内部でnew[]されるので、必ずdelete[]すること
 	// filepath :元のポインタ
 	void NewArrayAndCopyDirPathFromFilePath(char** _dirpath, const char* const filepath);
 	
 	// 特定のディレクトリへのパスとアセットファイル名から、ファイルを開くためのパスを返す関数
-	// assetpath	:アセットへのパスを受け取るポインタ nullptrであること。内部でnewされるので、必ずdeleteすること
+	// assetpath	:アセットへのパスを受け取るポインタ nullptrであること。内部でnew[]されるので、必ずdelete[]すること
 	// dirpath		:ディレクトリのパス
 	// filename		:アセットファイル名
 	// 動作のイメージ

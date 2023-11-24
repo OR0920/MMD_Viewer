@@ -340,7 +340,7 @@ namespace MMDsdkTest
 		{
 			PmxFile pmx(testPmxModelPath);
 
-			Assert::IsTrue(StringEqual(pmx.GetDirectoryPathStart(), "Test/Model/PMX/‚©‚Î‚ñ‚¿‚á‚ñ/‚©‚Î‚ñ‚¿‚á‚ñ/"));
+			Assert::IsTrue(StringEqual(pmx.GetDirectoryPath(), "Test/Model/PMX/‚©‚Î‚ñ‚¿‚á‚ñ/‚©‚Î‚ñ‚¿‚á‚ñ/"));
 
 			{
 				auto& h = pmx.GetHeader();

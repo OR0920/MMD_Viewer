@@ -35,6 +35,9 @@ static const int gBufferCount = 2;
 #include<d3dcompiler.h>
 #pragma comment(lib, "d3dcompiler.lib")
 
+#include<DirectXTex.h>
+#pragma comment(lib, "DirectXTex.lib")
+
 ComPtr<ID3D12Device> gDevice = nullptr;
 ComPtr<IDXGIFactory6> gDxgiFactory = nullptr;
 ComPtr<IDXGISwapChain4> gSwapChain = nullptr;
@@ -146,10 +149,11 @@ struct TexRGBA
 	unsigned char r, g, b, a;
 };
 
-const int gTexSize = 256;
+static const int gTexSize = 256;
 
 std::vector<TexRGBA> gTextureData;
 
+const MMDsdk::PmxFile model("D:/_3DModel/かばんちゃん/かばんちゃん/かばんちゃん.pmx");
 
 int ReturnWithErrorMessage(const char* const message)
 {
@@ -513,9 +517,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	// テクスチャデータの作成
 	{
-		// 実験的に元リソースをスコープ内に置く
-		// エラーが出るならグローバルに
-
 		gTextureData.resize(gTexSize * gTexSize);
 
 		for (auto& rgba : gTextureData)
@@ -525,6 +526,32 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			rgba.b = rand() % gTexSize;
 			rgba.a = rand() % gTexSize;
 		}
+
+		DirectX::TexMetadata metadata = {};
+		DirectX::ScratchImage scratchImg = {};
+
+		char* texPath = nullptr;
+		System::NewArrayAndCopyAssetPath(&texPath, model.GetDirectoryPath(), model.GetTexturePath(0).GetText());
+		auto texPathSize = System::GetStringLength(texPath);
+		wchar_t* wTexPath = nullptr;
+		auto wTexPathSize = MultiByteToWideChar(CP_ACP, 0, texPath, texPathSize, nullptr, 0);
+		wTexPath = new wchar_t[wTexPathSize] {};
+		wTexPathSize = MultiByteToWideChar(CP_ACP, 0, texPath, texPathSize, wTexPath, wTexPathSize);
+
+		auto result = DirectX::LoadFromWICFile(wTexPath, DirectX::WIC_FLAGS::WIC_FLAGS_NONE, &metadata, scratchImg);
+
+		System::SafeDeleteArray(&wTexPath);
+		System::SafeDeleteArray(&texPath);
+		if (wTexPathSize == 0)
+		{
+			return ReturnWithErrorMessage("Failed Translate Texturepath !");
+		}
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Load Texture From File !");
+		}
+
+		auto img = scratchImg.GetImage(0, 0, 0);
 
 		{
 			D3D12_HEAP_PROPERTIES heapProp = {};
@@ -546,7 +573,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
 			resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 
-			auto result = gDevice->CreateCommittedResource
+			result = gDevice->CreateCommittedResource
 			(
 				&heapProp,
 				D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
