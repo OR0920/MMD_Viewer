@@ -408,25 +408,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	// リソースの作成
 	// 頂点バッファ
 	{
-		// ヒープの設定
-		D3D12_HEAP_PROPERTIES heapProp = {};
-		heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD;
-		heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-		heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
+		// d3dx12 を使わない場合
+		//// ヒープの設定
+		//D3D12_HEAP_PROPERTIES heapProp = {};
+		//heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD;
+		//heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		//heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
 
-		// リソースの設定
-		D3D12_RESOURCE_DESC vrd = {};
-		vrd.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
-		vrd.Width = sizeof(gMesh);
-		vrd.Height = 1;
-		vrd.DepthOrArraySize = 1;
-		vrd.MipLevels = 1;
-		vrd.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
-		vrd.SampleDesc.Count = 1;
-		vrd.SampleDesc.Quality = 0;
-		vrd.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
-		vrd.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+		//// リソースの設定
+		//D3D12_RESOURCE_DESC vrd = {};
+		//vrd.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
+		//vrd.Width = sizeof(gMesh);
+		//vrd.Height = 1;
+		//vrd.DepthOrArraySize = 1;
+		//vrd.MipLevels = 1;
+		//vrd.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
+		//vrd.SampleDesc.Count = 1;
+		//vrd.SampleDesc.Quality = 0;
+		//vrd.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+		//vrd.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
+		auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD);
+		auto vrd = CD3DX12_RESOURCE_DESC::Buffer(sizeof(gMesh));
 
 		// リソースを作成
 		auto result = gDevice->CreateCommittedResource
