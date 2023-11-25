@@ -3,7 +3,10 @@
 struct VS_Input
 {
     float4 pos : POSITION;
+    float4 normal : NORMAL;
     float2 uv : TEXCOORD;
+    min16int2 boneno : BONE_NO;
+    min16int weight : WEIGHT;   
 };
 
 VS_OutPut BasicVS(VS_Input vsi)

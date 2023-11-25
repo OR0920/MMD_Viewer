@@ -18,8 +18,8 @@ void SafeRelease(C** ptr)
 }
 
 // window size
-static const int gWindowWidth = 1920;
-static const int gWindowHeight = 1080;
+static const int gWindowWidth = 1280;
+static const int gWindowHeight = 720;
 
 static const int gBufferCount = 2;
 
@@ -66,9 +66,45 @@ D3D12_INPUT_ELEMENT_DESC gInputLayout[] =
 		0
 	},
 	{
+		"NORMAL",
+		0,
+		DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT,
+		0,
+		D3D12_APPEND_ALIGNED_ELEMENT,
+		D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+		0
+	},
+	{
 		"TEXCOORD",
 		0,
 		DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT,
+		0,
+		D3D12_APPEND_ALIGNED_ELEMENT,
+		D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+		0
+	},
+	{
+		"BONE_NO",
+		0,
+		DXGI_FORMAT::DXGI_FORMAT_R16G16_UINT,
+		0,
+		D3D12_APPEND_ALIGNED_ELEMENT,
+		D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+		0
+	},
+	{
+		"WEIGHT",
+		0,
+		DXGI_FORMAT::DXGI_FORMAT_R8_UINT,
+		0,
+		D3D12_APPEND_ALIGNED_ELEMENT,
+		D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+		0
+	},
+	{
+		"EDGE_FLAG",
+		0,
+		DXGI_FORMAT::DXGI_FORMAT_R8_UINT,
 		0,
 		D3D12_APPEND_ALIGNED_ELEMENT,
 		D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
@@ -94,29 +130,6 @@ ComPtr<ID3D12Resource> gUploadBuff = nullptr;
 
 ComPtr<ID3D12Resource> gConstBuffer = nullptr;
 
-void SafeReleaseAll_D3D_Interface()
-{
-	SafeRelease(gConstBuffer.GetAddressOf());
-	SafeRelease(gUploadBuff.GetAddressOf());
-	SafeRelease(gTexBuffer.GetAddressOf());
-	SafeRelease(gBasicDescHeap.GetAddressOf());
-	SafeRelease(gPipelineState.GetAddressOf());
-	SafeRelease(gPsBlob.GetAddressOf());
-	SafeRelease(gVsBlob.GetAddressOf());
-	SafeRelease(gVertexBuffer.GetAddressOf());
-	SafeRelease(gFence.GetAddressOf());
-	for (int i = 0; i < gBufferCount; ++i)
-	{
-		SafeRelease(gBackBuffers[i].GetAddressOf());
-	}
-	SafeRelease(gRtvHeaps.GetAddressOf());
-	SafeRelease(gCmdQueue.GetAddressOf());
-	SafeRelease(gCmdList.GetAddressOf());
-	SafeRelease(gCmdAllocator.GetAddressOf());
-	SafeRelease(gSwapChain.GetAddressOf());
-	SafeRelease(gDxgiFactory.GetAddressOf());
-	SafeRelease(gDevice.GetAddressOf());
-}
 
 // debug memory leak
 #define _CRTDBG_MAP_ALLOC
@@ -129,20 +142,72 @@ void SafeReleaseAll_D3D_Interface()
 #include"MMDsdk.h"
 
 
+MathUtil::float4 GetFloat4FromPMD(const MMDsdk::float4& mf)
+{
+	MathUtil::float4 ret;
+
+	ret.x = mf.x;
+	ret.y = mf.y;
+	ret.z = mf.z;
+	ret.w = mf.w;
+
+	return ret;
+}
+
+MathUtil::float3 GetFloat3FromPMD(const MMDsdk::float3& mf)
+{
+	MathUtil::float3 ret;
+
+	ret.x = mf.x;
+	ret.y = mf.y;
+	ret.z = mf.z;
+
+	return ret;
+}
+
+MathUtil::float2 GetFloat2FromPMD(const MMDsdk::float2& mf)
+{
+	MathUtil::float2 ret;
+
+	ret.x = mf.x;
+	ret.y = mf.y;
+
+	return ret;
+}
+
 // 頂点データ
 int gVertexCount = 0;
 struct Vertex
 {
 	MathUtil::float3 pos;
+	MathUtil::float3 normal;
 	MathUtil::float2 uv;
+	unsigned short boneNo[2];
+	unsigned char boneWeight;
+	unsigned char edgeFlg;
+	uint16_t dammy = 0;
+
+	void GetFromPMD_Vertex(const MMDsdk::PmdFile::Vertex& v)
+	{
+		pos = GetFloat3FromPMD(v.position);
+		normal = GetFloat3FromPMD(v.normal);
+		uv = GetFloat2FromPMD(v.uv);
+		boneNo[0] = v.GetBoneID(0);
+		boneNo[1] = v.GetBoneID(1);
+		boneWeight = v.weight;
+		edgeFlg = v.edgeFlag;
+	}
 };
-Vertex gMesh[] =
-{
-	{ { -1.f, -1.f,  0.f }, { 0.f, 1.f } },
-	{ { -1.f,  1.f,  0.f }, { 0.f, 0.f } },
-	{ {  1.f, -1.f,  0.f }, { 1.f, 1.f } },
-	{ {  1.f,  1.f,  0.f }, { 1.f, 0.f } },
-};
+//Vertex gMesh[] =
+//{
+//	{ { -1.f, -1.f,  0.f }, { 0.f, 1.f } },
+//	{ { -1.f,  1.f,  0.f }, { 0.f, 0.f } },
+//	{ {  1.f, -1.f,  0.f }, { 1.f, 1.f } },
+//	{ {  1.f,  1.f,  0.f }, { 1.f, 0.f } },
+//};
+
+Vertex* gMesh = nullptr;
+
 
 // インデックスデータ
 int gIndexCount = 0;
@@ -183,6 +248,36 @@ auto gWorld = DirectX::XMMatrixIdentity();
 
 
 DirectX::XMMATRIX* map = nullptr;
+
+void SafeDeleteAllResource()
+{
+	System::SafeDeleteArray(&gMesh);
+}
+
+void SafeReleaseAll_D3D_Interface()
+{
+	SafeRelease(gConstBuffer.GetAddressOf());
+	SafeRelease(gUploadBuff.GetAddressOf());
+	SafeRelease(gTexBuffer.GetAddressOf());
+	SafeRelease(gBasicDescHeap.GetAddressOf());
+	SafeRelease(gPipelineState.GetAddressOf());
+	SafeRelease(gPsBlob.GetAddressOf());
+	SafeRelease(gVsBlob.GetAddressOf());
+	SafeRelease(gVertexBuffer.GetAddressOf());
+	SafeRelease(gFence.GetAddressOf());
+	for (int i = 0; i < gBufferCount; ++i)
+	{
+		SafeRelease(gBackBuffers[i].GetAddressOf());
+	}
+	SafeRelease(gRtvHeaps.GetAddressOf());
+	SafeRelease(gCmdQueue.GetAddressOf());
+	SafeRelease(gCmdList.GetAddressOf());
+	SafeRelease(gCmdAllocator.GetAddressOf());
+	SafeRelease(gSwapChain.GetAddressOf());
+	SafeRelease(gDxgiFactory.GetAddressOf());
+	SafeRelease(gDevice.GetAddressOf());
+	SafeDeleteAllResource();
+}
 
 int ReturnWithErrorMessage(const char* const message)
 {
@@ -276,7 +371,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	if (gDevice == nullptr)
 	{
 		return ReturnWithErrorMessage("Failed Create D3D Device !");
-	}
+}
 
 	{
 		ComPtr<IDXGIFactory2> dxgiF = nullptr;
@@ -294,7 +389,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{
 			return ReturnWithErrorMessage("Failed Query Interface from DXGI Factory2 to 6");
 		}
-}
+	}
 
 	// コマンドリスト、コマンドアロケータの作成
 	{
@@ -447,8 +542,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//vrd.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 		//vrd.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
+		gVertexCount = miku.GetVertexCount();
+		gMesh = new Vertex[gVertexCount]{};
+
+		auto vertexSize = sizeof(Vertex);
+		auto bufferSize = vertexSize * gVertexCount;
+		DebugOutParamI(bufferSize);
+
+		for (int i = 0; i < gVertexCount; ++i)
+		{
+			gMesh[i].GetFromPMD_Vertex(miku.GetVertex(i));
+		}
+
+
 		auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD);
-		auto vrd = CD3DX12_RESOURCE_DESC::Buffer(sizeof(gMesh));
+		auto vrd = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 
 		// リソースを作成
 		auto result = gDevice->CreateCommittedResource
@@ -474,17 +582,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		// 取得したリソース領域に、頂点データを書き込む
-		std::copy(std::begin(gMesh), std::end(gMesh), vertexBufferMap);
+		for (int i = 0; i < gVertexCount; ++i)
+		{
+			vertexBufferMap[i] = gMesh[i];
+		}
+		//std::copy(&gMesh[0], &gMesh[miku.GetLastVertexID()], vertexBufferMap);
+		
 
 		// リソース領域はいったん使用しないため、マップを解除
 		gVertexBuffer->Unmap(0, nullptr);
 
 		// 作成した頂点バッファのビューを作成
 		gVertexBufferView.BufferLocation = gVertexBuffer->GetGPUVirtualAddress();
-		gVertexBufferView.SizeInBytes = sizeof(gMesh);
-		gVertexBufferView.StrideInBytes = sizeof(gMesh[0]);
-
-		gVertexCount = _countof(gMesh);
+		gVertexBufferView.SizeInBytes = bufferSize;
+		gVertexBufferView.StrideInBytes = vertexSize;
 	}
 
 	// インデックスバッファの作成
@@ -537,13 +648,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			return ReturnWithErrorMessage("Failed Map Vertex Buffer !");
 		}
 
-		// 取得したリソース領域に、頂点データを書き込む
+		// 取得したリソース領域に、インデックスデータを書き込む
 		std::copy(std::begin(gIndices), std::end(gIndices), indexBufferMap);
 
 		// リソース領域はいったん使用しないため、マップを解除
 		gIndexBuffer->Unmap(0, nullptr);
 
-		// 作成した頂点バッファのビューを作成
+		// 作成したインデックスバッファのビューを作成
 		gIndexBufferView.BufferLocation = gIndexBuffer->GetGPUVirtualAddress();
 		gIndexBufferView.SizeInBytes = sizeof(gIndices);
 		gIndexBufferView.Format = DXGI_FORMAT::DXGI_FORMAT_R16_UINT;
@@ -575,7 +686,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 				break;
 			}
 		}
-		
+
 		char* texPath = nullptr;
 		System::NewArrayAndCopyAssetPath(&texPath, miku.GetDirectoryPath(), miku.GetMaterial(i).texturePath.GetText());
 		auto texPathSize = System::GetStringLength(texPath);
@@ -1057,7 +1168,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		if (result != S_OK)
 		{
 			DebugOutParamHex(result);
-			return ReturnWithErrorMessage("Failed Create PIpeline state !");
+			return ReturnWithErrorMessage("Failed Create Pipeline state !");
 		}
 	}
 
@@ -1097,7 +1208,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 	// 終了処理
-	
+
 	UnregisterClass(wcEx.lpszClassName, wcEx.hInstance);
 
 	SafeReleaseAll_D3D_Interface();
@@ -1115,13 +1226,12 @@ LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	return DefWindowProc(hwnd, msg, wp, lp);
 }
 
-const DirectX::XMFLOAT3 eye(0.f, 0.f, -5.f);
-const DirectX::XMFLOAT3 target(0.f, 0.f,  0.f);
-const DirectX::XMFLOAT3 up(0.f, 1.f,  0.f);
-
+const DirectX::XMFLOAT3 eye(0.f, 10.f, -15.f);
+const DirectX::XMFLOAT3 target(0.f, 10.f, 0.f);
+const DirectX::XMFLOAT3 up(0.f, 1.f, 0.f);
 
 const auto gView = DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
-const auto gProjection = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, static_cast<float>(gWindowWidth) / static_cast<float>(gWindowHeight), 1.f, 10.f);
+const auto gProjection = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, static_cast<float>(gWindowWidth) / static_cast<float>(gWindowHeight), 1.f, 100.f);
 
 int Frame()
 {
@@ -1131,10 +1241,9 @@ int Frame()
 	float deg = 1.f;
 	float rot = deg * (frameCount % static_cast<int>(360.f / deg));
 
-	//gWorld = DirectX::XMMatrixScaling(0.5f, 0.5f, 0.5f);
-	gWorld = DirectX::XMMatrixRotationY(MathUtil::DegreeToRadian(rot));
-	gWorld *= DirectX::XMMatrixRotationX(MathUtil::DegreeToRadian(rot));
-	gWorld *= DirectX::XMMatrixRotationZ(MathUtil::DegreeToRadian(rot));
+	gWorld = DirectX::XMMatrixRotationX(MathUtil::DegreeToRadian(0.f));
+	gWorld *= DirectX::XMMatrixRotationY(MathUtil::DegreeToRadian(rot));
+	gWorld *= DirectX::XMMatrixRotationZ(MathUtil::DegreeToRadian(0));
 
 	gMatrix = gWorld * gView * gProjection;
 
@@ -1164,7 +1273,7 @@ int Frame()
 	rtvH.ptr += static_cast<ULONG_PTR>(bbidx * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
 	gCmdList->OMSetRenderTargets(1, &rtvH, false, nullptr);
 
-	float color[] = { 0.f, 0.f, 0.5f, 1.f };
+	float color[] = { 1.f, 1.f, 1.f, 1.f };
 	gCmdList->ClearRenderTargetView(rtvH, color, 0, nullptr);
 
 	gCmdList->SetPipelineState(gPipelineState.Get());
@@ -1176,12 +1285,12 @@ int Frame()
 	gCmdList->RSSetViewports(1, &gViewport);
 	gCmdList->RSSetScissorRects(1, &gScissorRect);
 
-	gCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	gCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 	gCmdList->IASetVertexBuffers(0, 1, &gVertexBufferView);
 	gCmdList->IASetIndexBuffer(&gIndexBufferView);
 
-	gCmdList->DrawIndexedInstanced(gIndexCount, 1, 0, 0, 0);
-
+	gCmdList->DrawInstanced(gVertexCount, 1, 0, 0);
+	
 	//bd.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	//bd.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 	bd = CD3DX12_RESOURCE_BARRIER::Transition
