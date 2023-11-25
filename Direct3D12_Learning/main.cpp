@@ -211,11 +211,12 @@ Vertex* gMesh = nullptr;
 
 // インデックスデータ
 int gIndexCount = 0;
-unsigned short gIndices[] =
-{
-	0, 1, 2,
-	2, 1, 3
-};
+//unsigned short gIndices[] =
+//{
+//	0, 1, 2,
+//	2, 1, 3
+//};
+unsigned short* gIndices = nullptr;
 
 struct TexRGBA
 {
@@ -252,6 +253,7 @@ DirectX::XMMATRIX* map = nullptr;
 void SafeDeleteAllResource()
 {
 	System::SafeDeleteArray(&gMesh);
+	System::SafeDeleteArray(&gIndices);
 }
 
 void SafeReleaseAll_D3D_Interface()
@@ -620,8 +622,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//ird.SampleDesc.Quality = 0;
 		//ird.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 		//ird.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+		
+		gIndexCount = miku.GetIndexCount();
+		gIndices = new unsigned short[gIndexCount] {};
+		auto indexSize = sizeof(*gIndices);
+		auto indicesSize = indexSize * gIndexCount;
 
-		auto ird = CD3DX12_RESOURCE_DESC::Buffer(sizeof(gIndices));
+		for (int i = 0; i < gIndexCount; ++i)
+		{
+			gIndices[i] = miku.GetIndex(i);
+		}
+
+		auto ird = CD3DX12_RESOURCE_DESC::Buffer(indicesSize);
 
 		// リソースを作成
 		auto result = gDevice->CreateCommittedResource
@@ -649,19 +661,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		// 取得したリソース領域に、インデックスデータを書き込む
-		std::copy(std::begin(gIndices), std::end(gIndices), indexBufferMap);
+		for (int i = 0; i < gIndexCount; ++i)
+		{
+			indexBufferMap[i] = gIndices[i];
+		}
+		//std::copy(std::begin(gIndices), std::end(gIndices), indexBufferMap);
 
 		// リソース領域はいったん使用しないため、マップを解除
 		gIndexBuffer->Unmap(0, nullptr);
 
 		// 作成したインデックスバッファのビューを作成
 		gIndexBufferView.BufferLocation = gIndexBuffer->GetGPUVirtualAddress();
-		gIndexBufferView.SizeInBytes = sizeof(gIndices);
+		gIndexBufferView.SizeInBytes = indicesSize;
 		gIndexBufferView.Format = DXGI_FORMAT::DXGI_FORMAT_R16_UINT;
-
-		gIndexCount = _countof(gIndices);
 	}
-
+	
 	// テクスチャデータの作成
 	{
 		gTextureData.resize(gTexSize * gTexSize);
@@ -1135,7 +1149,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		plsd.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 		plsd.RasterizerState.MultisampleEnable = false;
 		plsd.RasterizerState.CullMode = D3D12_CULL_MODE::D3D12_CULL_MODE_NONE;
-		plsd.RasterizerState.FillMode = D3D12_FILL_MODE::D3D12_FILL_MODE_SOLID;
+		plsd.RasterizerState.FillMode = D3D12_FILL_MODE::D3D12_FILL_MODE_WIREFRAME;
 		plsd.RasterizerState.DepthClipEnable = true;
 
 		// ブレンドの設定
@@ -1285,11 +1299,11 @@ int Frame()
 	gCmdList->RSSetViewports(1, &gViewport);
 	gCmdList->RSSetScissorRects(1, &gScissorRect);
 
-	gCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+	gCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	gCmdList->IASetVertexBuffers(0, 1, &gVertexBufferView);
 	gCmdList->IASetIndexBuffer(&gIndexBufferView);
 
-	gCmdList->DrawInstanced(gVertexCount, 1, 0, 0);
+	gCmdList->DrawIndexedInstanced(gIndexCount, 1, 0, 0, 0);
 	
 	//bd.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	//bd.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
