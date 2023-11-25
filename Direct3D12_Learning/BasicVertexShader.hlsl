@@ -14,6 +14,7 @@ VS_OutPut BasicVS(VS_Input vsi)
     VS_OutPut vso;
     vso.pos = vsi.pos;  
     vso.svpos = mul(mat, vsi.pos);
+    vso.normal = mul(mat, vsi.normal);
     vso.uv = vsi.uv;
     return vso;
 }

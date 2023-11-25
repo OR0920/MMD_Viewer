@@ -18,10 +18,9 @@ void SafeRelease(C** ptr)
 }
 
 // window size
-static const int gWindowWidth = 1280;
-static const int gWindowHeight = 720;
+static const int gWindowWidth = 1920;
+static const int gWindowHeight = gWindowWidth * 9/16;
 
-static const int gBufferCount = 2;
 
 // std lib
 #include<vector>
@@ -40,18 +39,27 @@ static const int gBufferCount = 2;
 
 #include"d3dx12.h"
 
+// device and swapchain
 ComPtr<ID3D12Device> gDevice = nullptr;
 ComPtr<IDXGIFactory6> gDxgiFactory = nullptr;
+
+// has render taraget
 ComPtr<IDXGISwapChain4> gSwapChain = nullptr;
+static const int gBufferCount = 2;
+
+// command  
 ComPtr<ID3D12CommandAllocator> gCmdAllocator = nullptr;
 ComPtr<ID3D12GraphicsCommandList> gCmdList = nullptr;
 ComPtr<ID3D12CommandQueue> gCmdQueue = nullptr;
+
+//render target and descriptor heap for rtv
 ComPtr<ID3D12DescriptorHeap> gRtvHeaps = nullptr;
 std::vector<ComPtr<ID3D12Resource>> gBackBuffers(gBufferCount);
 
 ComPtr<ID3D12Fence> gFence = nullptr;
 UINT64 gFenceVal = 0;
 
+// vb and views
 ComPtr<ID3D12Resource> gVertexBuffer = nullptr;
 D3D12_VERTEX_BUFFER_VIEW gVertexBufferView = {};
 D3D12_INPUT_ELEMENT_DESC gInputLayout[] =
@@ -112,24 +120,32 @@ D3D12_INPUT_ELEMENT_DESC gInputLayout[] =
 	}
 };
 
+// ib and ibv
 ComPtr<ID3D12Resource> gIndexBuffer = nullptr;
 D3D12_INDEX_BUFFER_VIEW gIndexBufferView = {};
 
 ComPtr<ID3DBlob> gVsBlob = nullptr;
 ComPtr<ID3DBlob> gPsBlob = nullptr;
 
+// about pipeline
 ComPtr<ID3D12RootSignature> gRootSignature = nullptr;
 ComPtr<ID3D12PipelineState> gPipelineState = nullptr;
 
+// about render
 D3D12_VIEWPORT gViewport = {};
 D3D12_RECT gScissorRect = {};
 
+// shader resource, constant buffer and descriptor heap for srv and cbv
 ComPtr<ID3D12DescriptorHeap> gBasicDescHeap = nullptr;
 ComPtr<ID3D12Resource> gTexBuffer = nullptr;
-ComPtr<ID3D12Resource> gUploadBuff = nullptr;
-
 ComPtr<ID3D12Resource> gConstBuffer = nullptr;
 
+// resource for upload texture
+ComPtr<ID3D12Resource> gUploadBuff = nullptr;
+
+// depth stencil resource and descriptro heap for dsv
+ComPtr<ID3D12Resource> depthBuffer;
+ComPtr<ID3D12DescriptorHeap> dsvHeap = nullptr;
 
 // debug memory leak
 #define _CRTDBG_MAP_ALLOC
@@ -142,7 +158,7 @@ ComPtr<ID3D12Resource> gConstBuffer = nullptr;
 #include"MMDsdk.h"
 
 
-MathUtil::float4 GetFloat4FromPMD(const MMDsdk::float4& mf)
+inline MathUtil::float4 GetFloat4FromPMD(const MMDsdk::float4& mf)
 {
 	MathUtil::float4 ret;
 
@@ -154,7 +170,7 @@ MathUtil::float4 GetFloat4FromPMD(const MMDsdk::float4& mf)
 	return ret;
 }
 
-MathUtil::float3 GetFloat3FromPMD(const MMDsdk::float3& mf)
+inline MathUtil::float3 GetFloat3FromPMD(const MMDsdk::float3& mf)
 {
 	MathUtil::float3 ret;
 
@@ -165,7 +181,7 @@ MathUtil::float3 GetFloat3FromPMD(const MMDsdk::float3& mf)
 	return ret;
 }
 
-MathUtil::float2 GetFloat2FromPMD(const MMDsdk::float2& mf)
+inline MathUtil::float2 GetFloat2FromPMD(const MMDsdk::float2& mf)
 {
 	MathUtil::float2 ret;
 
@@ -238,6 +254,8 @@ static const char* const hashibiroPath = "../x64/debug/PMX/ハシビロコウ/ハシビロ
 static const char* const stagePath = "../x64/debug/Test/Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/キョウシュウエリア20170914.pmx";
 static const char* const mikuPath = "../x64/Debug/Test/Model/PMD/初音ミク.pmd";
 static const char* const meikoPath = "../x64/Debug/Test/Model/PMD/MEIKO.pmd";
+static const char* const kaitoPath = "../x64/Debug/Test/Model/PMD/カイト.pmd";
+static const char* const rinPath = "../x64/Debug/Test/Model/PMD/鏡音リン.pmd";
 
 const MMDsdk::PmxFile model(kabanPath);
 const MMDsdk::PmdFile miku(mikuPath);
@@ -258,6 +276,8 @@ void SafeDeleteAllResource()
 
 void SafeReleaseAll_D3D_Interface()
 {
+	SafeRelease(dsvHeap.GetAddressOf());
+	SafeRelease(depthBuffer.GetAddressOf());
 	SafeRelease(gConstBuffer.GetAddressOf());
 	SafeRelease(gUploadBuff.GetAddressOf());
 	SafeRelease(gTexBuffer.GetAddressOf());
@@ -373,7 +393,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	if (gDevice == nullptr)
 	{
 		return ReturnWithErrorMessage("Failed Create D3D Device !");
-}
+	}
 
 	{
 		ComPtr<IDXGIFactory2> dxgiF = nullptr;
@@ -511,6 +531,65 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 	}
 
+	// 深度バッファの作成
+	{
+		D3D12_RESOURCE_DESC depthResDesc = {};
+		depthResDesc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		depthResDesc.Width = gWindowWidth;
+		depthResDesc.Height = gWindowHeight;
+		depthResDesc.DepthOrArraySize = 1;
+		depthResDesc.Format = DXGI_FORMAT::DXGI_FORMAT_D32_FLOAT;
+		depthResDesc.SampleDesc.Count = 1;
+		depthResDesc.SampleDesc.Quality = 0;
+		depthResDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+		D3D12_HEAP_PROPERTIES depthHeapProp = {};
+		depthHeapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT;
+		depthHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		depthHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
+
+		D3D12_CLEAR_VALUE depthClearValue = {};
+		depthClearValue.DepthStencil.Depth = 1.f;
+		depthClearValue.Format = DXGI_FORMAT::DXGI_FORMAT_D32_FLOAT;
+
+		auto result = gDevice->CreateCommittedResource
+		(
+			&depthHeapProp,
+			D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+			&depthResDesc,
+			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_DEPTH_WRITE,
+			&depthClearValue,
+			IID_PPV_ARGS(depthBuffer.GetAddressOf())
+		);
+
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Create DepthStencil Resouce Buffer !");
+		}
+
+		D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+		dsvHeapDesc.NumDescriptors = 1;
+		dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+
+		result = gDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(dsvHeap.GetAddressOf()));
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Create DepthStencilView's Descriptor Heap !");
+		}
+
+		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+		dsvDesc.Format = DXGI_FORMAT::DXGI_FORMAT_D32_FLOAT;
+		dsvDesc.ViewDimension = D3D12_DSV_DIMENSION::D3D12_DSV_DIMENSION_TEXTURE2D;
+		dsvDesc.Flags = D3D12_DSV_FLAGS::D3D12_DSV_FLAG_NONE;
+
+		gDevice->CreateDepthStencilView
+		(
+			depthBuffer.Get(),
+			&dsvDesc,
+			dsvHeap->GetCPUDescriptorHandleForHeapStart()
+		);
+	}
+
 	// フェンスの作成
 	{
 		auto result = gDevice->CreateFence(gFenceVal, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&gFence));
@@ -589,7 +668,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			vertexBufferMap[i] = gMesh[i];
 		}
 		//std::copy(&gMesh[0], &gMesh[miku.GetLastVertexID()], vertexBufferMap);
-		
+
 
 		// リソース領域はいったん使用しないため、マップを解除
 		gVertexBuffer->Unmap(0, nullptr);
@@ -622,7 +701,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//ird.SampleDesc.Quality = 0;
 		//ird.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 		//ird.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-		
+
 		gIndexCount = miku.GetIndexCount();
 		gIndices = new unsigned short[gIndexCount] {};
 		auto indexSize = sizeof(*gIndices);
@@ -675,7 +754,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		gIndexBufferView.SizeInBytes = indicesSize;
 		gIndexBufferView.Format = DXGI_FORMAT::DXGI_FORMAT_R16_UINT;
 	}
-	
+
 	// テクスチャデータの作成
 	{
 		gTextureData.resize(gTexSize * gTexSize);
@@ -1149,7 +1228,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		plsd.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 		plsd.RasterizerState.MultisampleEnable = false;
 		plsd.RasterizerState.CullMode = D3D12_CULL_MODE::D3D12_CULL_MODE_NONE;
-		plsd.RasterizerState.FillMode = D3D12_FILL_MODE::D3D12_FILL_MODE_WIREFRAME;
+		plsd.RasterizerState.FillMode = D3D12_FILL_MODE::D3D12_FILL_MODE_SOLID;
 		plsd.RasterizerState.DepthClipEnable = true;
 
 		// ブレンドの設定
@@ -1176,6 +1255,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		// アンチエイリアシングの設定
 		plsd.SampleDesc.Count = 1;
 		plsd.SampleDesc.Quality = 0;
+
+		// 深度の設定
+		plsd.DepthStencilState.DepthEnable = true;
+		plsd.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL;
+		plsd.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS;
+		plsd.DSVFormat = DXGI_FORMAT::DXGI_FORMAT_D32_FLOAT;
+
+		// ステンシルの設定
+		plsd.DepthStencilState.StencilEnable = false;
+
 
 		// パイプラインステートオブジェクトの生成
 		auto result = gDevice->CreateGraphicsPipelineState(&plsd, IID_PPV_ARGS(gPipelineState.GetAddressOf()));
@@ -1257,7 +1346,7 @@ int Frame()
 
 	gWorld = DirectX::XMMatrixRotationX(MathUtil::DegreeToRadian(0.f));
 	gWorld *= DirectX::XMMatrixRotationY(MathUtil::DegreeToRadian(rot));
-	gWorld *= DirectX::XMMatrixRotationZ(MathUtil::DegreeToRadian(0));
+	gWorld *= DirectX::XMMatrixRotationZ(MathUtil::DegreeToRadian(0.f));
 
 	gMatrix = gWorld * gView * gProjection;
 
@@ -1285,10 +1374,12 @@ int Frame()
 
 	auto rtvH = gRtvHeaps->GetCPUDescriptorHandleForHeapStart();
 	rtvH.ptr += static_cast<ULONG_PTR>(bbidx * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
-	gCmdList->OMSetRenderTargets(1, &rtvH, false, nullptr);
+	auto dsvH = dsvHeap->GetCPUDescriptorHandleForHeapStart();
+	gCmdList->OMSetRenderTargets(1, &rtvH, false, &dsvH);
 
-	float color[] = { 1.f, 1.f, 1.f, 1.f };
+	float color[] = { 0.f, 0.f, 0.f, 1.f };
 	gCmdList->ClearRenderTargetView(rtvH, color, 0, nullptr);
+	gCmdList->ClearDepthStencilView(dsvH, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 
 	gCmdList->SetPipelineState(gPipelineState.Get());
 	gCmdList->SetGraphicsRootSignature(gRootSignature.Get());
@@ -1299,12 +1390,12 @@ int Frame()
 	gCmdList->RSSetViewports(1, &gViewport);
 	gCmdList->RSSetScissorRects(1, &gScissorRect);
 
-	gCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	gCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	gCmdList->IASetVertexBuffers(0, 1, &gVertexBufferView);
 	gCmdList->IASetIndexBuffer(&gIndexBufferView);
 
 	gCmdList->DrawIndexedInstanced(gIndexCount, 1, 0, 0, 0);
-	
+
 	//bd.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	//bd.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 	bd = CD3DX12_RESOURCE_BARRIER::Transition

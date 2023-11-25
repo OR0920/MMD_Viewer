@@ -3,6 +3,7 @@ struct VS_OutPut
 {
     float4 pos : POSITION;
     float4 svpos : SV_POSITION;
+    float4 normal : normal;
     float2 uv : TEXCOORD;
 };
 
