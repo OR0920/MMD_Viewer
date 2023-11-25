@@ -163,11 +163,18 @@ std::vector<TexRGBA> gTextureData;
 DirectX::TexMetadata metadata = {};
 DirectX::ScratchImage scratchImg = {};
 
-static const char* const kabanPath = "C:/Users/onory/source/repos/MMD_Viewer/x64/Debug/Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
-static const char* const hashibiroPath = "C:/Users/onory/source/repos/MMD_Viewer/x64/Debug/Test/Model/PMX/ハシビロコウ/ハシビロコウ.pmx";
-static const char* const stagePath = "C:/Users/onory/source/repos/MMD_Viewer/x64/Debug/Test/Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/キョウシュウエリア20170914.pmx";
+//static const char* const kabanPath = "C:/Users/onory/source/repos/MMD_Viewer/x64/Debug/Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
+//static const char* const hashibiroPath = "C:/Users/onory/source/repos/MMD_Viewer/x64/Debug/Test/Model/PMX/ハシビロコウ/ハシビロコウ.pmx";
+//static const char* const stagePath = "C:/Users/onory/source/repos/MMD_Viewer/x64/Debug/Test/Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/キョウシュウエリア20170914.pmx";
 
-const MMDsdk::PmxFile model(stagePath);
+static const char* const kabanPath = "../x64/Debug/Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
+static const char* const hashibiroPath = "../x64/debug/PMX/ハシビロコウ/ハシビロコウ.pmx";
+static const char* const stagePath = "../x64/debug/Test/Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/キョウシュウエリア20170914.pmx";
+static const char* const mikuPath = "../x64/Debug/Test/Model/PMD/初音ミク.pmd";
+static const char* const meikoPath = "../x64/Debug/Test/Model/PMD/MEIKO.pmd";
+
+const MMDsdk::PmxFile model(kabanPath);
+const MMDsdk::PmdFile miku(mikuPath);
 
 auto gMatrix = DirectX::XMMatrixIdentity();
 auto gWorld = DirectX::XMMatrixIdentity();
@@ -556,10 +563,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			rgba.a = rand() % gTexSize;
 		}
 
+		miku.DebugOutHeader();
 
-
+		int i;
+		for (i = 0; i < miku.GetMaterialCount(); ++i)
+		{
+			auto& m = miku.GetMaterial(i);
+			if (m.texturePath.GetText()[0] != '\0')
+			{
+				m.DebugOut();
+				break;
+			}
+		}
+		
 		char* texPath = nullptr;
-		System::NewArrayAndCopyAssetPath(&texPath, model.GetDirectoryPath(), model.GetTexturePath(0).GetText());
+		System::NewArrayAndCopyAssetPath(&texPath, miku.GetDirectoryPath(), miku.GetMaterial(i).texturePath.GetText());
 		auto texPathSize = System::GetStringLength(texPath);
 		wchar_t* wTexPath = nullptr;
 		auto wTexPathSize = MultiByteToWideChar(CP_ACP, 0, texPath, texPathSize, nullptr, 0);
@@ -1005,7 +1023,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		// サンプリングの設定
 		plsd.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 		plsd.RasterizerState.MultisampleEnable = false;
-		plsd.RasterizerState.CullMode = D3D12_CULL_MODE::D3D12_CULL_MODE_BACK;
+		plsd.RasterizerState.CullMode = D3D12_CULL_MODE::D3D12_CULL_MODE_NONE;
 		plsd.RasterizerState.FillMode = D3D12_FILL_MODE::D3D12_FILL_MODE_SOLID;
 		plsd.RasterizerState.DepthClipEnable = true;
 
