@@ -18,7 +18,7 @@ void SafeRelease(C** ptr)
 }
 
 // window size
-static const int gWindowWidth = 1080;
+static const int gWindowWidth = 1920;
 static const int gWindowHeight = 1080;
 
 static const int gBufferCount = 2;
@@ -163,9 +163,18 @@ std::vector<TexRGBA> gTextureData;
 DirectX::TexMetadata metadata = {};
 DirectX::ScratchImage scratchImg = {};
 
-const MMDsdk::PmxFile model("D:/_3DModel/かばんちゃん/かばんちゃん/かばんちゃん.pmx");
+static const char* const kabanPath = "C:/Users/onory/source/repos/MMD_Viewer/x64/Debug/Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
+static const char* const hashibiroPath = "C:/Users/onory/source/repos/MMD_Viewer/x64/Debug/Test/Model/PMX/ハシビロコウ/ハシビロコウ.pmx";
+static const char* const stagePath = "C:/Users/onory/source/repos/MMD_Viewer/x64/Debug/Test/Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/キョウシュウエリア20170914.pmx";
+
+const MMDsdk::PmxFile model(stagePath);
 
 auto gMatrix = DirectX::XMMatrixIdentity();
+auto gWorld = DirectX::XMMatrixIdentity();
+//auto gView = DirectX::XMMatrixIdentity();
+//auto gProjection = DirectX::XMMatrixIdentity();
+
+
 DirectX::XMMATRIX* map = nullptr;
 
 int ReturnWithErrorMessage(const char* const message)
@@ -278,7 +287,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{
 			return ReturnWithErrorMessage("Failed Query Interface from DXGI Factory2 to 6");
 		}
-	}
+}
 
 	// コマンドリスト、コマンドアロケータの作成
 	{
@@ -996,7 +1005,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		// サンプリングの設定
 		plsd.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 		plsd.RasterizerState.MultisampleEnable = false;
-		plsd.RasterizerState.CullMode = D3D12_CULL_MODE::D3D12_CULL_MODE_NONE;
+		plsd.RasterizerState.CullMode = D3D12_CULL_MODE::D3D12_CULL_MODE_BACK;
 		plsd.RasterizerState.FillMode = D3D12_FILL_MODE::D3D12_FILL_MODE_SOLID;
 		plsd.RasterizerState.DepthClipEnable = true;
 
@@ -1046,8 +1055,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	gScissorRect.right = gScissorRect.left + gWindowWidth;
 	gScissorRect.bottom = gScissorRect.top + gWindowHeight;
 
-
-
 	// メッセージループ
 	MSG msg = {};
 	while (true)
@@ -1072,6 +1079,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 	// 終了処理
+	
 	UnregisterClass(wcEx.lpszClassName, wcEx.hInstance);
 
 	SafeReleaseAll_D3D_Interface();
@@ -1089,7 +1097,13 @@ LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	return DefWindowProc(hwnd, msg, wp, lp);
 }
 
+const DirectX::XMFLOAT3 eye(0.f, 0.f, -5.f);
+const DirectX::XMFLOAT3 target(0.f, 0.f,  0.f);
+const DirectX::XMFLOAT3 up(0.f, 1.f,  0.f);
 
+
+const auto gView = DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
+const auto gProjection = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, static_cast<float>(gWindowWidth) / static_cast<float>(gWindowHeight), 1.f, 10.f);
 
 int Frame()
 {
@@ -1098,10 +1112,15 @@ int Frame()
 
 	float deg = 1.f;
 	float rot = deg * (frameCount % static_cast<int>(360.f / deg));
-	
-	*map = DirectX::XMMatrixScaling(1.f, 0.5f, 0.5f);
-	*map *= DirectX::XMMatrixRotationZ(MathUtil::DegreeToRadian(rot));
-	
+
+	//gWorld = DirectX::XMMatrixScaling(0.5f, 0.5f, 0.5f);
+	gWorld = DirectX::XMMatrixRotationY(MathUtil::DegreeToRadian(rot));
+	gWorld *= DirectX::XMMatrixRotationX(MathUtil::DegreeToRadian(rot));
+	gWorld *= DirectX::XMMatrixRotationZ(MathUtil::DegreeToRadian(rot));
+
+	gMatrix = gWorld * gView * gProjection;
+
+	*map = gMatrix;
 
 	gCmdAllocator->Reset();
 	gCmdList->Reset(gCmdAllocator.Get(), nullptr);
