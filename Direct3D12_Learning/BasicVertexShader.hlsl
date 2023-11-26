@@ -11,6 +11,7 @@ struct VS_Input
 
 VS_OutPut BasicVS(VS_Input vsi)
 {
+    vsi.pos.w = 1.f;
     VS_OutPut vso;
     vso.pos = vsi.pos;
     vso.svpos = mul(mul(mul(projection, view), world), vsi.pos);
