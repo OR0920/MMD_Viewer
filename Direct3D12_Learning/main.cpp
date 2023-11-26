@@ -1,3 +1,5 @@
+#define SetNameCOM(x) x->SetName(L#x);
+
 // window
 #include<Windows.h>
 #include<tchar.h>
@@ -19,7 +21,7 @@ void SafeRelease(C** ptr)
 
 // window size
 static const int gWindowWidth = 1920;
-static const int gWindowHeight = gWindowWidth * 9/16;
+static const int gWindowHeight = gWindowWidth * 9 / 16;
 
 
 // std lib
@@ -144,8 +146,12 @@ ComPtr<ID3D12Resource> gConstBuffer = nullptr;
 ComPtr<ID3D12Resource> gUploadBuff = nullptr;
 
 // depth stencil resource and descriptro heap for dsv
-ComPtr<ID3D12Resource> depthBuffer;
-ComPtr<ID3D12DescriptorHeap> dsvHeap = nullptr;
+ComPtr<ID3D12Resource> gDepthBuffer = nullptr;
+ComPtr<ID3D12DescriptorHeap> gDsvHeap = nullptr;
+
+// material buffer resource and descriptor for cbv
+ComPtr<ID3D12Resource> gMaterialBuffer = nullptr;
+ComPtr<ID3D12DescriptorHeap> gMaterialDesciptorHeap = nullptr;
 
 // debug memory leak
 #define _CRTDBG_MAP_ALLOC
@@ -201,9 +207,9 @@ struct Vertex
 	unsigned short boneNo[2];
 	unsigned char boneWeight;
 	unsigned char edgeFlg;
-	uint16_t dammy = 0;
+	//uint16_t pad = 0;
 
-	void GetFromPMD_Vertex(const MMDsdk::PmdFile::Vertex& v)
+	void GetDataFromPMD_Vertex(const MMDsdk::PmdFile::Vertex& v)
 	{
 		pos = GetFloat3FromPMD(v.position);
 		normal = GetFloat3FromPMD(v.normal);
@@ -224,7 +230,6 @@ struct Vertex
 
 Vertex* gMesh = nullptr;
 
-
 // インデックスデータ
 int gIndexCount = 0;
 //unsigned short gIndices[] =
@@ -234,6 +239,73 @@ int gIndexCount = 0;
 //};
 unsigned short* gIndices = nullptr;
 
+// マテリアルデータ
+struct MaterialOnShader
+{
+	MathUtil::float4 diffuse;
+	float specularity;
+	MathUtil::float3 specular;
+	MathUtil::float3 ambient;
+
+	void GetDataFromPMD_Material(const MMDsdk::PmdFile::Material& m)
+	{
+		diffuse = GetFloat4FromPMD(m.diffuse);
+		specularity = m.specularity;
+		specular = GetFloat3FromPMD(m.specular);
+		ambient = GetFloat3FromPMD(m.ambient);
+	}
+
+	const MaterialOnShader& operator=(const MaterialOnShader& other)
+	{
+		diffuse = other.diffuse;
+		specularity = other.specularity;
+		specular = other.specular;
+		ambient = other.ambient;
+		return *this;
+	}
+};
+
+struct MaterialOnCPU
+{
+	int toonIdx;
+	bool edgeFlg;
+	char* texPath;
+
+	void GetDataFromPMD_Material(const MMDsdk::PmdFile::Material& m)
+	{
+		toonIdx = m.toonIndex;
+		edgeFlg = m.edgeFlag;
+		auto& tp = m.texturePath;
+		auto length = tp.GetLength();
+		texPath = new char[length] {};
+		std::copy(&tp.GetText()[0], &tp.GetText()[length - 1], texPath);
+	}
+
+	~MaterialOnCPU()
+	{
+		System::SafeDeleteArray(&texPath);
+	}
+};
+
+struct Material
+{
+	MaterialOnShader onShader;
+	MaterialOnCPU onCPU;
+
+	unsigned int vertexCount;
+
+	void GetDataFromPMD_Material(const MMDsdk::PmdFile::Material& m)
+	{
+		onShader.GetDataFromPMD_Material(m);
+		onCPU.GetDataFromPMD_Material(m);
+		vertexCount = m.vertexCount;
+	}
+};
+
+Material* gMaterial = nullptr;
+MaterialOnShader* gMappedMaterial = nullptr;
+
+// テクスチャデータ
 struct TexRGBA
 {
 	unsigned char r, g, b, a;
@@ -265,19 +337,28 @@ auto gWorld = DirectX::XMMatrixIdentity();
 //auto gView = DirectX::XMMatrixIdentity();
 //auto gProjection = DirectX::XMMatrixIdentity();
 
+struct MatrixConstantBuffer
+{
+	DirectX::XMMATRIX world;
+	DirectX::XMMATRIX view;
+	DirectX::XMMATRIX proj;
+};
 
-DirectX::XMMATRIX* map = nullptr;
+MatrixConstantBuffer* gMappedMatrix = nullptr;
 
 void SafeDeleteAllResource()
 {
 	System::SafeDeleteArray(&gMesh);
 	System::SafeDeleteArray(&gIndices);
+	System::SafeDeleteArray(&gMaterial);
 }
 
 void SafeReleaseAll_D3D_Interface()
 {
-	SafeRelease(dsvHeap.GetAddressOf());
-	SafeRelease(depthBuffer.GetAddressOf());
+	SafeRelease(gMaterialDesciptorHeap.GetAddressOf());
+	SafeRelease(gMaterialBuffer.GetAddressOf());
+	SafeRelease(gDsvHeap.GetAddressOf());
+	SafeRelease(gDepthBuffer.GetAddressOf());
 	SafeRelease(gConstBuffer.GetAddressOf());
 	SafeRelease(gUploadBuff.GetAddressOf());
 	SafeRelease(gTexBuffer.GetAddressOf());
@@ -299,6 +380,28 @@ void SafeReleaseAll_D3D_Interface()
 	SafeRelease(gDxgiFactory.GetAddressOf());
 	SafeRelease(gDevice.GetAddressOf());
 	SafeDeleteAllResource();
+}
+
+void SetNameAllCOM()
+{
+	//SetNameCOM(gMaterialDesciptorHeap);
+	SetNameCOM(gMaterialBuffer);
+	SetNameCOM(gDsvHeap);
+	SetNameCOM(gDepthBuffer);
+	SetNameCOM(gConstBuffer);
+	SetNameCOM(gUploadBuff);
+	SetNameCOM(gTexBuffer);
+	SetNameCOM(gBasicDescHeap);
+	SetNameCOM(gPipelineState);
+	SetNameCOM(gVertexBuffer);
+	SetNameCOM(gFence);
+	SetNameCOM(gBackBuffers[0]);
+	SetNameCOM(gBackBuffers[1]);
+	SetNameCOM(gRtvHeaps);
+	SetNameCOM(gCmdQueue);
+	SetNameCOM(gCmdList);
+	SetNameCOM(gCmdAllocator);
+	SetNameCOM(gDevice);
 }
 
 int ReturnWithErrorMessage(const char* const message)
@@ -559,7 +662,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			&depthResDesc,
 			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_DEPTH_WRITE,
 			&depthClearValue,
-			IID_PPV_ARGS(depthBuffer.GetAddressOf())
+			IID_PPV_ARGS(gDepthBuffer.GetAddressOf())
 		);
 
 		if (result != S_OK)
@@ -571,7 +674,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		dsvHeapDesc.NumDescriptors = 1;
 		dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 
-		result = gDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(dsvHeap.GetAddressOf()));
+		result = gDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(gDsvHeap.GetAddressOf()));
 		if (result != S_OK)
 		{
 			return ReturnWithErrorMessage("Failed Create DepthStencilView's Descriptor Heap !");
@@ -584,9 +687,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		gDevice->CreateDepthStencilView
 		(
-			depthBuffer.Get(),
+			gDepthBuffer.Get(),
 			&dsvDesc,
-			dsvHeap->GetCPUDescriptorHandleForHeapStart()
+			gDsvHeap->GetCPUDescriptorHandleForHeapStart()
 		);
 	}
 
@@ -632,7 +735,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		for (int i = 0; i < gVertexCount; ++i)
 		{
-			gMesh[i].GetFromPMD_Vertex(miku.GetVertex(i));
+			gMesh[i].GetDataFromPMD_Vertex(miku.GetVertex(i));
 		}
 
 
@@ -663,11 +766,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		// 取得したリソース領域に、頂点データを書き込む
-		for (int i = 0; i < gVertexCount; ++i)
-		{
-			vertexBufferMap[i] = gMesh[i];
-		}
-		//std::copy(&gMesh[0], &gMesh[miku.GetLastVertexID()], vertexBufferMap);
+		//for (int i = 0; i < gVertexCount; ++i)
+		//{
+		//	vertexBufferMap[i] = gMesh[i];
+		//}
+		std::copy(&gMesh[0], &gMesh[miku.GetLastVertexID()], vertexBufferMap);
 
 
 		// リソース領域はいったん使用しないため、マップを解除
@@ -1016,7 +1119,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	// 定数バッファの作成
 	{
-		int gSize = (sizeof(gMatrix) + 0xff) & ~0xff;
+
+
+		int gSize = (sizeof(MatrixConstantBuffer) + 0xff) & ~0xff;
 
 		auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD);
 		auto resouceDesc = CD3DX12_RESOURCE_DESC::Buffer(UINT64(gSize));
@@ -1035,14 +1140,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			return ReturnWithErrorMessage("Failed Create ConstantBuffer Resource !");
 		}
 
-		result = gConstBuffer->Map(0, nullptr, reinterpret_cast<void**>(&map));
+		result = gConstBuffer->Map(0, nullptr, reinterpret_cast<void**>(&gMappedMatrix));
 		if (result != S_OK)
 		{
 			return ReturnWithErrorMessage("Failed Map ConstantBuffer !");
 		}
-		*map = gMatrix;
-
 	}
+
 
 	// 定数バッファビューとシェーダーリソースビュー(テクスチャ用ビュー)は同じディスクリプタヒープに置ける
 	{
@@ -1081,6 +1185,91 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		cbvDesc.SizeInBytes = gConstBuffer->GetDesc().Width;
 
 		gDevice->CreateConstantBufferView(&cbvDesc, basicHeapHandle);
+	}
+
+	// マテリアル作成
+	{
+		auto materialCount = miku.GetMaterialCount();
+		gMaterial = new Material[materialCount]{};
+
+		for (int i = 0; i < materialCount; ++i)
+		{
+			auto& m = miku.GetMaterial(i);
+			gMaterial[i].GetDataFromPMD_Material(m);
+		}
+
+		for (int i = 0; i < materialCount; ++i)
+		{
+			DebugOutFloat4(gMaterial[i].onShader.diffuse);
+		}
+
+		auto materialBufferSize = sizeof(MaterialOnShader);
+		materialBufferSize = (materialBufferSize + 0xff) & ~0xff;
+
+		auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+		auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(materialBufferSize * materialCount);
+
+		auto result = gDevice->CreateCommittedResource
+		(
+			&heapProp,
+			D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+			&resourceDesc,
+			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(gMaterialBuffer.GetAddressOf())
+		);
+
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Create Resource for Material !");
+		}
+
+		result = gMaterialBuffer->Map(0, nullptr, reinterpret_cast<void**>(&gMappedMaterial));
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Map Resource for Material");
+		}
+
+		if (gMappedMaterial == nullptr)
+		{
+			return ReturnWithErrorMessage("Failed Map Material");
+		}
+
+		for (int i = 0; i < materialCount; ++i)
+		{
+			gMappedMaterial[i] = gMaterial[i].onShader;
+		}
+
+		gMaterialBuffer->Unmap(0, nullptr);
+
+		D3D12_DESCRIPTOR_HEAP_DESC matDescHeapDesc = {};
+		matDescHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		matDescHeapDesc.NodeMask = 0;
+		matDescHeapDesc.NumDescriptors = materialCount;
+		matDescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
+		result = gDevice->CreateDescriptorHeap
+		(
+			&matDescHeapDesc,
+			IID_PPV_ARGS(gMaterialDesciptorHeap.GetAddressOf())
+		);
+
+		if (result != S_OK)
+		{
+			return ReturnWithErrorMessage("Failed Create Descriptor Heap For Material !");
+		}
+
+		D3D12_CONSTANT_BUFFER_VIEW_DESC materialViewDesc = {};
+		materialViewDesc.BufferLocation = gMaterialBuffer->GetGPUVirtualAddress();
+		materialViewDesc.SizeInBytes = materialBufferSize;
+
+		auto matDescHeapHandle = gMaterialDesciptorHeap->GetCPUDescriptorHandleForHeapStart();
+		for (int i = 0; i < materialCount; ++i)
+		{
+			gDevice->CreateConstantBufferView(&materialViewDesc, matDescHeapHandle);
+			matDescHeapHandle.ptr += gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			materialViewDesc.BufferLocation += materialBufferSize;
+		}
 	}
 
 	// シェーダーのコンパイル
@@ -1287,6 +1476,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	gScissorRect.right = gScissorRect.left + gWindowWidth;
 	gScissorRect.bottom = gScissorRect.top + gWindowHeight;
 
+	SetNameAllCOM();
+
 	// メッセージループ
 	MSG msg = {};
 	while (true)
@@ -1344,13 +1535,11 @@ int Frame()
 	float deg = 1.f;
 	float rot = deg * (frameCount % static_cast<int>(360.f / deg));
 
-	gWorld = DirectX::XMMatrixRotationX(MathUtil::DegreeToRadian(0.f));
-	gWorld *= DirectX::XMMatrixRotationY(MathUtil::DegreeToRadian(rot));
-	gWorld *= DirectX::XMMatrixRotationZ(MathUtil::DegreeToRadian(0.f));
+	gWorld = DirectX::XMMatrixRotationY(MathUtil::DegreeToRadian(rot));
 
-	gMatrix = gWorld * gView * gProjection;
-
-	*map = gMatrix;
+	gMappedMatrix->world = gWorld;
+	gMappedMatrix->view = gView;
+	gMappedMatrix->proj = gProjection;
 
 	gCmdAllocator->Reset();
 	gCmdList->Reset(gCmdAllocator.Get(), nullptr);
@@ -1374,7 +1563,7 @@ int Frame()
 
 	auto rtvH = gRtvHeaps->GetCPUDescriptorHandleForHeapStart();
 	rtvH.ptr += static_cast<ULONG_PTR>(bbidx * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
-	auto dsvH = dsvHeap->GetCPUDescriptorHandleForHeapStart();
+	auto dsvH = gDsvHeap->GetCPUDescriptorHandleForHeapStart();
 	gCmdList->OMSetRenderTargets(1, &rtvH, false, &dsvH);
 
 	float color[] = { 0.f, 0.f, 0.f, 1.f };
