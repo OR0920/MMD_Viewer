@@ -1154,7 +1154,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc = {};
 		descHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		descHeapDesc.NodeMask = 0;
-		descHeapDesc.NumDescriptors = 2;
+		descHeapDesc.NumDescriptors = 1;
 		descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
 		auto result = gDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(gBasicDescHeap.GetAddressOf()));
@@ -1163,21 +1163,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			return ReturnWithErrorMessage("Failed Create Texture Descriptor Heap");
 		}
 
-		// ディスクリプタヒープ上にビューを作成・配置する
+		//// ディスクリプタヒープ上にビューを作成・配置する
 
-		// SRV　→　CBVの順で配置する
+		//// SRV　→　CBVの順で配置する
 		auto basicHeapHandle = gBasicDescHeap->GetCPUDescriptorHandleForHeapStart();
-		// シェーダーリソースビューの作成
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Format = metadata.format;
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MipLevels = 1;
+		//// シェーダーリソースビューの作成
+		//D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		//srvDesc.Format = metadata.format;
+		//srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		//srvDesc.ViewDimension = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2D;
+		//srvDesc.Texture2D.MipLevels = 1;
 
-		gDevice->CreateShaderResourceView(gTexBuffer.Get(), &srvDesc, basicHeapHandle);
+		//gDevice->CreateShaderResourceView(gTexBuffer.Get(), &srvDesc, basicHeapHandle);
 
 		// コンスタントバッファービューの位置に移動
-		basicHeapHandle.ptr += gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		//basicHeapHandle.ptr += gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		// コンスタントバッファービューを作成
 		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
@@ -1322,9 +1322,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//descTableRange.BaseShaderRegister = 0;
 		//descTableRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-		D3D12_DESCRIPTOR_RANGE descTableRange[2] = { {} };
-		descTableRange[0] = CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
-		descTableRange[1] = CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
+		D3D12_DESCRIPTOR_RANGE descTableRange[1] = { {} };
+		descTableRange[0] = CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
 
 		// ルートパラメータにディスクリプタテーブルを設定
 		//D3D12_ROOT_PARAMETER rootParam[2] = { {} };
@@ -1342,8 +1341,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_ALL;
 		rootParam.DescriptorTable.pDescriptorRanges = descTableRange;
-		rootParam.DescriptorTable.NumDescriptorRanges = 2;
-
+		rootParam.DescriptorTable.NumDescriptorRanges = 1;
 
 		//CD3DX12_ROOT_PARAMETER rootParam[2] = { {} };
 		//rootParam[0].InitAsDescriptorTable(1, &descTableRange[0]);
