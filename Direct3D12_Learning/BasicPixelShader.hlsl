@@ -10,6 +10,7 @@ float4 BasicPS(VS_OutPut vso) : SV_TARGET
     float4 col;
     col.xyz = brightness;
     col.w = 1.f;
+    col *= diffuse;
     return col;
 }
 

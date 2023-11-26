@@ -389,8 +389,8 @@ void SetNameAllCOM()
 	SetNameCOM(gDsvHeap);
 	SetNameCOM(gDepthBuffer);
 	SetNameCOM(gConstBuffer);
-	SetNameCOM(gUploadBuff);
-	SetNameCOM(gTexBuffer);
+	//SetNameCOM(gUploadBuff);
+	//SetNameCOM(gTexBuffer);
 	SetNameCOM(gBasicDescHeap);
 	SetNameCOM(gPipelineState);
 	SetNameCOM(gVertexBuffer);
@@ -859,268 +859,266 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 
 	// テクスチャデータの作成
-	{
-		gTextureData.resize(gTexSize * gTexSize);
+	//{
+	//	gTextureData.resize(gTexSize * gTexSize);
 
-		for (auto& rgba : gTextureData)
-		{
-			rgba.r = rand() % gTexSize;
-			rgba.g = rand() % gTexSize;
-			rgba.b = rand() % gTexSize;
-			rgba.a = rand() % gTexSize;
-		}
+	//	for (auto& rgba : gTextureData)
+	//	{
+	//		rgba.r = rand() % gTexSize;
+	//		rgba.g = rand() % gTexSize;
+	//		rgba.b = rand() % gTexSize;
+	//		rgba.a = rand() % gTexSize;
+	//	}
 
-		miku.DebugOutHeader();
+	//	miku.DebugOutHeader();
 
-		int i;
-		for (i = 0; i < miku.GetMaterialCount(); ++i)
-		{
-			auto& m = miku.GetMaterial(i);
-			if (m.texturePath.GetText()[0] != '\0')
-			{
-				m.DebugOut();
-				break;
-			}
-		}
+	//	int i;
+	//	for (i = 0; i < miku.GetMaterialCount(); ++i)
+	//	{
+	//		auto& m = miku.GetMaterial(i);
+	//		if (m.texturePath.GetText()[0] != '\0')
+	//		{
+	//			m.DebugOut();
+	//			break;
+	//		}
+	//	}
 
-		char* texPath = nullptr;
-		System::NewArrayAndCopyAssetPath(&texPath, miku.GetDirectoryPath(), miku.GetMaterial(i).texturePath.GetText());
-		auto texPathSize = System::GetStringLength(texPath);
-		wchar_t* wTexPath = nullptr;
-		auto wTexPathSize = MultiByteToWideChar(CP_ACP, 0, texPath, texPathSize, nullptr, 0);
-		wTexPath = new wchar_t[wTexPathSize] {};
-		wTexPathSize = MultiByteToWideChar(CP_ACP, 0, texPath, texPathSize, wTexPath, wTexPathSize);
+	//	char* texPath = nullptr;
+	//	System::NewArrayAndCopyAssetPath(&texPath, miku.GetDirectoryPath(), miku.GetMaterial(i).texturePath.GetText());
+	//	auto texPathSize = System::GetStringLength(texPath);
+	//	wchar_t* wTexPath = nullptr;
+	//	auto wTexPathSize = MultiByteToWideChar(CP_ACP, 0, texPath, texPathSize, nullptr, 0);
+	//	wTexPath = new wchar_t[wTexPathSize] {};
+	//	wTexPathSize = MultiByteToWideChar(CP_ACP, 0, texPath, texPathSize, wTexPath, wTexPathSize);
 
-		auto result = DirectX::LoadFromWICFile(wTexPath, DirectX::WIC_FLAGS::WIC_FLAGS_NONE, &metadata, scratchImg);
+	//	auto result = DirectX::LoadFromWICFile(wTexPath, DirectX::WIC_FLAGS::WIC_FLAGS_NONE, &metadata, scratchImg);
 
-		System::SafeDeleteArray(&wTexPath);
-		System::SafeDeleteArray(&texPath);
-		if (wTexPathSize == 0)
-		{
-			return ReturnWithErrorMessage("Failed Translate Texturepath !");
-		}
-		if (result != S_OK)
-		{
-			return ReturnWithErrorMessage("Failed Load Texture From File !");
-		}
+	//	System::SafeDeleteArray(&wTexPath);
+	//	System::SafeDeleteArray(&texPath);
+	//	if (wTexPathSize == 0)
+	//	{
+	//		return ReturnWithErrorMessage("Failed Translate Texturepath !");
+	//	}
+	//	if (result != S_OK)
+	//	{
+	//		return ReturnWithErrorMessage("Failed Load Texture From File !");
+	//	}
 
-		auto img = scratchImg.GetImage(0, 0, 0);
+	//	auto img = scratchImg.GetImage(0, 0, 0);
 
-		{
-			//D3D12_HEAP_PROPERTIES uploadHeapProp = {};
-			//uploadHeapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD;
-			//uploadHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-			//uploadHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
-			//uploadHeapProp.CreationNodeMask = 0;
-			//uploadHeapProp.VisibleNodeMask = 0;
+	//	{
+	//		//D3D12_HEAP_PROPERTIES uploadHeapProp = {};
+	//		//uploadHeapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD;
+	//		//uploadHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	//		//uploadHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
+	//		//uploadHeapProp.CreationNodeMask = 0;
+	//		//uploadHeapProp.VisibleNodeMask = 0;
 
-			auto uploadHeapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD, 0, 0);
+	//		auto uploadHeapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD, 0, 0);
 
-			//D3D12_RESOURCE_DESC resDesc = {};
-			//resDesc.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
-			//resDesc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
-			//resDesc.Width = img->slicePitch;
-			//resDesc.Height = 1;
-			//resDesc.DepthOrArraySize = 1;
-			//resDesc.MipLevels = 1;
-			//resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-			//resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
-			//resDesc.SampleDesc.Count = 1;
-			//resDesc.SampleDesc.Quality = 0;
+	//		//D3D12_RESOURCE_DESC resDesc = {};
+	//		//resDesc.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
+	//		//resDesc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
+	//		//resDesc.Width = img->slicePitch;
+	//		//resDesc.Height = 1;
+	//		//resDesc.DepthOrArraySize = 1;
+	//		//resDesc.MipLevels = 1;
+	//		//resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	//		//resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	//		//resDesc.SampleDesc.Count = 1;
+	//		//resDesc.SampleDesc.Quality = 0;
 
-			auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(img->slicePitch);
+	//		auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(img->slicePitch);
 
-			result = gDevice->CreateCommittedResource
-			(
-				&uploadHeapProp,
-				D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
-				&resDesc,
-				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ,
-				nullptr,
-				IID_PPV_ARGS(gUploadBuff.GetAddressOf())
-			);
-			if (result != S_OK)
-			{
-				SafeRelease(gUploadBuff.GetAddressOf());
-				return ReturnWithErrorMessage("Failed Create Upload Resource");
-			}
+	//		result = gDevice->CreateCommittedResource
+	//		(
+	//			&uploadHeapProp,
+	//			D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+	//			&resDesc,
+	//			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ,
+	//			nullptr,
+	//			IID_PPV_ARGS(gUploadBuff.GetAddressOf())
+	//		);
+	//		if (result != S_OK)
+	//		{
+	//			SafeRelease(gUploadBuff.GetAddressOf());
+	//			return ReturnWithErrorMessage("Failed Create Upload Resource");
+	//		}
 
-			//D3D12_HEAP_PROPERTIES texHeapProp = {};
-			//texHeapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT;
-			//texHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-			//texHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
-			//texHeapProp.CreationNodeMask = 0;
-			//texHeapProp.VisibleNodeMask = 0;
+	//		//D3D12_HEAP_PROPERTIES texHeapProp = {};
+	//		//texHeapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT;
+	//		//texHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	//		//texHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
+	//		//texHeapProp.CreationNodeMask = 0;
+	//		//texHeapProp.VisibleNodeMask = 0;
 
-			auto texHeapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT, 0, 0);
+	//		auto texHeapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT, 0, 0);
 
-			// 必要なところだけ変更
-			//resDesc.Format = metadata.format;
-			//resDesc.Width = metadata.width;
-			//resDesc.Height = metadata.height;
-			//resDesc.DepthOrArraySize = metadata.arraySize;
-			//resDesc.MipLevels = metadata.mipLevels;
-			//resDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
-			//resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	//		// 必要なところだけ変更
+	//		//resDesc.Format = metadata.format;
+	//		//resDesc.Width = metadata.width;
+	//		//resDesc.Height = metadata.height;
+	//		//resDesc.DepthOrArraySize = metadata.arraySize;
+	//		//resDesc.MipLevels = metadata.mipLevels;
+	//		//resDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
+	//		//resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
-			resDesc = CD3DX12_RESOURCE_DESC::Tex2D(metadata.format, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels);
+	//		resDesc = CD3DX12_RESOURCE_DESC::Tex2D(metadata.format, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels);
 
-			// テクスチャリソースをコピー先として作成
-			// あとでテクスチャ用に状態を変える必要がある。
-			result = gDevice->CreateCommittedResource
-			(
-				&texHeapProp,
-				D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
-				&resDesc,
-				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST,
-				nullptr,
-				IID_PPV_ARGS(&gTexBuffer)
-			);
+	//		// テクスチャリソースをコピー先として作成
+	//		// あとでテクスチャ用に状態を変える必要がある。
+	//		result = gDevice->CreateCommittedResource
+	//		(
+	//			&texHeapProp,
+	//			D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+	//			&resDesc,
+	//			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST,
+	//			nullptr,
+	//			IID_PPV_ARGS(&gTexBuffer)
+	//		);
 
-			if (result != S_OK)
-			{
-				SafeRelease(gUploadBuff.GetAddressOf());
-				return ReturnWithErrorMessage("Failed Create Texture Resource");
-			}
+	//		if (result != S_OK)
+	//		{
+	//			SafeRelease(gUploadBuff.GetAddressOf());
+	//			return ReturnWithErrorMessage("Failed Create Texture Resource");
+	//		}
 
-			uint8_t* mapForImg = nullptr;
-			result = gUploadBuff->Map(0, nullptr, reinterpret_cast<void**>(&mapForImg));
+	//		uint8_t* mapForImg = nullptr;
+	//		result = gUploadBuff->Map(0, nullptr, reinterpret_cast<void**>(&mapForImg));
 
-			if (result != S_OK)
-			{
-				SafeRelease(gUploadBuff.GetAddressOf());
-				return ReturnWithErrorMessage("Failed Map Upload Resource");
-			}
+	//		if (result != S_OK)
+	//		{
+	//			SafeRelease(gUploadBuff.GetAddressOf());
+	//			return ReturnWithErrorMessage("Failed Map Upload Resource");
+	//		}
 
-			std::copy_n(img->pixels, img->slicePitch, mapForImg);
-			gUploadBuff->Unmap(0, nullptr);
-
-
-			// コピー元、先を表す構造体
-			//D3D12_TEXTURE_COPY_LOCATION from = {};
-			//from.pResource = gUploadBuff.Get();
-			//from.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-			//from.PlacedFootprint.Offset = 0;
-			//from.PlacedFootprint.Footprint.Width = metadata.width;
-			//from.PlacedFootprint.Footprint.Height = metadata.height;
-			//from.PlacedFootprint.Footprint.Depth = metadata.depth;
-			//from.PlacedFootprint.Footprint.RowPitch = img->rowPitch;
-			//from.PlacedFootprint.Footprint.Format = img->format;
-
-			auto from = CD3DX12_TEXTURE_COPY_LOCATION(gUploadBuff.Get());
-			from.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-			from.PlacedFootprint.Offset = 0;
-			from.PlacedFootprint.Footprint =
-				CD3DX12_SUBRESOURCE_FOOTPRINT
-				(
-					img->format,
-					metadata.width,
-					metadata.height,
-					metadata.depth,
-					img->rowPitch
-				);
-
-			//D3D12_TEXTURE_COPY_LOCATION to = {};
-			//to.pResource = gTexBuffer.Get();
-			//to.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-			//to.SubresourceIndex = 0;
-
-			auto to = CD3DX12_TEXTURE_COPY_LOCATION(gTexBuffer.Get(), 0);
-
-			// コピー本体
-			gCmdList->CopyTextureRegion(&to, 0, 0, 0, &from, nullptr);
-
-			// テクスチャリソースの状態を、コピー先から、テクスチャ用に変える
-			//D3D12_RESOURCE_BARRIER bd = {};
-			//bd.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-			//bd.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
-			//bd.Transition.pResource = gTexBuffer.Get();
-			//bd.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-			//bd.Transition.StateBefore = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST;
-			//bd.Transition.StateAfter = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-
-			auto bd = CD3DX12_RESOURCE_BARRIER::Transition
-			(
-				gTexBuffer.Get(),
-				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST,
-				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
-			);
-
-			gCmdList->ResourceBarrier(1, &bd);
-			gCmdList->Close();
-
-			ID3D12CommandList* cmdlist[] = { gCmdList.Get() };
-			gCmdQueue->ExecuteCommandLists(1, cmdlist);
-			gCmdQueue->Signal(gFence.Get(), ++gFenceVal);
-
-			if (gFence->GetCompletedValue() != gFenceVal)
-			{
-				auto event = CreateEvent(nullptr, false, false, nullptr);
-				gFence->SetEventOnCompletion(gFenceVal, event);
-				WaitForSingleObject(event, INFINITE);
-				CloseHandle(event);
-			}
-		}
-
-		{
-			// WriteToSubResource()関数を用いた方法
-			// 公式非推奨
-			//{
-			//	D3D12_HEAP_PROPERTIES heapProp = {};
-			//	heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_CUSTOM;
-			//	heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-			//	heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_L0;
-			//	heapProp.CreationNodeMask = 0;
-			//	heapProp.VisibleNodeMask = 0;
-
-			//	D3D12_RESOURCE_DESC resDesc = {};
-			//	resDesc.Format = metadata.format;
-			//	resDesc.Width = metadata.width;
-			//	resDesc.Height = metadata.height;
-			//	resDesc.DepthOrArraySize = metadata.arraySize;
-			//	resDesc.SampleDesc.Count = 1;
-			//	resDesc.SampleDesc.Quality = 0;
-			//	resDesc.MipLevels = metadata.mipLevels;
-			//	resDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
-			//	resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-			//	resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
-
-			//	result = gDevice->CreateCommittedResource
-			//	(
-			//		&heapProp,
-			//		D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
-			//		&resDesc,
-			//		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-			//		nullptr,
-			//		IID_PPV_ARGS(gTexBuffer.GetAddressOf())
-			//	);
-			//	if (result != S_OK)
-			//	{
-			//		return ReturnWithErrorMessage("Failed Create Texture Resource !");
-			//	}
-
-			//	result = gTexBuffer->WriteToSubresource
-			//	(
-			//		0,
-			//		nullptr,
-			//		img->pixels,
-			//		img->rowPitch,
-			//		img->slicePitch
-			//	);
-			//	if (result != S_OK)
-			//	{
-			//		return ReturnWithErrorMessage("Failed Write Texture Data !");
-			//	}
-		}
+	//		std::copy_n(img->pixels, img->slicePitch, mapForImg);
+	//		gUploadBuff->Unmap(0, nullptr);
 
 
-	}
+	//		// コピー元、先を表す構造体
+	//		//D3D12_TEXTURE_COPY_LOCATION from = {};
+	//		//from.pResource = gUploadBuff.Get();
+	//		//from.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+	//		//from.PlacedFootprint.Offset = 0;
+	//		//from.PlacedFootprint.Footprint.Width = metadata.width;
+	//		//from.PlacedFootprint.Footprint.Height = metadata.height;
+	//		//from.PlacedFootprint.Footprint.Depth = metadata.depth;
+	//		//from.PlacedFootprint.Footprint.RowPitch = img->rowPitch;
+	//		//from.PlacedFootprint.Footprint.Format = img->format;
+
+	//		auto from = CD3DX12_TEXTURE_COPY_LOCATION(gUploadBuff.Get());
+	//		from.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+	//		from.PlacedFootprint.Offset = 0;
+	//		from.PlacedFootprint.Footprint =
+	//			CD3DX12_SUBRESOURCE_FOOTPRINT
+	//			(
+	//				img->format,
+	//				metadata.width,
+	//				metadata.height,
+	//				metadata.depth,
+	//				img->rowPitch
+	//			);
+
+	//		//D3D12_TEXTURE_COPY_LOCATION to = {};
+	//		//to.pResource = gTexBuffer.Get();
+	//		//to.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+	//		//to.SubresourceIndex = 0;
+
+	//		auto to = CD3DX12_TEXTURE_COPY_LOCATION(gTexBuffer.Get(), 0);
+
+	//		// コピー本体
+	//		gCmdList->CopyTextureRegion(&to, 0, 0, 0, &from, nullptr);
+
+	//		// テクスチャリソースの状態を、コピー先から、テクスチャ用に変える
+	//		//D3D12_RESOURCE_BARRIER bd = {};
+	//		//bd.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	//		//bd.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	//		//bd.Transition.pResource = gTexBuffer.Get();
+	//		//bd.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	//		//bd.Transition.StateBefore = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST;
+	//		//bd.Transition.StateAfter = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+	//		auto bd = CD3DX12_RESOURCE_BARRIER::Transition
+	//		(
+	//			gTexBuffer.Get(),
+	//			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST,
+	//			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+	//		);
+
+	//		gCmdList->ResourceBarrier(1, &bd);
+	//		gCmdList->Close();
+
+	//		ID3D12CommandList* cmdlist[] = { gCmdList.Get() };
+	//		gCmdQueue->ExecuteCommandLists(1, cmdlist);
+	//		gCmdQueue->Signal(gFence.Get(), ++gFenceVal);
+
+	//		if (gFence->GetCompletedValue() != gFenceVal)
+	//		{
+	//			auto event = CreateEvent(nullptr, false, false, nullptr);
+	//			gFence->SetEventOnCompletion(gFenceVal, event);
+	//			WaitForSingleObject(event, INFINITE);
+	//			CloseHandle(event);
+	//		}
+	//	}
+
+	//	{
+	//		// WriteToSubResource()関数を用いた方法
+	//		// 公式非推奨
+	//		//{
+	//		//	D3D12_HEAP_PROPERTIES heapProp = {};
+	//		//	heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_CUSTOM;
+	//		//	heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+	//		//	heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_L0;
+	//		//	heapProp.CreationNodeMask = 0;
+	//		//	heapProp.VisibleNodeMask = 0;
+
+	//		//	D3D12_RESOURCE_DESC resDesc = {};
+	//		//	resDesc.Format = metadata.format;
+	//		//	resDesc.Width = metadata.width;
+	//		//	resDesc.Height = metadata.height;
+	//		//	resDesc.DepthOrArraySize = metadata.arraySize;
+	//		//	resDesc.SampleDesc.Count = 1;
+	//		//	resDesc.SampleDesc.Quality = 0;
+	//		//	resDesc.MipLevels = metadata.mipLevels;
+	//		//	resDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
+	//		//	resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	//		//	resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+
+	//		//	result = gDevice->CreateCommittedResource
+	//		//	(
+	//		//		&heapProp,
+	//		//		D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+	//		//		&resDesc,
+	//		//		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+	//		//		nullptr,
+	//		//		IID_PPV_ARGS(gTexBuffer.GetAddressOf())
+	//		//	);
+	//		//	if (result != S_OK)
+	//		//	{
+	//		//		return ReturnWithErrorMessage("Failed Create Texture Resource !");
+	//		//	}
+
+	//		//	result = gTexBuffer->WriteToSubresource
+	//		//	(
+	//		//		0,
+	//		//		nullptr,
+	//		//		img->pixels,
+	//		//		img->rowPitch,
+	//		//		img->slicePitch
+	//		//	);
+	//		//	if (result != S_OK)
+	//		//	{
+	//		//		return ReturnWithErrorMessage("Failed Write Texture Data !");
+	//		//	}
+	//	}
+
+
+	//}
 
 
 	// 定数バッファの作成
 	{
-
-
 		int gSize = (sizeof(MatrixConstantBuffer) + 0xff) & ~0xff;
 
 		auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD);
@@ -1160,7 +1158,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		auto result = gDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(gBasicDescHeap.GetAddressOf()));
 		if (result != S_OK)
 		{
-			return ReturnWithErrorMessage("Failed Create Texture Descriptor Heap");
+			return ReturnWithErrorMessage("Failed Create Material Descriptor Heap");
 		}
 
 		//// ディスクリプタヒープ上にビューを作成・配置する
@@ -1322,8 +1320,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//descTableRange.BaseShaderRegister = 0;
 		//descTableRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-		D3D12_DESCRIPTOR_RANGE descTableRange[1] = { {} };
-		descTableRange[0] = CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
+		D3D12_DESCRIPTOR_RANGE descTableRange[2] = { {} };
+		descTableRange[0].NumDescriptors = 1;
+		descTableRange[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+		descTableRange[0].BaseShaderRegister = 0;
+		descTableRange[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+		descTableRange[1].NumDescriptors = 1;
+		descTableRange[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+		descTableRange[1].BaseShaderRegister = 1;
+		descTableRange[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+		//descTableRange[0] = CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
+		//descTableRange[1] = CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 1);
 
 		// ルートパラメータにディスクリプタテーブルを設定
 		//D3D12_ROOT_PARAMETER rootParam[2] = { {} };
@@ -1337,11 +1346,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//rootParam[1].DescriptorTable.pDescriptorRanges = &descTableRange[1];
 		//rootParam[1].DescriptorTable.NumDescriptorRanges = 1;
 
-		D3D12_ROOT_PARAMETER rootParam = {};
-		rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_ALL;
-		rootParam.DescriptorTable.pDescriptorRanges = descTableRange;
-		rootParam.DescriptorTable.NumDescriptorRanges = 1;
+		D3D12_ROOT_PARAMETER rootParam[2] = {};
+		rootParam[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		rootParam[0].ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_ALL;
+		rootParam[0].DescriptorTable.pDescriptorRanges = &descTableRange[0];
+		rootParam[0].DescriptorTable.NumDescriptorRanges = 1;
+
+		rootParam[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		rootParam[1].ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_ALL;
+		rootParam[1].DescriptorTable.pDescriptorRanges = &descTableRange[1];
+		rootParam[1].DescriptorTable.NumDescriptorRanges = 1;
+
+
 
 		//CD3DX12_ROOT_PARAMETER rootParam[2] = { {} };
 		//rootParam[0].InitAsDescriptorTable(1, &descTableRange[0]);
@@ -1360,8 +1376,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NEVER;
 
 		D3D12_ROOT_SIGNATURE_DESC rsd = {};
-		rsd.pParameters = &rootParam;
-		rsd.NumParameters = 1;
+		rsd.pParameters = rootParam;
+		rsd.NumParameters = 2;
 		rsd.pStaticSamplers = &samplerDesc;
 		rsd.NumStaticSamplers = 1;
 		rsd.Flags =
@@ -1580,6 +1596,11 @@ int Frame()
 	gCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	gCmdList->IASetVertexBuffers(0, 1, &gVertexBufferView);
 	gCmdList->IASetIndexBuffer(&gIndexBufferView);
+
+
+
+	gCmdList->SetDescriptorHeaps(1, gMaterialDesciptorHeap.GetAddressOf());
+	gCmdList->SetGraphicsRootDescriptorTable(1, gMaterialDesciptorHeap->GetGPUDescriptorHandleForHeapStart());
 
 	gCmdList->DrawIndexedInstanced(gIndexCount, 1, 0, 0, 0);
 
