@@ -11,6 +11,7 @@ float4 BasicPS(VS_OutPut vso) : SV_TARGET
     col.xyz = brightness;
     col.w = 1.f;
     col *= diffuse;
+    col *= tex.Sample(smp, vso.uv);
     return col;
 }
 
