@@ -269,16 +269,45 @@ struct MaterialOnCPU
 {
 	int toonIdx;
 	bool edgeFlg;
-	char* texPath;
+private:
+	wchar_t* texPath = nullptr;
 
+public:
 	void GetDataFromPMD_Material(const MMDsdk::PmdFile::Material& m)
 	{
 		toonIdx = m.toonIndex;
 		edgeFlg = m.edgeFlag;
-		auto& tp = m.texturePath;
-		auto length = tp.GetLength();
-		texPath = new char[length] {};
-		std::copy(&tp.GetText()[0], &tp.GetText()[length - 1], texPath);
+	}
+
+	void LoadTexturePath(const char* const dirPath, const char* const texFileName)
+	{
+		char* texPathBuff = nullptr;
+		System::NewArrayAndCopyAssetPath(&texPathBuff, dirPath, texFileName);
+
+		int wchar_t_length = 0;
+
+		wchar_t_length = MultiByteToWideChar(CP_ACP, NULL, texPathBuff, -1, nullptr, 0);
+		DebugOutParamI(wchar_t_length);
+		texPath = new wchar_t[wchar_t_length] {};
+		wchar_t_length = MultiByteToWideChar(CP_ACP, NULL, texPathBuff, -1, texPath, wchar_t_length);
+		DebugOutParamI(wchar_t_length);
+		
+		DirectX::TexMetadata metadata {};
+		DirectX::ScratchImage scratchImg {};
+
+		auto result = DirectX::LoadFromWICFile(GetTexturePath(), DirectX::WIC_FLAGS::WIC_FLAGS_NONE, &metadata, scratchImg);
+
+		if (result != S_OK)
+		{
+			DebugMessage("Failed Open File !");
+		}
+
+		System::SafeDeleteArray(&texPathBuff);
+	}
+
+	const wchar_t* const GetTexturePath() const
+	{
+		return texPath;
 	}
 
 	~MaterialOnCPU()
@@ -415,6 +444,9 @@ int Frame();
 
 LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
 
+ID3D12Resource* LoadTextureFromfile(const wchar_t* const texPath);
+
+
 #ifdef _DEBUG
 int main()
 #else 
@@ -514,7 +546,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{
 			return ReturnWithErrorMessage("Failed Query Interface from DXGI Factory2 to 6");
 		}
-	}
+}
 
 	// コマンドリスト、コマンドアロケータの作成
 	{
@@ -1194,11 +1226,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{
 			auto& m = miku.GetMaterial(i);
 			gMaterial[i].GetDataFromPMD_Material(m);
-		}
-
-		for (int i = 0; i < materialCount; ++i)
-		{
-			DebugOutFloat4(gMaterial[i].onShader.diffuse);
+			if (m.texturePath.GetText()[0] != '\0')
+			{
+				gMaterial[i].onCPU.LoadTexturePath(miku.GetDirectoryPath(), m.texturePath.GetText());
+			}
 		}
 
 		auto materialBufferSize = sizeof(MaterialOnShader);
@@ -1663,5 +1694,73 @@ int Frame()
 	gSwapChain->Present(1, 0);
 
 	return 0;
+}
+
+
+ID3D12Resource* LoadTextureFromfile(const wchar_t* const texPath)
+{
+	if (texPath == nullptr)
+	{
+		return nullptr;
+	}
+
+	DirectX::TexMetadata metadata = {};
+	DirectX::ScratchImage scratchImg = {};
+
+	auto result = DirectX::LoadFromWICFile
+	(
+		texPath,
+		DirectX::WIC_FLAGS::WIC_FLAGS_NONE,
+		&metadata,
+		scratchImg
+	);
+
+	if (FAILED(result))
+	{
+		DebugMessage("Wrong Path !");
+		return nullptr;
+	}
+
+	auto img = scratchImg.GetImage(0, 0, 0);
+
+	D3D12_HEAP_PROPERTIES texHeapProp = {};
+	texHeapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_CUSTOM;
+	texHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+	texHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
+	texHeapProp.CreationNodeMask = 0;
+	texHeapProp.VisibleNodeMask = 0;
+	
+	D3D12_RESOURCE_DESC resDesc = {};
+	resDesc.Format = metadata.format;
+	resDesc.Width = metadata.width;
+	resDesc.Height = metadata.height;
+	resDesc.DepthOrArraySize = metadata.arraySize;
+	resDesc.SampleDesc.Count = 1;
+	resDesc.SampleDesc.Quality = 0;
+	resDesc.MipLevels = metadata.mipLevels;
+	resDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+
+	ComPtr<ID3D12Resource> texBuff = nullptr;
+
+	result = gDevice->CreateCommittedResource
+	(
+		&texHeapProp,
+		D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+		&resDesc,
+		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE,
+		nullptr,
+		IID_PPV_ARGS(texBuff.GetAddressOf())
+	);
+
+	if (FAILED(result))
+	{
+		DebugMessage("Failed Create Resource !");
+		return nullptr;
+	}
+
+
+	return nullptr;
 }
 
