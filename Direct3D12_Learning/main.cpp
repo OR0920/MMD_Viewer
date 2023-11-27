@@ -293,6 +293,8 @@ public:
 		char* texPathBuff = nullptr;
 		System::NewArrayAndCopyAssetPath(&texPathBuff, dirPath, texFileName);
 
+		DebugMessage(texPathBuff);
+
 		int wchar_t_length = 0;
 
 		wchar_t_length = MultiByteToWideChar(CP_ACP, NULL, texPathBuff, -1, nullptr, 0);
@@ -300,16 +302,6 @@ public:
 		texPath = new wchar_t[wchar_t_length] {};
 		wchar_t_length = MultiByteToWideChar(CP_ACP, NULL, texPathBuff, -1, texPath, wchar_t_length);
 		DebugOutParamI(wchar_t_length);
-
-		DirectX::TexMetadata metadata{};
-		DirectX::ScratchImage scratchImg{};
-
-		auto result = DirectX::LoadFromWICFile(GetTexturePath(), DirectX::WIC_FLAGS::WIC_FLAGS_NONE, &metadata, scratchImg);
-
-		if (result != S_OK)
-		{
-			DebugMessage("Failed Open File !");
-		}
 
 		System::SafeDeleteArray(&texPathBuff);
 	}
