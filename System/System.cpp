@@ -5,6 +5,9 @@
 
 bool System::StringEqual(const void* const _str1, const void* const _str2)
 {
+	if (_str1 == nullptr && _str2 == nullptr) return true;
+	if (_str1 == nullptr) return false;
+	if (_str2 == nullptr) return false;
 	std::string str1(reinterpret_cast<const char*>(_str1));
 	std::string str2(reinterpret_cast<const char*>(_str2));
 	return str1 == str2;
@@ -82,7 +85,23 @@ void System::NewArrayAndCopyAssetPath(char** _assetpath, const char* const dirpa
 
 void System::CreateNewStringFrom_u16_to_c(char** cText, const char16_t* const u16Text)
 {
-	auto bytesize = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)u16Text, -1, NULL, 0, NULL, NULL);
-	*cText = new char[bytesize] {};
-	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)u16Text, -1, (LPSTR)(*cText), bytesize, NULL, NULL);
+	auto size = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)u16Text, -1, NULL, 0, NULL, NULL);
+	*cText = new char[size] {};
+	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)u16Text, -1, (LPSTR)(*cText), size, NULL, NULL);
+}
+
+void System::CreateNewStringFrom_c_to_u16(char16_t** u16Text, const char* const cText)
+{
+	auto size = MultiByteToWideChar(CP_ACP, 0, reinterpret_cast<LPCCH>(cText), -1, NULL, 0);
+	if (size == 0)
+	{
+		DebugMessage("CreateNewStringFrom_c_to_u16() ERROR : Wrong Text!");
+		return;
+	}
+	*u16Text = new char16_t[size];
+	if (size == MultiByteToWideChar(CP_ACP, 0, reinterpret_cast<LPCCH>(cText), -1, reinterpret_cast<LPWSTR>(*u16Text), size))
+	{
+		DebugMessage("CreateNewStringFrom_c_to_u16() ERROR : Failed Translate !");
+		return;
+	}
 }

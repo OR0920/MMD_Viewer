@@ -54,9 +54,13 @@ namespace System
 
 
 	// 文字列変換
-	// cText		:元の文字列　		"文字列String"
+	// cText		:標準の文字列　	 "文字列String"
+	// wText		:ワイド文字列		L"文字列String"
 	// u16Text		:UTF16文字列		u"文字列String"
+	// 第1引数が指すポインタの先がnew[]されるので必ずdelete[]すること
+	// SafeDelete()推奨
 	void CreateNewStringFrom_u16_to_c(char** cText, const char16_t* const u16Text);
+	void CreateNewStringFrom_c_to_u16(char16_t** u16Text, const char* const);
 }
 
 #endif // _SYSTEM_H_

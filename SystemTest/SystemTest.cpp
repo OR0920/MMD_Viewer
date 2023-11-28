@@ -56,6 +56,16 @@ namespace SystemTest
 
 			SafeDeleteArray(&cTextBuff);
 		}
+
+		TEST_METHOD(cTextTo_utf16Test)
+		{
+			char16_t* u16TextBuff = nullptr;
+
+			CreateNewStringFrom_c_to_u16(&u16TextBuff, cText);
+			Assert::IsTrue(StringEqual(u16Text, u16TextBuff));
+
+			SafeDeleteArray(&u16TextBuff);
+		}
 	};
 
 	TEST_CLASS(FileIOTest)

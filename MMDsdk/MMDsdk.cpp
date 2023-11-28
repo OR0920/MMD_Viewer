@@ -64,15 +64,17 @@ void TextBufferVariable::Load(void* _file, EncodeType encode)
 	auto& file = GetFile(_file);
 	file.Read(mLength);
 
-	char* s16 = new char[mLength + 2] {'\0'};
+	char* s16 = new char[mLength + 2]{ '\0' };
 	file.ReadArray(s16, mLength);
 
 	if (encode == EncodeType::UTF16)
 	{
+		System::CreateNewStringFrom_u16_to_c(&mStr, reinterpret_cast<char16_t*>(s16));
+
 		// apiベタ打ちなので後でラッピングする
-		auto bytesize = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, NULL, 0, NULL, NULL);
-		mStr = new char[bytesize] {};
-		WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, (LPSTR)mStr, bytesize, NULL, NULL);
+		//auto bytesize = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, NULL, 0, NULL, NULL);
+		//mStr = new char[bytesize] {};
+		//WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, (LPSTR)mStr, bytesize, NULL, NULL);
 	}
 
 	SafeDeleteArray(&s16);
@@ -2437,7 +2439,7 @@ VmdFile::VmdFile(const char* const filepath)
 		file.Read(m.frameNumber);
 		file.Read(m.position);
 		file.Read(m.rotation);
-		
+
 		m.LoadBezierParam(&file);
 		DebugOutFloat3(m.position);
 	}
