@@ -51,6 +51,12 @@ namespace System
 	// 動作のイメージ
 	// assetpath = dirpath + filename
 	void NewArrayAndCopyAssetPath(char** _assetpath, const char* const dirpath, const char* const filename);
+
+
+	// 文字列変換
+	// cText		:元の文字列　		"文字列String"
+	// u16Text		:UTF16文字列		u"文字列String"
+	void CreateNewStringFrom_u16_to_c(char** cText, const char16_t* const u16Text);
 }
 
 #endif // _SYSTEM_H_

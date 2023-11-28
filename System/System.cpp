@@ -1,6 +1,8 @@
 #include"System.h"
 #include<string>
 
+#include<Windows.h>
+
 bool System::StringEqual(const void* const _str1, const void* const _str2)
 {
 	std::string str1(reinterpret_cast<const char*>(_str1));
@@ -75,4 +77,12 @@ void System::NewArrayAndCopyAssetPath(char** _assetpath, const char* const dirpa
 	{
 		assetpath[dirLengthNotIncludeNULL + i] = filename[i];
 	}
+}
+
+
+void System::CreateNewStringFrom_u16_to_c(char** cText, const char16_t* const u16Text)
+{
+	auto bytesize = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)u16Text, -1, NULL, 0, NULL, NULL);
+	*cText = new char[bytesize] {};
+	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)u16Text, -1, (LPSTR)(*cText), bytesize, NULL, NULL);
 }

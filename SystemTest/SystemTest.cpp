@@ -42,6 +42,20 @@ namespace SystemTest
 			SafeDeleteArray(&assetPath);
 			SafeDeleteArray(&dirpath);
 		}
+
+		const char* const cText = "some text with “ú–{Œê";
+		const wchar_t* const wText = L"some text with “ú–{Œê";
+		const char16_t* const u16Text = u"some text with “ú–{Œê";
+
+		TEST_METHOD(utf16TextTo_cTextTest)
+		{
+			char* cTextBuff = nullptr;
+			
+			CreateNewStringFrom_u16_to_c(&cTextBuff, u16Text);
+			Assert::IsTrue(StringEqual(cText, cTextBuff));
+
+			SafeDeleteArray(&cTextBuff);
+		}
 	};
 
 	TEST_CLASS(FileIOTest)
