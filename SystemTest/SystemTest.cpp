@@ -47,11 +47,31 @@ namespace SystemTest
 		const wchar_t* const wText = L"some text with “ú–{Œê";
 		const char16_t* const u16Text = u"some text with “ú–{Œê";
 
+		TEST_METHOD(wideTextTo_cTextTest)
+		{
+			char* cTextBuff = nullptr;
+
+			newArray_CreateMultiByteStrFromWideCharStr(&cTextBuff, u16Text);
+			Assert::IsTrue(StringEqual(cText, cTextBuff));
+
+			SafeDeleteArray(&cTextBuff);
+		}
+
+		TEST_METHOD(cTextTo_wideTextTest)
+		{
+			wchar_t* wideTextBuff = nullptr;
+
+			newArray_CreateWideCharStrFromMultiByteStr(&wideTextBuff, cText);
+			Assert::IsTrue(StringEqual(wText, wideTextBuff));
+
+			SafeDeleteArray(&wideTextBuff);
+		}
+
 		TEST_METHOD(utf16TextTo_cTextTest)
 		{
 			char* cTextBuff = nullptr;
 			
-			newArray_CreateWideCharStrFromMultiByteStr(&cTextBuff, u16Text);
+			newArray_CreateMultiByteStrFromWideCharStr(&cTextBuff, wText);
 			Assert::IsTrue(StringEqual(cText, cTextBuff));
 
 			SafeDeleteArray(&cTextBuff);
@@ -61,7 +81,7 @@ namespace SystemTest
 		{
 			char16_t* u16TextBuff = nullptr;
 
-			newArray_CreateMultiByteStrFromWideCharStr(&u16TextBuff, cText);
+			newArray_CreateWideCharStrFromMultiByteStr(&u16TextBuff, cText);
 			Assert::IsTrue(StringEqual(u16Text, u16TextBuff));
 
 			SafeDeleteArray(&u16TextBuff);

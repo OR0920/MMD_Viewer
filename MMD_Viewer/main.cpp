@@ -40,6 +40,7 @@ void LoadAndCout(const char* filepath)
 int main()
 {
 	SET_JAPANESE_ENABLE;
+
 	//MMDsdk::PmdFile model(testModelFilePath[0]);
 
 	auto filepathCount = sizeof(testModelFilePath) / sizeof(testModelFilePath[0]);
@@ -51,8 +52,12 @@ int main()
 	MMDsdk::PmxFile kaban(kabanPath);
 	
 	char16_t* text = nullptr;
-	newArray_CreateMultiByteStrFromWideCharStr(&text, "“ú–{Œê‚Å‚·‚æ, I'm English");
+	newArray_CreateWideCharStrFromMultiByteStr(&text, "“ú–{Œê‚Å‚·‚æ, I'm English");
 	DebugMessageWide(text);
-
 	SafeDeleteArray(&text);
+
+	wchar_t* wText = nullptr;
+	newArray_CreateWideCharStrFromMultiByteStr(reinterpret_cast<char16_t**>(&wText), "“ú–{Œê‚Å‚·‚æ, I'm English");
+	DebugMessageWide(wText);
+	SafeDeleteArray(&wText);
 }

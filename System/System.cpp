@@ -85,33 +85,45 @@ void System::newArray_CopyAssetPath(char** _assetpath, const char* const dirpath
 static const char* const errorMessageWrongText = " ERROR : Wrong Text !";
 static const char* const errorMessageFailedTranslate = " ERROR : Failed Translate !";
 
-void System::newArray_CreateWideCharStrFromMultiByteStr(char** cText, const char16_t* const u16Text)
+void System::newArray_CreateMultiByteStrFromWideCharStr(char** cText, const wchar_t* const wText)
+{
+	newArray_CreateMultiByteStrFromWideCharStr(cText, reinterpret_cast<const char16_t* const>(wText));
+}
+
+
+void System::newArray_CreateMultiByteStrFromWideCharStr(char** cText, const char16_t* const u16Text)
 {
 	auto size = WideCharToMultiByte(CP_ACP, 0, reinterpret_cast<LPCWSTR>(u16Text), -1, NULL, 0, NULL, NULL);
 	if (size == 0)
 	{
-		DebugMessage(ToString(newArray_CreateWideCharStrFromMultiByteStr) << errorMessageWrongText);
+		DebugMessage(ToString(newArray_CreateMultiByteStrFromWideCharStr) << errorMessageWrongText);
 	}
 	*cText = new char[size] {};
 	if (size != WideCharToMultiByte(CP_ACP, 0, reinterpret_cast<LPCWSTR>(u16Text), -1, *cText, size, NULL, NULL))
 	{
-		DebugMessage(ToString(newArray_CreateWideCharStrFromMultiByteStr) << errorMessageFailedTranslate);
+		DebugMessage(ToString(newArray_CreateMultiByteStrFromWideCharStr) << errorMessageFailedTranslate);
 	};
-	
 }
 
-void System::newArray_CreateMultiByteStrFromWideCharStr(char16_t** u16Text, const char* const cText)
+
+void System::newArray_CreateWideCharStrFromMultiByteStr(wchar_t** wText, const char* const cText)
+{
+	newArray_CreateWideCharStrFromMultiByteStr(reinterpret_cast<char16_t**>(wText), cText);
+}
+
+
+void System::newArray_CreateWideCharStrFromMultiByteStr(char16_t** u16Text, const char* const cText)
 {
 	auto size = MultiByteToWideChar(CP_ACP, 0, reinterpret_cast<LPCCH>(cText), -1, NULL, 0);
 	if (size == 0)
 	{
-		DebugMessage(ToString(newArray_CreateMultiByteStrFromWideCharStr) << errorMessageWrongText);
+		DebugMessage(ToString(newArray_CreateWideCharStrFromMultiByteStr) << errorMessageWrongText);
 		return;
 	}
 	*u16Text = new char16_t[size] {};
 	if (size != MultiByteToWideChar(CP_ACP, 0, reinterpret_cast<LPCCH>(cText), -1, reinterpret_cast<LPWSTR>(*u16Text), size))
 	{
-		DebugMessage(ToString(newArray_CreateMultiByteStrFromWideCharStr) << errorMessageFailedTranslate);
+		DebugMessage(ToString(newArray_CreateWideCharStrFromMultiByteStr) << errorMessageFailedTranslate);
 		return;
 	}
 }
