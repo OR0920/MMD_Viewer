@@ -3,6 +3,13 @@
 
 #include<Windows.h>
 
+#define IS_USED_PTR(ptr)\
+if(ptr != nullptr)\
+{\
+	DebugMessage("The " << ToString(ptr) << " is already Used");\
+	return;\
+}
+
 bool System::StringEqual(const void* const _str1, const void* const _str2)
 {
 	if (_str1 == nullptr && _str2 == nullptr) return true;
@@ -16,10 +23,7 @@ bool System::StringEqual(const void* const _str1, const void* const _str2)
 void System::newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const filepath)
 {
 	auto& dirpath = *_dirpath;
-	if (dirpath != nullptr)
-	{
-		DebugMessage("The pointer is already used");
-	}
+	IS_USED_PTR(dirpath);
 
 	// ファイルパス末尾のID
 	int pathLastID = GetStringLength(filepath) - 1;
@@ -65,6 +69,7 @@ int System::GetStringLength(const char* const text)
 void System::newArray_CopyAssetPath(char** _assetpath, const char* const dirpath, const char* const filename)
 {
 	auto& assetpath = *_assetpath;
+	IS_USED_PTR(assetpath);
 
 	const int dirLengthNotIncludeNULL = GetStringLength(dirpath) - 1;
 	const int filenameLength = GetStringLength(filename);
@@ -93,6 +98,7 @@ void System::newArray_CreateMultiByteStrFromWideCharStr(char** cText, const wcha
 
 void System::newArray_CreateMultiByteStrFromWideCharStr(char** cText, const char16_t* const u16Text)
 {
+	IS_USED_PTR(*cText);
 	auto size = WideCharToMultiByte(CP_ACP, 0, reinterpret_cast<LPCWSTR>(u16Text), -1, NULL, 0, NULL, NULL);
 	if (size == 0)
 	{
@@ -114,6 +120,7 @@ void System::newArray_CreateWideCharStrFromMultiByteStr(wchar_t** wText, const c
 
 void System::newArray_CreateWideCharStrFromMultiByteStr(char16_t** u16Text, const char* const cText)
 {
+	IS_USED_PTR(*u16Text);
 	auto size = MultiByteToWideChar(CP_ACP, 0, reinterpret_cast<LPCCH>(cText), -1, NULL, 0);
 	if (size == 0)
 	{

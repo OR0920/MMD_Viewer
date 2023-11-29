@@ -292,17 +292,9 @@ public:
 	{
 		char* texPathBuff = nullptr;
 		System::newArray_CopyAssetPath(&texPathBuff, dirPath, texFileName);
-
-		DebugMessage(texPathBuff);
-
-		int wchar_t_length = 0;
-
-		wchar_t_length = MultiByteToWideChar(CP_ACP, NULL, texPathBuff, -1, nullptr, 0);
-		DebugOutParamI(wchar_t_length);
-		texPath = new wchar_t[wchar_t_length] {};
-		wchar_t_length = MultiByteToWideChar(CP_ACP, NULL, texPathBuff, -1, texPath, wchar_t_length);
-		DebugOutParamI(wchar_t_length);
-
+		System::newArray_CreateWideCharStrFromMultiByteStr(&texPath, texPathBuff);
+		DebugOutString(texPathBuff);
+		DebugOutStringWide(texPath);
 		System::SafeDeleteArray(&texPathBuff);
 	}
 
@@ -361,7 +353,7 @@ static const char* const kaitoPath = "../x64/Debug/Test/Model/PMD/カイト.pmd";
 static const char* const rinPath = "../x64/Debug/Test/Model/PMD/鏡音リン.pmd";
 static const char* const rukaPath = "../x64/Debug/Test/Model/PMD/巡音ルカ.pmd";
 
-const MMDsdk::PmxFile model(kabanPath);
+const MMDsdk::PmxFile model("ahahaha.text");
 const MMDsdk::PmdFile miku(miku2Path);
 
 auto gMatrix = DirectX::XMMatrixIdentity();
@@ -459,6 +451,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 	// メモリリークチェック
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	SET_JAPANESE_ENABLE;
 
 	// ウィンドウクラス作成・登録
 	WNDCLASSEX wcEx = {};
