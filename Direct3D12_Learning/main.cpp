@@ -274,6 +274,28 @@ struct MaterialOnShader
 	}
 };
 
+void newArray_GetExtention(wchar_t** extPtr, const wchar_t* const filename)
+{
+	int length = 0;
+	int dotId = 0;
+	for (length = 0; filename[length]!= '\0'; ++length)
+	{
+		auto& c = filename[length];
+		if (c == '.')
+		{
+			dotId = length;
+		}
+	}
+	int extLength = length - dotId - 1;//ƒhƒbƒg‚Í”²‚­
+	*extPtr = new wchar_t[extLength] {};
+	DebugOutParamI(extLength);
+
+	for (int i = extLength; i > 0; --i)
+	{
+		(*extPtr)[i - 1] = filename[dotId + i];
+	}	
+}
+
 struct MaterialOnCPU
 {
 	int toonIdx;
@@ -296,6 +318,14 @@ public:
 		DebugOutString(texPathBuff);
 		DebugOutStringWide(texPath);
 		System::SafeDeleteArray(&texPathBuff);
+
+		wchar_t* ext = nullptr;
+
+		newArray_GetExtention(&ext, texPath);
+
+		DebugOutStringWide(ext);
+
+		System::SafeDeleteArray(&ext);
 	}
 
 	const wchar_t* const GetTexturePath() const

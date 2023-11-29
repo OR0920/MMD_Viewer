@@ -66,6 +66,24 @@ int System::GetStringLength(const char* const text)
 	return length;
 }
 
+
+int System::GetStringLength(const wchar_t* const text)
+{
+	if (text == nullptr)
+	{
+		return 0;
+	}
+
+	if (text[0] == '\0')
+	{
+		return 0;
+	}
+
+	int length = 1;
+	for (length; text[length - 1] != '\0'; ++length);
+	return length;
+}
+
 void System::newArray_CopyAssetPath(char** _assetpath, const char* const dirpath, const char* const filename)
 {
 	auto& assetpath = *_assetpath;

@@ -38,6 +38,7 @@ namespace System
 
 	// NULL文字を含む長さを返す
 	int GetStringLength(const char* const text);
+	int GetStringLength(const wchar_t* const text);
 
 	// ディレクトリのパスを取得する関数
 	// dirpath	:ディレクトリのパスを受け取るポインタ nullptrであること。内部でnew[]されるので、必ずdelete[]すること
