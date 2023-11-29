@@ -49,19 +49,10 @@ int main()
 	}
 
 	MMDsdk::PmxFile kaban(kabanPath);
+	
+	char16_t* text = nullptr;
+	newArray_CreateMultiByteStrFromWideCharStr(&text, "日本語ですよ, I'm English");
+	DebugMessageWide(text);
 
-	for (int i = 0; i < kaban.GetTextureCount(); ++i)
-	{
-		char* assetpath = nullptr;
-		NewArrayAndCopyAssetPath(&assetpath, kaban.GetDirectoryPath(), GetTextMacro(kaban.GetTexturePath(i)));
-
-		DebugMessage(assetpath);
-		FileReadBin tex(assetpath);
-		tex.Close();
-
-		SafeDeleteArray(&assetpath);
-	}
-	const char* filepath = "Test/Motion/シンプルウォーク.vmd";
-
-	MMDsdk::VmdFile walk(filepath);
+	SafeDeleteArray(&text);
 }

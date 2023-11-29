@@ -291,7 +291,7 @@ public:
 	void LoadTexturePath(const char* const dirPath, const char* const texFileName)
 	{
 		char* texPathBuff = nullptr;
-		System::NewArrayAndCopyAssetPath(&texPathBuff, dirPath, texFileName);
+		System::newArray_CopyAssetPath(&texPathBuff, dirPath, texFileName);
 
 		DebugMessage(texPathBuff);
 

@@ -31,12 +31,12 @@ namespace SystemTest
 			const char* filepath = "TestRoot/TestDir/TestFilePath.file";
 			char* dirpath = nullptr;
 
-			NewArrayAndCopyDirPathFromFilePath(&dirpath, filepath);
+			newArray_CopyDirPathFromFilePath(&dirpath, filepath);
 
 			Assert::IsTrue(StringEqual(dirpath, "TestRoot/TestDir/"));
 			char* assetPath = nullptr;
 
-			NewArrayAndCopyAssetPath(&assetPath, dirpath, "AnotherTestFilePath.file");
+			newArray_CopyAssetPath(&assetPath, dirpath, "AnotherTestFilePath.file");
 			Assert::IsTrue(StringEqual(assetPath, "TestRoot/TestDir/AnotherTestFilePath.file"));
 
 			SafeDeleteArray(&assetPath);
@@ -51,7 +51,7 @@ namespace SystemTest
 		{
 			char* cTextBuff = nullptr;
 			
-			CreateNewStringFrom_u16_to_c(&cTextBuff, u16Text);
+			newArray_CreateWideCharStrFromMultiByteStr(&cTextBuff, u16Text);
 			Assert::IsTrue(StringEqual(cText, cTextBuff));
 
 			SafeDeleteArray(&cTextBuff);
@@ -61,7 +61,7 @@ namespace SystemTest
 		{
 			char16_t* u16TextBuff = nullptr;
 
-			CreateNewStringFrom_c_to_u16(&u16TextBuff, cText);
+			newArray_CreateMultiByteStrFromWideCharStr(&u16TextBuff, cText);
 			Assert::IsTrue(StringEqual(u16Text, u16TextBuff));
 
 			SafeDeleteArray(&u16TextBuff);

@@ -69,7 +69,7 @@ void TextBufferVariable::Load(void* _file, EncodeType encode)
 
 	if (encode == EncodeType::UTF16)
 	{
-		System::CreateNewStringFrom_u16_to_c(&mStr, reinterpret_cast<char16_t*>(s16));
+		System::newArray_CreateWideCharStrFromMultiByteStr(&mStr, reinterpret_cast<char16_t*>(s16));
 
 		// apiベタ打ちなので後でラッピングする
 		//auto bytesize = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, NULL, 0, NULL, NULL);
@@ -163,7 +163,7 @@ PmdFile::PmdFile(const char* const filepath)
 	}
 
 	// ディレクトリのパスを取得する
-	System::NewArrayAndCopyDirPathFromFilePath(&mDirectoryPath, filepath);
+	System::newArray_CopyDirPathFromFilePath(&mDirectoryPath, filepath);
 	DebugMessage(mDirectoryPath);
 	DebugMessageNewLine();
 
@@ -1208,7 +1208,7 @@ PmxFile::PmxFile(const char* const filepath)
 		}
 	}
 
-	System::NewArrayAndCopyDirPathFromFilePath(&mDirectoryPath, filepath);
+	System::newArray_CopyDirPathFromFilePath(&mDirectoryPath, filepath);
 
 	file.Read(mHeader.version, 4);
 	file.Read(mHeader.fileConfigLength);
