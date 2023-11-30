@@ -407,6 +407,7 @@ public:
 	~MaterialOnCPU()
 	{
 		System::SafeDeleteArray(&texPath);
+		System::SafeDeleteArray(&sphPath);
 	}
 };
 
