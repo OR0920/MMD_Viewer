@@ -274,20 +274,20 @@ struct MaterialOnShader
 	}
 };
 
-void newArray_GetExtention(wchar_t** extPtr, const wchar_t* const filename)
+void newArray_GetExtention(char** extPtr, const char* const filename)
 {
 	int length;
 	int dotId = 0;
 	for (length = 0; filename[length] != '\0'; ++length)
 	{
 		auto& c = filename[length];
-		if (c == L'.')
+		if (c == '.')
 		{
 			dotId = length;
 		}
 	}
-	int extLength = length - dotId - 1;//ドットは抜く
-	*extPtr = new wchar_t[extLength] {};
+	int extLength = length - dotId;//ドットは抜く
+	*extPtr = new char[extLength] {};
 	DebugOutParamI(extLength);
 
 	for (int i = extLength; i > 0; --i)
@@ -357,7 +357,35 @@ struct MaterialOnCPU
 private:
 	wchar_t* texPath = nullptr;
 	wchar_t* sphPath = nullptr;
+	wchar_t* spaPath = nullptr;
 
+	void SetTexturePath(const char* const dirPath, const char* const texname)
+	{
+		char* ext = nullptr;
+
+		newArray_GetExtention(&ext, texname);
+
+		char* pathBuff = nullptr;
+		System::newArray_CopyAssetPath(&pathBuff, dirPath, texname);
+
+		DebugOutString(ext);
+
+		if (System::StringEqual(ext, "sph"))
+		{
+			System::newArray_CreateWideCharStrFromMultiByteStr(&sphPath, pathBuff);
+		}
+		else if(System::StringEqual(ext, "spa"))
+		{
+			System::newArray_CreateWideCharStrFromMultiByteStr(&spaPath, pathBuff);
+		}
+		else
+		{
+			System::newArray_CreateWideCharStrFromMultiByteStr(&texPath, pathBuff);
+		}
+
+		System::SafeDeleteArray(&pathBuff);
+		System::SafeDeleteArray(&ext);
+	}
 public:
 	void GetDataFromPMD_Material(const MMDsdk::PmdFile::Material& m)
 	{
@@ -367,36 +395,26 @@ public:
 
 	void LoadTexturePath(const char* const dirPath, const char* const texFileName)
 	{
-		char* texPathBuff1 = nullptr;
-		char* texPathBuff2 = nullptr;
-
 		DebugOutString(texFileName);
 		if (newArray_SplitFileName(nullptr, nullptr, texFileName) == false)
 		{
-			System::newArray_CopyAssetPath(&texPathBuff1, dirPath, texFileName);
-			System::newArray_CreateWideCharStrFromMultiByteStr(&texPath, texPathBuff1);
-			DebugOutStringWide(texPath);
+			SetTexturePath(dirPath, texFileName);
 		}
 		else
 		{
 			char* texNameBuff1 = nullptr;
 			char* texNameBuff2 = nullptr;
 			newArray_SplitFileName(&texNameBuff1, &texNameBuff2, texFileName);
-			DebugOutString(texNameBuff1);
-			DebugOutString(texNameBuff2);
-			System::newArray_CopyAssetPath(&texPathBuff1, dirPath, texNameBuff1);
-			System::newArray_CopyAssetPath(&texPathBuff2, dirPath, texNameBuff2);
-			DebugOutString(texPathBuff1);
-			DebugOutString(texPathBuff2);
-			System::newArray_CreateWideCharStrFromMultiByteStr(&texPath, texPathBuff1);
-			System::newArray_CreateWideCharStrFromMultiByteStr(&sphPath, texPathBuff2);
-			DebugOutStringWide(texPath);
-			DebugOutStringWide(sphPath);
+
+			SetTexturePath(dirPath, texNameBuff1);
+			SetTexturePath(dirPath, texNameBuff2);
+
 			System::SafeDeleteArray(&texNameBuff1);
 			System::SafeDeleteArray(&texNameBuff2);
 		}
-		System::SafeDeleteArray(&texPathBuff1);
-		System::SafeDeleteArray(&texPathBuff2);
+
+		DebugOutStringWide(texPath);
+		DebugOutStringWide(sphPath);
 	}
 
 	const wchar_t* const GetTexturePath() const
@@ -408,6 +426,7 @@ public:
 	{
 		System::SafeDeleteArray(&texPath);
 		System::SafeDeleteArray(&sphPath);
+		System::SafeDeleteArray(&spaPath);
 	}
 };
 
@@ -645,7 +664,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{
 			return ReturnWithErrorMessage("Failed Query Interface from DXGI Factory2 to 6");
 		}
-}
+	}
 
 	// コマンドリスト、コマンドアロケータの作成
 	{

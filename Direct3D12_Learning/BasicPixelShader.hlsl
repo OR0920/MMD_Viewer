@@ -16,7 +16,7 @@ float4 BasicPS(VS_OutPut vso) : SV_TARGET
 	//	brightness = 0.75;
 	//}
 	//else
-	//{
+	//{ 
 	//	brightness = 0.5;
 	//}
 
