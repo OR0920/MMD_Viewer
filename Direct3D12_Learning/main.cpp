@@ -276,12 +276,12 @@ struct MaterialOnShader
 
 void newArray_GetExtention(wchar_t** extPtr, const wchar_t* const filename)
 {
-	int length = 0;
+	int length;
 	int dotId = 0;
-	for (length = 0; filename[length]!= '\0'; ++length)
+	for (length = 0; filename[length] != '\0'; ++length)
 	{
 		auto& c = filename[length];
-		if (c == '.')
+		if (c == L'.')
 		{
 			dotId = length;
 		}
@@ -293,7 +293,61 @@ void newArray_GetExtention(wchar_t** extPtr, const wchar_t* const filename)
 	for (int i = extLength; i > 0; --i)
 	{
 		(*extPtr)[i - 1] = filename[dotId + i];
-	}	
+	}
+}
+
+// prim*secondary0 14 + 1 
+// * 4
+// prim0 5
+// secondary0 10
+bool newArray_SplitFileName(char** primaryTex, char** secondaryTex, const char* const filename)
+{
+	int splitID = -1;
+	int length;
+	for (length = 0; true; ++length)
+	{
+		auto& c = filename[length];
+		if (c == '\0')
+		{
+			length += 1;
+			break;
+		}
+		if (c == '*')
+		{
+			splitID = length;
+		}
+	}
+	if (splitID == -1)
+	{
+		return false;
+	}
+	if (primaryTex == nullptr || secondaryTex == nullptr)
+	{
+		return true;
+	}
+	int primaryPathLength = splitID + 1;// * をNULL文字に変換するため
+	int secondaryPathLength = length - primaryPathLength;
+
+	*primaryTex = new char[primaryPathLength] {'\0'};
+	*secondaryTex = new char[secondaryPathLength] {'\0'};
+
+	for (int i = 0; true; ++i)
+	{
+		if (i < (primaryPathLength - 1))
+		{
+			(*primaryTex)[i] = filename[i];
+		}
+		if (i < (secondaryPathLength - 1))
+		{
+			(*secondaryTex)[i] = filename[primaryPathLength + i];
+		}
+		if (i > primaryPathLength && i > secondaryPathLength)
+		{
+			break;
+		}
+	}
+
+	return true;
 }
 
 struct MaterialOnCPU
@@ -302,6 +356,7 @@ struct MaterialOnCPU
 	bool edgeFlg;
 private:
 	wchar_t* texPath = nullptr;
+	wchar_t* sphPath = nullptr;
 
 public:
 	void GetDataFromPMD_Material(const MMDsdk::PmdFile::Material& m)
@@ -312,20 +367,36 @@ public:
 
 	void LoadTexturePath(const char* const dirPath, const char* const texFileName)
 	{
-		char* texPathBuff = nullptr;
-		System::newArray_CopyAssetPath(&texPathBuff, dirPath, texFileName);
-		System::newArray_CreateWideCharStrFromMultiByteStr(&texPath, texPathBuff);
-		DebugOutString(texPathBuff);
-		DebugOutStringWide(texPath);
-		System::SafeDeleteArray(&texPathBuff);
+		char* texPathBuff1 = nullptr;
+		char* texPathBuff2 = nullptr;
 
-		wchar_t* ext = nullptr;
-
-		newArray_GetExtention(&ext, texPath);
-
-		DebugOutStringWide(ext);
-
-		System::SafeDeleteArray(&ext);
+		DebugOutString(texFileName);
+		if (newArray_SplitFileName(nullptr, nullptr, texFileName) == false)
+		{
+			System::newArray_CopyAssetPath(&texPathBuff1, dirPath, texFileName);
+			System::newArray_CreateWideCharStrFromMultiByteStr(&texPath, texPathBuff1);
+			DebugOutStringWide(texPath);
+		}
+		else
+		{
+			char* texNameBuff1 = nullptr;
+			char* texNameBuff2 = nullptr;
+			newArray_SplitFileName(&texNameBuff1, &texNameBuff2, texFileName);
+			DebugOutString(texNameBuff1);
+			DebugOutString(texNameBuff2);
+			System::newArray_CopyAssetPath(&texPathBuff1, dirPath, texNameBuff1);
+			System::newArray_CopyAssetPath(&texPathBuff2, dirPath, texNameBuff2);
+			DebugOutString(texPathBuff1);
+			DebugOutString(texPathBuff2);
+			System::newArray_CreateWideCharStrFromMultiByteStr(&texPath, texPathBuff1);
+			System::newArray_CreateWideCharStrFromMultiByteStr(&sphPath, texPathBuff2);
+			DebugOutStringWide(texPath);
+			DebugOutStringWide(sphPath);
+			System::SafeDeleteArray(&texNameBuff1);
+			System::SafeDeleteArray(&texNameBuff2);
+		}
+		System::SafeDeleteArray(&texPathBuff1);
+		System::SafeDeleteArray(&texPathBuff2);
 	}
 
 	const wchar_t* const GetTexturePath() const
@@ -573,7 +644,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{
 			return ReturnWithErrorMessage("Failed Query Interface from DXGI Factory2 to 6");
 		}
-	}
+}
 
 	// コマンドリスト、コマンドアロケータの作成
 	{
