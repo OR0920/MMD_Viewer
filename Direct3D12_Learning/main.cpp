@@ -415,6 +415,7 @@ public:
 
 		DebugOutStringWide(texPath);
 		DebugOutStringWide(sphPath);
+		DebugOutStringWide(spaPath);
 	}
 
 	const wchar_t* const GetTexturePath() const
