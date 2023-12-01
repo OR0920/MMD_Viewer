@@ -20,14 +20,15 @@ float4 BasicPS(VS_OutPut vso) : SV_TARGET
 	col.xyz = brightness;
 	col.w = 1.f;
 	col *= diffuse;
-	col *= tex.Sample(smp, vso.uv);
-    	
-    float2 normalUV = (vso.normal.xy + float2(1, -1)) * float2(0.5, -0.5);
-    //float2 sphereMapUV = vso.vnormal.xy;
+    float4 texCol = tex.Sample(smp, vso.uv);    	
+    col *= texCol;
     
-    col *= sph.Sample(smp, normalUV);
-    col += spa.Sample(smp, normalUV);
-	
+    float2 sphereMapUV = vso.vnormal.xy;
+    sphereMapUV= (sphereMapUV+ float2(1.f, -1.f)) * float2(0.5f, -0.5f);
+    col *= sph.Sample(smp, sphereMapUV);
+    col += spa.Sample(smp, sphereMapUV);
+    col += float4(ambient * texCol.xyz, 1.f);
+
 	return col;
 }
 
