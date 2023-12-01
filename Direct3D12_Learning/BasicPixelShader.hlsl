@@ -7,25 +7,26 @@ float4 BasicPS(VS_OutPut vso) : SV_TARGET
 
 	float brightness = dot(-light, vso.normal.xyz);
 
-	//if (brightness > 0.5)
-	//{
-	//	brightness = 1;
-	//}
-	//else if(brightness > 0.1)
-	//{
-	//	brightness = 0.75;
-	//}
-	//else
-	//{ 
-	//	brightness = 0.5;
-	//}
+    //if (brightness > 0.25)
+    //{
+    //    brightness = 1;
+    //}
+    //else
+    //{
+    //    brightness = 0.5;
+    //}
 
-
-	float4 col;
+    float4 col;
 	col.xyz = brightness;
 	col.w = 1.f;
 	col *= diffuse;
 	col *= tex.Sample(smp, vso.uv);
+    
+	
+    float2 normalUV = (vso.normal.xy + float2(1, -1)) * float2(0.5, -0.5);
+    
+    col *= sph.Sample(smp, normalUV);
+	
 	return col;
 }
 

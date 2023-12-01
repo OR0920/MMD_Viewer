@@ -146,6 +146,7 @@ ComPtr<ID3D12DescriptorHeap> gBasicDescHeap = nullptr;
 ComPtr<ID3D12Resource> gConstBuffer = nullptr;
 
 std::vector<ComPtr<ID3D12Resource>> gTexResources;
+ComPtr<ID3D12Resource>* gSphTexResources = nullptr;
 ComPtr<ID3D12Resource> gWhiteTexture = nullptr;
 
 //ComPtr<ID3D12Resource> gTexBuffer = nullptr;
@@ -374,7 +375,7 @@ private:
 		{
 			System::newArray_CreateWideCharStrFromMultiByteStr(&sphPath, pathBuff);
 		}
-		else if(System::StringEqual(ext, "spa"))
+		else if (System::StringEqual(ext, "spa"))
 		{
 			System::newArray_CreateWideCharStrFromMultiByteStr(&spaPath, pathBuff);
 		}
@@ -421,6 +422,16 @@ public:
 	const wchar_t* const GetTexturePath() const
 	{
 		return texPath;
+	}
+
+	const wchar_t* const GetSphTexturePath() const
+	{
+		return sphPath;
+	}
+
+	const wchar_t* const GetSpaTexturePath() const
+	{
+		return spaPath;
 	}
 
 	~MaterialOnCPU()
@@ -470,13 +481,14 @@ static const char* const hashibiroPath = "../x64/debug/PMX/ハシビロコウ/ハシビロ
 static const char* const stagePath = "../x64/debug/Test/Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/キョウシュウエリア20170914.pmx";
 static const char* const mikuPath = "../x64/Debug/Test/Model/PMD/初音ミク.pmd";
 static const char* const miku2Path = "../x64/Debug/Test/Model/PMD/初音ミクVer2.pmd";
+static const char* const metalMikuPath = "../x64/Debug/Test/Model/PMD/初音ミクmetal.pmd";
 static const char* const meikoPath = "../x64/Debug/Test/Model/PMD/MEIKO.pmd";
 static const char* const kaitoPath = "../x64/Debug/Test/Model/PMD/カイト.pmd";
 static const char* const rinPath = "../x64/Debug/Test/Model/PMD/鏡音リン.pmd";
 static const char* const rukaPath = "../x64/Debug/Test/Model/PMD/巡音ルカ.pmd";
 
 const MMDsdk::PmxFile model("ahahaha.text");
-const MMDsdk::PmdFile miku(rukaPath);
+const MMDsdk::PmdFile miku(metalMikuPath);
 
 auto gMatrix = DirectX::XMMatrixIdentity();
 auto gWorld = DirectX::XMMatrixIdentity();
@@ -497,6 +509,7 @@ void SafeDeleteAllResource()
 	System::SafeDeleteArray(&gMesh);
 	System::SafeDeleteArray(&gIndices);
 	System::SafeDeleteArray(&gMaterial);
+	System::SafeDeleteArray(&gSphTexResources);
 }
 
 void SafeReleaseAll_D3D_Interface()
@@ -1273,7 +1286,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		auto result = gDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(gBasicDescHeap.GetAddressOf()));
 		if (result != S_OK)
 		{
-			return ReturnWithErrorMessage("Failed Create Material Descriptor Heap");
+			return ReturnWithErrorMessage("Failed Create Matrix Descriptor Heap");
 		}
 
 		//// ディスクリプタヒープ上にビューを作成・配置する
@@ -1305,15 +1318,35 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		auto materialCount = miku.GetMaterialCount();
 		gMaterial = new Material[materialCount]{};
 		gTexResources.assign(materialCount, nullptr);
+		gSphTexResources = new ComPtr<ID3D12Resource>[materialCount] { nullptr };
 
 		for (int i = 0; i < materialCount; ++i)
 		{
-			auto& m = miku.GetMaterial(i);
-			gMaterial[i].GetDataFromPMD_Material(m);
-			if (m.texturePath.GetText()[0] != '\0')
+			auto& fileM = miku.GetMaterial(i);
+			auto& m = gMaterial[i];
+			m.GetDataFromPMD_Material(fileM);
+
+			if (fileM.texturePath.GetText()[0] != '\0')
 			{
-				gMaterial[i].onCPU.LoadTexturePath(miku.GetDirectoryPath(), m.texturePath.GetText());
-				LoadTextureFromfile(gMaterial[i].onCPU.GetTexturePath(), gTexResources[i].GetAddressOf());
+				m.onCPU.LoadTexturePath(miku.GetDirectoryPath(), fileM.texturePath.GetText());
+				if (m.onCPU.GetTexturePath() != nullptr)
+				{
+					DebugMessage("TEX");
+					DebugOutStringWide(m.onCPU.GetTexturePath());
+					LoadTextureFromfile(m.onCPU.GetTexturePath(), gTexResources[i].GetAddressOf());
+				}
+				if (m.onCPU.GetSphTexturePath() != nullptr)
+				{
+					DebugMessage("SPH");
+					DebugOutStringWide(m.onCPU.GetSphTexturePath());
+					LoadTextureFromfile(m.onCPU.GetSphTexturePath(), gSphTexResources[i].GetAddressOf());
+				}
+				if(m.onCPU.GetSpaTexturePath() != nullptr)
+				{
+					DebugMessage("SPA");
+					DebugOutStringWide(m.onCPU.GetSpaTexturePath());
+				}
+
 			}
 		}
 
@@ -1362,7 +1395,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		D3D12_DESCRIPTOR_HEAP_DESC matDescHeapDesc = {};
 		matDescHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		matDescHeapDesc.NodeMask = 0;
-		matDescHeapDesc.NumDescriptors = materialCount * 2;// 各マテリアルにテクスチャ1つのため、ディスクリプタ数はマテリアル数の倍
+		matDescHeapDesc.NumDescriptors = materialCount * 3;// 各マテリアルにテクスチャ1つのため、ディスクリプタ数はマテリアル数の倍
 		matDescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
 		result = gDevice->CreateDescriptorHeap
@@ -1407,6 +1440,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			{
 				shaderResourceViewDesc.Format = gTexResources[i]->GetDesc().Format;
 				gDevice->CreateShaderResourceView(gTexResources[i].Get(), &shaderResourceViewDesc, matDescHeapHandle);
+			}
+			
+			matDescHeapHandle.ptr += incrementSize;
+
+			if (gSphTexResources[i].Get() == nullptr)
+			{
+				shaderResourceViewDesc.Format = gWhiteTexture->GetDesc().Format;
+				gDevice->CreateShaderResourceView(gWhiteTexture.Get(), &shaderResourceViewDesc, matDescHeapHandle);
+			}
+			else
+			{
+				shaderResourceViewDesc.Format = gSphTexResources[i]->GetDesc().Format;
+				gDevice->CreateShaderResourceView(gSphTexResources[i].Get(), &shaderResourceViewDesc, matDescHeapHandle);
 			}
 
 			matDescHeapHandle.ptr += incrementSize;
@@ -1474,7 +1520,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		descTableRange[1].BaseShaderRegister = 1;
 		descTableRange[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-		descTableRange[2].NumDescriptors = 1;
+		descTableRange[2].NumDescriptors = 2;
 		descTableRange[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		descTableRange[2].BaseShaderRegister = 0;
 		descTableRange[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -1777,7 +1823,7 @@ int Frame()
 
 		gCmdList->DrawIndexedInstanced(gMaterial[i].vertexCount, 1, idxOffset, 0, 0);
 
-		materialHandle.ptr += gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 2;
+		materialHandle.ptr += gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 3;
 		idxOffset += m.vertexCount;
 	}
 
