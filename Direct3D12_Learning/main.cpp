@@ -147,7 +147,9 @@ ComPtr<ID3D12Resource> gConstBuffer = nullptr;
 
 std::vector<ComPtr<ID3D12Resource>> gTexResources;
 ComPtr<ID3D12Resource>* gSphTexResources = nullptr;
+ComPtr<ID3D12Resource>* gSpaTexResources = nullptr;
 ComPtr<ID3D12Resource> gWhiteTexture = nullptr;
+ComPtr<ID3D12Resource> gBlackTexture = nullptr;
 
 //ComPtr<ID3D12Resource> gTexBuffer = nullptr;
 
@@ -369,7 +371,6 @@ private:
 		char* pathBuff = nullptr;
 		System::newArray_CopyAssetPath(&pathBuff, dirPath, texname);
 
-		DebugOutString(ext);
 
 		if (System::StringEqual(ext, "sph"))
 		{
@@ -396,7 +397,6 @@ public:
 
 	void LoadTexturePath(const char* const dirPath, const char* const texFileName)
 	{
-		DebugOutString(texFileName);
 		if (newArray_SplitFileName(nullptr, nullptr, texFileName) == false)
 		{
 			SetTexturePath(dirPath, texFileName);
@@ -414,9 +414,6 @@ public:
 			System::SafeDeleteArray(&texNameBuff2);
 		}
 
-		DebugOutStringWide(texPath);
-		DebugOutStringWide(sphPath);
-		DebugOutStringWide(spaPath);
 	}
 
 	const wchar_t* const GetTexturePath() const
@@ -488,7 +485,7 @@ static const char* const rinPath = "../x64/Debug/Test/Model/PMD/鏡音リン.pmd";
 static const char* const rukaPath = "../x64/Debug/Test/Model/PMD/巡音ルカ.pmd";
 
 const MMDsdk::PmxFile model("ahahaha.text");
-const MMDsdk::PmdFile miku(metalMikuPath);
+const MMDsdk::PmdFile miku(rukaPath);
 
 auto gMatrix = DirectX::XMMatrixIdentity();
 auto gWorld = DirectX::XMMatrixIdentity();
@@ -509,11 +506,13 @@ void SafeDeleteAllResource()
 	System::SafeDeleteArray(&gMesh);
 	System::SafeDeleteArray(&gIndices);
 	System::SafeDeleteArray(&gMaterial);
-	System::SafeDeleteArray(&gSphTexResources);
 }
 
 void SafeReleaseAll_D3D_Interface()
 {
+	System::SafeDeleteArray(&gSphTexResources);
+	System::SafeDeleteArray(&gSpaTexResources);
+
 	SafeRelease(gMaterialDesciptorHeap.GetAddressOf());
 	SafeRelease(gMaterialBuffer.GetAddressOf());
 	SafeRelease(gDsvHeap.GetAddressOf());
@@ -577,6 +576,7 @@ LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
 void LoadTextureFromfile(const wchar_t* const texPath, ID3D12Resource** ppTexBuff);
 
 void CreateWhiteTexture(ID3D12Resource** ppTexResource);
+void CreateBlackTexture(ID3D12Resource** ppTexBuff);
 
 #ifdef _DEBUG
 int main()
@@ -1319,6 +1319,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		gMaterial = new Material[materialCount]{};
 		gTexResources.assign(materialCount, nullptr);
 		gSphTexResources = new ComPtr<ID3D12Resource>[materialCount] { nullptr };
+		gSpaTexResources = new ComPtr<ID3D12Resource>[materialCount] { nullptr };
 
 		for (int i = 0; i < materialCount; ++i)
 		{
@@ -1345,6 +1346,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 				{
 					DebugMessage("SPA");
 					DebugOutStringWide(m.onCPU.GetSpaTexturePath());
+					LoadTextureFromfile(m.onCPU.GetSpaTexturePath(), gSpaTexResources[i].GetAddressOf());
 				}
 
 			}
@@ -1395,7 +1397,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		D3D12_DESCRIPTOR_HEAP_DESC matDescHeapDesc = {};
 		matDescHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		matDescHeapDesc.NodeMask = 0;
-		matDescHeapDesc.NumDescriptors = materialCount * 3;// 各マテリアルにテクスチャ1つのため、ディスクリプタ数はマテリアル数の倍
+		matDescHeapDesc.NumDescriptors = materialCount * 4;// 各マテリアルにテクスチャ最大3つのため、ディスクリプタ数はマテリアル数の最大4倍
 		matDescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
 		result = gDevice->CreateDescriptorHeap
@@ -1424,6 +1426,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 		CreateWhiteTexture(gWhiteTexture.GetAddressOf());
+		CreateBlackTexture(gBlackTexture.GetAddressOf());
 
 		for (int i = 0; i < materialCount; ++i)
 		{
@@ -1453,6 +1456,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			{
 				shaderResourceViewDesc.Format = gSphTexResources[i]->GetDesc().Format;
 				gDevice->CreateShaderResourceView(gSphTexResources[i].Get(), &shaderResourceViewDesc, matDescHeapHandle);
+			}
+
+			matDescHeapHandle.ptr += incrementSize;
+
+			if (gSpaTexResources[i].Get() == nullptr)
+			{
+				shaderResourceViewDesc.Format = gBlackTexture->GetDesc().Format;
+				gDevice->CreateShaderResourceView(gBlackTexture.Get(), &shaderResourceViewDesc, matDescHeapHandle);
+			}
+			else
+			{
+				shaderResourceViewDesc.Format = gSpaTexResources[i]->GetDesc().Format;
+				gDevice->CreateShaderResourceView(gSpaTexResources[i].Get(), &shaderResourceViewDesc, matDescHeapHandle);
 			}
 
 			matDescHeapHandle.ptr += incrementSize;
@@ -1520,7 +1536,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		descTableRange[1].BaseShaderRegister = 1;
 		descTableRange[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-		descTableRange[2].NumDescriptors = 2;
+		descTableRange[2].NumDescriptors = 3;
 		descTableRange[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		descTableRange[2].BaseShaderRegister = 0;
 		descTableRange[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -1823,7 +1839,7 @@ int Frame()
 
 		gCmdList->DrawIndexedInstanced(gMaterial[i].vertexCount, 1, idxOffset, 0, 0);
 
-		materialHandle.ptr += gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 3;
+		materialHandle.ptr += gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 4;
 		idxOffset += m.vertexCount;
 	}
 
@@ -1978,6 +1994,61 @@ void CreateWhiteTexture(ID3D12Resource** ppTexBuff)
 
 	std::vector<unsigned char> data(4 * 4 * 4);
 	std::fill(data.begin(), data.end(), 0xff);
+
+	result = (*ppTexBuff)->WriteToSubresource
+	(
+		0,
+		nullptr,
+		data.data(),
+		4 * 4,
+		data.size()
+	);
+
+	if (FAILED(result))
+	{
+		DebugMessage("Failed Write to Subresource of White Texture");
+	}
+}
+
+
+void CreateBlackTexture(ID3D12Resource** ppTexBuff)
+{
+	D3D12_HEAP_PROPERTIES texHeapProp = {};
+	texHeapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_CUSTOM;
+	texHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+	texHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_L0;
+	texHeapProp.VisibleNodeMask = 0;
+
+	D3D12_RESOURCE_DESC resDesc = {};
+	resDesc.Format = DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM;
+	resDesc.Width = 4;
+	resDesc.Height = 4;
+	resDesc.DepthOrArraySize = 1;
+	resDesc.SampleDesc.Count = 1;
+	resDesc.SampleDesc.Quality = 0;
+	resDesc.MipLevels = 1;
+	resDesc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+
+	auto result = gDevice->CreateCommittedResource
+	(
+		&texHeapProp,
+		D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+		&resDesc,
+		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+		nullptr,
+		IID_PPV_ARGS(ppTexBuff)
+	);
+
+	if (FAILED(result))
+	{
+		DebugMessage("Failed Create White Texture Resource !");
+		return;
+	}
+
+	std::vector<unsigned char> data(4 * 4 * 4);
+	std::fill(data.begin(), data.end(), 0x00);
 
 	result = (*ppTexBuff)->WriteToSubresource
 	(
