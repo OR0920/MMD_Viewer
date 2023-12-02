@@ -485,7 +485,7 @@ static const char* const rinPath = "../x64/Debug/Test/Model/PMD/ãæâπÉäÉì.pmd";
 static const char* const rukaPath = "../x64/Debug/Test/Model/PMD/èÑâπÉãÉJ.pmd";
 
 const MMDsdk::PmxFile model("ahahaha.text");
-const MMDsdk::PmdFile miku(metalMikuPath);
+const MMDsdk::PmdFile miku(rukaPath);
 
 auto gMatrix = DirectX::XMMatrixIdentity();
 auto gWorld = DirectX::XMMatrixIdentity();
@@ -1735,6 +1735,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	return 0;
 }
 
+
+DirectX::XMFLOAT3 eye(0.f, 10.f, -15.f);
+DirectX::XMFLOAT3 target(0.f, 10.f, 0.f);
+DirectX::XMFLOAT3 up(0.f, 1.f, 0.f);
+
+auto gView = DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
+auto gProjection = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, static_cast<float>(gWindowWidth) / static_cast<float>(gWindowHeight), 1.f, 100.f);
+
 LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
 	if (msg == WM_DESTROY)
@@ -1742,15 +1750,41 @@ LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 		PostQuitMessage(0);
 		return 0;
 	}
+	if (msg == WM_KEYDOWN)
+	{
+		float diff = 0.2f;
+		if (wp == 'W')
+		{
+			eye.y += diff;
+			target.y += diff;
+		}
+		if (wp == 'S')
+		{
+			eye.y += -diff;
+			target.y += -diff;
+		}
+		if (wp == 'Q')
+		{
+			eye.z += diff;
+		}
+		if (wp == 'E')
+		{
+			eye.z += -diff;
+		}
+		if (wp == 'A')
+		{
+			eye.x += -diff;
+			target.x += -diff;
+		}
+		if (wp == 'D')
+		{
+			eye.x += diff;
+			target.x += diff;
+		}
+	}
 	return DefWindowProc(hwnd, msg, wp, lp);
 }
 
-const DirectX::XMFLOAT3 eye(0.f, 10.f, -15.f);
-const DirectX::XMFLOAT3 target(0.f, 10.f, 0.f);
-const DirectX::XMFLOAT3 up(0.f, 1.f, 0.f);
-
-const auto gView = DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
-const auto gProjection = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, static_cast<float>(gWindowWidth) / static_cast<float>(gWindowHeight), 1.f, 100.f);
 
 int Frame()
 {
@@ -1761,6 +1795,8 @@ int Frame()
 	float rot = deg * (frameCount % static_cast<int>(360.f / deg));
 
 	gWorld = DirectX::XMMatrixRotationY(MathUtil::DegreeToRadian(rot));
+	gView = DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
+	gProjection = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, static_cast<float>(gWindowWidth) / static_cast<float>(gWindowHeight), 1.f, 100.f);
 
 	gMappedMatrix->world = gWorld;
 	gMappedMatrix->view = gView;
