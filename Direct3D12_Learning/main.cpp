@@ -255,8 +255,8 @@ unsigned short* gIndices = nullptr;
 struct MaterialOnShader
 {
 	MathUtil::float4 diffuse;
-	float specularity;
 	MathUtil::float3 specular;
+	float specularity;
 	MathUtil::float3 ambient;
 
 	void GetDataFromPMD_Material(const MMDsdk::PmdFile::Material& m)
@@ -497,6 +497,7 @@ struct MatrixConstantBuffer
 	DirectX::XMMATRIX world;
 	DirectX::XMMATRIX view;
 	DirectX::XMMATRIX proj;
+	DirectX::XMFLOAT3 eye;
 };
 
 MatrixConstantBuffer* gMappedMatrix = nullptr;
@@ -1764,6 +1765,7 @@ int Frame()
 	gMappedMatrix->world = gWorld;
 	gMappedMatrix->view = gView;
 	gMappedMatrix->proj = gProjection;
+	gMappedMatrix->eye = eye;
 
 	gCmdAllocator->Reset();
 	gCmdList->Reset(gCmdAllocator.Get(), nullptr);

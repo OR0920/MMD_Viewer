@@ -3,21 +3,25 @@
 
 float4 BasicPS(VS_OutPut vso) : SV_TARGET
 {
-	float3 light = normalize(float3(1.f, -1.f, 1.f));
+    float3 light = normalize(float3(1.f, -1.f, 1.f));
+    float diffuseB = dot(-light, vso.normal.xyz);
 
-	float brightness = dot(-light, vso.normal.xyz);
+    float3 refLight = normalize(reflect(light, vso.normal.xyz));
+    float3 specularB = pow(saturate(dot(refLight, -vso.ray)), specular.a);
 
-    //if (brightness > 0.25)
+    return float4(specularB * specular.rgb, 1);
+
+    //if (diffuseB > 0.25)
     //{
-    //    brightness = 1;
+    //    diffuseB = 1;
     //}
     //else
     //{
-    //    brightness = 0.5;
+    //    diffuseB = 0.5;
     //}
 
     float4 col;
-	col.xyz = brightness;
+	col.xyz = diffuseB;
 	col.w = 1.f;
 	col *= diffuse;
     float4 texCol = tex.Sample(smp, vso.uv);    	

@@ -6,6 +6,7 @@ struct VS_OutPut
     float4 normal : NORMAL;
     float4 vnormal : NORMAL1;
     float2 uv : TEXCOORD;
+    float3 ray : VECTOR;
 };
 
 Texture2D<float4> tex : register(t0);
@@ -18,6 +19,7 @@ cbuffer transform : register(b0)
     matrix world;
     matrix view;
     matrix projection;
+    float3 eye;
 };
 
 cbuffer material : register(b1)

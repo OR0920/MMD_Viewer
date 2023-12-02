@@ -14,7 +14,11 @@ VS_OutPut BasicVS(VS_Input vsi)
     vsi.pos.w = 1.f;
     VS_OutPut vso;
     vso.pos = vsi.pos;
-    vso.svpos = mul(mul(mul(projection, view), world), vsi.pos);
+    vsi.pos = mul(world, vsi.pos);
+
+    vso.ray = normalize(vsi.pos.xyz - eye);
+
+    vso.svpos = mul(mul(projection, view), vsi.pos);
     vsi.normal.w = 0.f;
     vso.normal = mul(world, vsi.normal);
     vso.vnormal = mul(view, vso.normal);
