@@ -485,7 +485,7 @@ static const char* const rinPath = "../x64/Debug/Test/Model/PMD/‹¾‰¹ƒŠƒ“.pmd";
 static const char* const rukaPath = "../x64/Debug/Test/Model/PMD/„‰¹ƒ‹ƒJ.pmd";
 
 const MMDsdk::PmxFile model("ahahaha.text");
-const MMDsdk::PmdFile miku(rukaPath);
+const MMDsdk::PmdFile miku(metalMikuPath);
 
 auto gMatrix = DirectX::XMMatrixIdentity();
 auto gWorld = DirectX::XMMatrixIdentity();

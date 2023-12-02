@@ -9,8 +9,14 @@ float4 BasicPS(VS_OutPut vso) : SV_TARGET
     float3 refLight = normalize(reflect(light, vso.normal.xyz));
     float3 specularB = pow(saturate(dot(refLight, -vso.ray)), specular.a);
 
-    return float4(specularB * specular.rgb, 1);
+    float4 specularColor = float4(specularB * specular.rgb, 1);
 
+
+    
+    
+
+    return specularColor;
+    
     //if (diffuseB > 0.25)
     //{
     //    diffuseB = 1;
