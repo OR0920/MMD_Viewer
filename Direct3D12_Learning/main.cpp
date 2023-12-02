@@ -483,9 +483,10 @@ static const char* const meikoPath = "../x64/Debug/Test/Model/PMD/MEIKO.pmd";
 static const char* const kaitoPath = "../x64/Debug/Test/Model/PMD/カイト.pmd";
 static const char* const rinPath = "../x64/Debug/Test/Model/PMD/鏡音リン.pmd";
 static const char* const rukaPath = "../x64/Debug/Test/Model/PMD/巡音ルカ.pmd";
+static const char* const hachunePath = "D:/Projects/MMD_Viewer/x64/Debug/Test/Model/PMD/PMDモデル はちゅねミク_hatsune_hachi_202312021756/PMD_hachune_1.41/hachune.pmd";
 
 const MMDsdk::PmxFile model("ahahaha.text");
-const MMDsdk::PmdFile miku(rukaPath);
+const MMDsdk::PmdFile miku(hachunePath);
 
 auto gMatrix = DirectX::XMMatrixIdentity();
 auto gWorld = DirectX::XMMatrixIdentity();
@@ -1752,7 +1753,7 @@ LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	}
 	if (msg == WM_KEYDOWN)
 	{
-		float diff = 0.2f;
+		float diff = 0.5f;
 		if (wp == 'W')
 		{
 			eye.y += diff;
@@ -1766,10 +1767,12 @@ LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 		if (wp == 'Q')
 		{
 			eye.z += diff;
+			target.z += diff;
 		}
 		if (wp == 'E')
 		{
 			eye.z += -diff;
+			target.z += -diff;
 		}
 		if (wp == 'A')
 		{
@@ -1924,13 +1927,47 @@ void LoadTextureFromfile(const wchar_t* const texPath, ID3D12Resource** ppTexBuf
 	DirectX::TexMetadata metadata = {};
 	DirectX::ScratchImage scratchImg = {};
 
-	auto result = DirectX::LoadFromWICFile
-	(
-		texPath,
-		DirectX::WIC_FLAGS::WIC_FLAGS_NONE,
-		&metadata,
-		scratchImg
-	);
+	char* ext = nullptr;
+	char* mbTexPath = nullptr;
+	
+	System::newArray_CreateMultiByteStrFromWideCharStr(&mbTexPath, texPath);
+	newArray_GetExtention(&ext, mbTexPath);
+
+	HRESULT result = {};
+
+	if (System::StringEqual(ext, "dds"))
+	{
+		result = DirectX::LoadFromDDSFile
+		(
+			texPath,
+			DirectX::DDS_FLAGS::DDS_FLAGS_NONE,
+			&metadata,
+			scratchImg
+		);
+	}
+	if (System::StringEqual(ext, "tga"))
+	{
+		result = DirectX::LoadFromTGAFile
+		(
+			texPath,
+			DirectX::TGA_FLAGS::TGA_FLAGS_NONE,
+			&metadata,
+			scratchImg
+		);
+	}
+	else
+	{
+		result = DirectX::LoadFromWICFile
+		(
+			texPath,
+			DirectX::WIC_FLAGS::WIC_FLAGS_NONE,
+			&metadata,
+			scratchImg
+		);
+	};
+
+	System::SafeDeleteArray(&ext);
+	System::SafeDeleteArray(&mbTexPath);
 
 	if (FAILED(result))
 	{
