@@ -151,6 +151,9 @@ ComPtr<ID3D12Resource>* gSpaTexResources = nullptr;
 ComPtr<ID3D12Resource> gWhiteTexture = nullptr;
 ComPtr<ID3D12Resource> gBlackTexture = nullptr;
 
+ComPtr<ID3D12Resource> gToonTexResources[10] = { nullptr };
+ComPtr<ID3D12Resource> gGrayToonTexResource = nullptr;
+
 //ComPtr<ID3D12Resource> gTexBuffer = nullptr;
 
 
@@ -393,7 +396,7 @@ private:
 public:
 	void GetDataFromPMD_Material(const MMDsdk::PmdFile::Material& m)
 	{
-		
+
 		edgeFlg = m.edgeFlag;
 	}
 
@@ -581,6 +584,7 @@ void LoadTextureFromfile(const wchar_t* const texPath, ID3D12Resource** ppTexBuf
 
 void CreateWhiteTexture(ID3D12Resource** ppTexResource);
 void CreateBlackTexture(ID3D12Resource** ppTexBuff);
+void CreateGrayGradationTexture(ID3D12Resource** ppTexBuff);
 
 #ifdef _DEBUG
 int main()
@@ -1325,6 +1329,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		gSphTexResources = new ComPtr<ID3D12Resource>[materialCount] { nullptr };
 		gSpaTexResources = new ComPtr<ID3D12Resource>[materialCount] { nullptr };
 
+		// toonテクスチャの読み込み
+		for (int i = 0; i < 10; ++i)
+		{
+			char* toonPath = nullptr;
+
+			System::newArray_CopyAssetPath(&toonPath, miku.GetDirectoryPath(), miku.GetToonTexturePath(i).GetText());
+			DebugOutString(toonPath);
+
+			wchar_t* wToonPath = nullptr;
+			System::newArray_CreateWideCharStrFromMultiByteStr(&wToonPath, toonPath);
+			DebugOutStringWide(wToonPath);
+
+			LoadTextureFromfile(wToonPath, gToonTexResources[i].GetAddressOf());
+
+			System::SafeDeleteArray(&wToonPath);
+			System::SafeDeleteArray(&toonPath);
+		}
+
+		CreateGrayGradationTexture(gGrayToonTexResource.GetAddressOf());
+
 		for (int i = 0; i < materialCount; ++i)
 		{
 			auto& fileM = miku.GetMaterial(i);
@@ -1346,7 +1370,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 					DebugOutStringWide(m.onCPU.GetSphTexturePath());
 					LoadTextureFromfile(m.onCPU.GetSphTexturePath(), gSphTexResources[i].GetAddressOf());
 				}
-				if(m.onCPU.GetSpaTexturePath() != nullptr)
+				if (m.onCPU.GetSpaTexturePath() != nullptr)
 				{
 					DebugMessage("SPA");
 					DebugOutStringWide(m.onCPU.GetSpaTexturePath());
@@ -1420,14 +1444,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		materialViewDesc.SizeInBytes = materialBufferSize;
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
-		shaderResourceViewDesc.Format = DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM;
+		shaderResourceViewDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
 		shaderResourceViewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		shaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2D;
 		shaderResourceViewDesc.Texture2D.MipLevels = 1;
 
 		auto matDescHeapHandle = gMaterialDesciptorHeap->GetCPUDescriptorHandleForHeapStart();
 		auto incrementSize = gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
 
 		CreateWhiteTexture(gWhiteTexture.GetAddressOf());
 		CreateBlackTexture(gBlackTexture.GetAddressOf());
@@ -1448,7 +1471,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 				shaderResourceViewDesc.Format = gTexResources[i]->GetDesc().Format;
 				gDevice->CreateShaderResourceView(gTexResources[i].Get(), &shaderResourceViewDesc, matDescHeapHandle);
 			}
-			
+
 			matDescHeapHandle.ptr += incrementSize;
 
 			if (gSphTexResources[i].Get() == nullptr)
@@ -1477,6 +1500,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 			matDescHeapHandle.ptr += incrementSize;
 		}
+	}
+
+	// toonテクスチャの作成
+	{
+
 	}
 
 	// シェーダーのコンパイル
@@ -1931,7 +1959,7 @@ void LoadTextureFromfile(const wchar_t* const texPath, ID3D12Resource** ppTexBuf
 
 	char* ext = nullptr;
 	char* mbTexPath = nullptr;
-	
+
 	System::newArray_CreateMultiByteStrFromWideCharStr(&mbTexPath, texPath);
 	newArray_GetExtention(&ext, mbTexPath);
 
@@ -2120,24 +2148,69 @@ void CreateBlackTexture(ID3D12Resource** ppTexBuff)
 
 	if (FAILED(result))
 	{
-		DebugMessage("Failed Create White Texture Resource !");
+		DebugMessage("Failed Create default toon Texture Resource !");
 		return;
 	}
 
-	std::vector<unsigned char> data(4 * 4 * 4);
-	std::fill(data.begin(), data.end(), 0x00);
+	std::vector<unsigned int> data(4 * 256);
+	auto it = data.begin();
+	unsigned int c = 0xff;
+	for (; it != data.end(); it += 4)
+	{
+		auto col = (0xff << 24);
+		std::fill(it, it + 4, col);
+		--c;
+	}
 
 	result = (*ppTexBuff)->WriteToSubresource
 	(
 		0,
 		nullptr,
 		data.data(),
-		4 * 4,
-		data.size()
+		4 * sizeof(unsigned int),
+		data.size() * sizeof(unsigned int)
 	);
 
 	if (FAILED(result))
 	{
 		DebugMessage("Failed Write to Subresource of White Texture");
 	}
+}
+
+void CreateGrayGradationTexture(ID3D12Resource** ppTexBuff)
+{
+	D3D12_HEAP_PROPERTIES texHeapProp = {};
+	texHeapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_CUSTOM;
+	texHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+	texHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_L0;
+	texHeapProp.VisibleNodeMask = 0;
+
+	D3D12_RESOURCE_DESC resDesc = {};
+	resDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
+	resDesc.Width = 4;
+	resDesc.Height = 256;
+	resDesc.DepthOrArraySize = 1;
+	resDesc.SampleDesc.Count = 1;
+	resDesc.SampleDesc.Quality = 0;
+	resDesc.MipLevels = 1;
+	resDesc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+
+	auto result = gDevice->CreateCommittedResource
+	(
+		&texHeapProp,
+		D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+		&resDesc,
+		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+		nullptr,
+		IID_PPV_ARGS(ppTexBuff)
+	);
+
+	if (FAILED(result))
+	{
+		DebugMessage("Failed Create White Texture Resource !");
+		return;
+	}
+
 }
