@@ -258,6 +258,7 @@ struct MaterialOnShader
 	MathUtil::float3 specular;
 	float specularity;
 	MathUtil::float3 ambient;
+	int toonIdx;
 
 	void GetDataFromPMD_Material(const MMDsdk::PmdFile::Material& m)
 	{
@@ -265,6 +266,8 @@ struct MaterialOnShader
 		specularity = m.specularity;
 		specular = GetFloat3FromPMD(m.specular);
 		ambient = GetFloat3FromPMD(m.ambient);
+		toonIdx = m.toonIndex + 1;
+		DebugOutParamI(toonIdx);
 	}
 
 	const MaterialOnShader& operator=(const MaterialOnShader& other)
@@ -355,7 +358,6 @@ bool newArray_SplitFileName(char** primaryTex, char** secondaryTex, const char* 
 
 struct MaterialOnCPU
 {
-	int toonIdx;
 	bool edgeFlg;
 private:
 	wchar_t* texPath = nullptr;
@@ -391,7 +393,7 @@ private:
 public:
 	void GetDataFromPMD_Material(const MMDsdk::PmdFile::Material& m)
 	{
-		toonIdx = m.toonIndex;
+		
 		edgeFlg = m.edgeFlag;
 	}
 
@@ -486,7 +488,7 @@ static const char* const rukaPath = "../x64/Debug/Test/Model/PMD/巡音ルカ.pmd";
 static const char* const hachunePath = "D:/Projects/MMD_Viewer/x64/Debug/Test/Model/PMD/PMDモデル はちゅねミク_hatsune_hachi_202312021756/PMD_hachune_1.41/hachune.pmd";
 
 const MMDsdk::PmxFile model("ahahaha.text");
-const MMDsdk::PmdFile miku(hachunePath);
+const MMDsdk::PmdFile miku(metalMikuPath);
 
 auto gMatrix = DirectX::XMMatrixIdentity();
 auto gWorld = DirectX::XMMatrixIdentity();
