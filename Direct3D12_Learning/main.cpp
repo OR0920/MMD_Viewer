@@ -657,7 +657,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		for (auto lv : levels)
 		{
-			if (D3D12CreateDevice(nullptr, lv, IID_PPV_ARGS(&gDevice)) == S_OK)
+			if (D3D12CreateDevice(nullptr, lv, IID_PPV_ARGS(gDevice.ReleaseAndGetAddressOf())) == S_OK)
 			{
 				featureLevel = lv;
 				break;
@@ -673,7 +673,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	{
 		ComPtr<IDXGIFactory2> dxgiF = nullptr;
 #ifdef _DEBUG
-		auto result = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(dxgiF.GetAddressOf()));
+		auto result = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(dxgiF.ReleaseAndGetAddressOf()));
 #else
 		auto result = CreateDXGIFactory1(IID_PPV_ARGS(dxgiF.GetAddressOf()));
 #endif // _DEBUG
@@ -681,7 +681,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{
 			return ReturnWithErrorMessage("Failed Create DXGI Factory2 !");
 		}
-		result = dxgiF->QueryInterface(gDxgiFactory.GetAddressOf());
+		result = dxgiF->QueryInterface(gDxgiFactory.ReleaseAndGetAddressOf());
 		if (result != S_OK)
 		{
 			return ReturnWithErrorMessage("Failed Query Interface from DXGI Factory2 to 6");
@@ -694,7 +694,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			gDevice->CreateCommandAllocator
 			(
 				D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT,
-				IID_PPV_ARGS(&gCmdAllocator)
+				IID_PPV_ARGS(gCmdAllocator.ReleaseAndGetAddressOf())
 			);
 		if (result != S_OK)
 		{
@@ -709,7 +709,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 				D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT,
 				gCmdAllocator.Get(),
 				nullptr,
-				IID_PPV_ARGS(&gCmdList)
+				IID_PPV_ARGS(gCmdList.ReleaseAndGetAddressOf())
 			);
 		if (result != S_OK)
 		{
@@ -726,7 +726,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		cqd.Priority = D3D12_COMMAND_QUEUE_PRIORITY::D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
 		cqd.Type = D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT;
 
-		auto result = gDevice->CreateCommandQueue(&cqd, IID_PPV_ARGS(&gCmdQueue));
+		auto result = gDevice->CreateCommandQueue(&cqd, IID_PPV_ARGS(gCmdQueue.ReleaseAndGetAddressOf()));
 		if (result != S_OK)
 		{
 			return ReturnWithErrorMessage("Failed To Create Command Queue !");
@@ -757,7 +757,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 				&scd,
 				nullptr,
 				nullptr,
-				reinterpret_cast<IDXGISwapChain1**>(gSwapChain.GetAddressOf())
+				reinterpret_cast<IDXGISwapChain1**>(gSwapChain.ReleaseAndGetAddressOf())
 			);
 
 		if (result != S_OK)
@@ -777,7 +777,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		hd.NumDescriptors = gBufferCount;
 		hd.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-		auto result = gDevice->CreateDescriptorHeap(&hd, IID_PPV_ARGS(&gRtvHeaps));
+		auto result = gDevice->CreateDescriptorHeap(&hd, IID_PPV_ARGS(gRtvHeaps.ReleaseAndGetAddressOf()));
 		if (result != S_OK)
 		{
 			return ReturnWithErrorMessage("Failed Create RTV Heap !");
@@ -794,7 +794,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		// 全レンダーターゲットを作成
 		for (unsigned int idx = 0; idx < scd.BufferCount; ++idx)
 		{
-			result = gSwapChain->GetBuffer(idx, IID_PPV_ARGS(&gBackBuffers[idx]));
+			result = gSwapChain->GetBuffer(idx, IID_PPV_ARGS(gBackBuffers[idx].ReleaseAndGetAddressOf()));
 			if (result != S_OK)
 			{
 				DebugOutParamI(idx);
@@ -834,7 +834,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			&depthResDesc,
 			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_DEPTH_WRITE,
 			&depthClearValue,
-			IID_PPV_ARGS(gDepthBuffer.GetAddressOf())
+			IID_PPV_ARGS(gDepthBuffer.ReleaseAndGetAddressOf())
 		);
 
 		if (result != S_OK)
@@ -846,7 +846,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		dsvHeapDesc.NumDescriptors = 1;
 		dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 
-		result = gDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(gDsvHeap.GetAddressOf()));
+		result = gDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(gDsvHeap.ReleaseAndGetAddressOf()));
 		if (result != S_OK)
 		{
 			return ReturnWithErrorMessage("Failed Create DepthStencilView's Descriptor Heap !");
@@ -867,7 +867,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	// フェンスの作成
 	{
-		auto result = gDevice->CreateFence(gFenceVal, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&gFence));
+		auto result = gDevice->CreateFence(gFenceVal, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(gFence.ReleaseAndGetAddressOf()));
 		if (result != S_OK)
 		{
 			return ReturnWithErrorMessage("Failed Create Fence");
@@ -922,7 +922,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			&vrd,
 			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
-			IID_PPV_ARGS(gVertexBuffer.GetAddressOf())
+			IID_PPV_ARGS(gVertexBuffer.ReleaseAndGetAddressOf())
 		);
 		if (result != S_OK)
 		{
@@ -998,7 +998,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			&ird,
 			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
-			IID_PPV_ARGS(gIndexBuffer.GetAddressOf())
+			IID_PPV_ARGS(gIndexBuffer.ReleaseAndGetAddressOf())
 		);
 		if (result != S_OK)
 		{
@@ -1267,7 +1267,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			&resouceDesc,
 			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
-			IID_PPV_ARGS(gConstBuffer.GetAddressOf())
+			IID_PPV_ARGS(gConstBuffer.ReleaseAndGetAddressOf())
 		);
 		if (result != S_OK)
 		{
@@ -1291,7 +1291,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		descHeapDesc.NumDescriptors = 1;
 		descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-		auto result = gDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(gBasicDescHeap.GetAddressOf()));
+		auto result = gDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(gBasicDescHeap.ReleaseAndGetAddressOf()));
 		if (result != S_OK)
 		{
 			return ReturnWithErrorMessage("Failed Create Matrix Descriptor Heap");
@@ -1341,13 +1341,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			System::newArray_CreateWideCharStrFromMultiByteStr(&wToonPath, toonPath);
 			DebugOutStringWide(wToonPath);
 
-			LoadTextureFromfile(wToonPath, gToonTexResources[i].GetAddressOf());
+			LoadTextureFromfile(wToonPath, gToonTexResources[i].ReleaseAndGetAddressOf());
 
 			System::SafeDeleteArray(&wToonPath);
 			System::SafeDeleteArray(&toonPath);
 		}
 
-		CreateGrayGradationTexture(gGrayToonTexResource.GetAddressOf());
+		CreateGrayGradationTexture(gGrayToonTexResource.ReleaseAndGetAddressOf());
 
 		for (int i = 0; i < materialCount; ++i)
 		{
@@ -1362,19 +1362,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 				{
 					DebugMessage("TEX");
 					DebugOutStringWide(m.onCPU.GetTexturePath());
-					LoadTextureFromfile(m.onCPU.GetTexturePath(), gTexResources[i].GetAddressOf());
+					LoadTextureFromfile(m.onCPU.GetTexturePath(), gTexResources[i].ReleaseAndGetAddressOf());
 				}
 				if (m.onCPU.GetSphTexturePath() != nullptr)
 				{
 					DebugMessage("SPH");
 					DebugOutStringWide(m.onCPU.GetSphTexturePath());
-					LoadTextureFromfile(m.onCPU.GetSphTexturePath(), gSphTexResources[i].GetAddressOf());
+					LoadTextureFromfile(m.onCPU.GetSphTexturePath(), gSphTexResources[i].ReleaseAndGetAddressOf());
 				}
 				if (m.onCPU.GetSpaTexturePath() != nullptr)
 				{
 					DebugMessage("SPA");
 					DebugOutStringWide(m.onCPU.GetSpaTexturePath());
-					LoadTextureFromfile(m.onCPU.GetSpaTexturePath(), gSpaTexResources[i].GetAddressOf());
+					LoadTextureFromfile(m.onCPU.GetSpaTexturePath(), gSpaTexResources[i].ReleaseAndGetAddressOf());
 				}
 
 			}
@@ -1393,7 +1393,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			&resourceDesc,
 			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
-			IID_PPV_ARGS(gMaterialBuffer.GetAddressOf())
+			IID_PPV_ARGS(gMaterialBuffer.ReleaseAndGetAddressOf())
 		);
 
 		if (result != S_OK)
@@ -1431,7 +1431,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		result = gDevice->CreateDescriptorHeap
 		(
 			&matDescHeapDesc,
-			IID_PPV_ARGS(gMaterialDesciptorHeap.GetAddressOf())
+			IID_PPV_ARGS(gMaterialDesciptorHeap.ReleaseAndGetAddressOf())
 		);
 
 		if (result != S_OK)
@@ -1452,8 +1452,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		auto matDescHeapHandle = gMaterialDesciptorHeap->GetCPUDescriptorHandleForHeapStart();
 		auto incrementSize = gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-		CreateWhiteTexture(gWhiteTexture.GetAddressOf());
-		CreateBlackTexture(gBlackTexture.GetAddressOf());
+		CreateWhiteTexture(gWhiteTexture.ReleaseAndGetAddressOf());
+		CreateBlackTexture(gBlackTexture.ReleaseAndGetAddressOf());
 
 		for (int i = 0; i < materialCount; ++i)
 		{
@@ -1533,12 +1533,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			"vs_5_0",
 			D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
 			0,
-			gVsBlob.GetAddressOf(),
-			errorBlob.GetAddressOf()
+			gVsBlob.ReleaseAndGetAddressOf(),
+			errorBlob.ReleaseAndGetAddressOf()
 		);
 		if (result != S_OK)
 		{
-			SafeRelease(errorBlob.GetAddressOf());
+			SafeRelease(errorBlob.ReleaseAndGetAddressOf());
 			return ReturnWithErrorMessage("Failed Compile Vertex Shader !");
 		}
 
@@ -1552,8 +1552,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			"ps_5_0",
 			D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
 			0,
-			gPsBlob.GetAddressOf(),
-			errorBlob.GetAddressOf()
+			gPsBlob.ReleaseAndGetAddressOf(),
+			errorBlob.ReleaseAndGetAddressOf()
 		);
 		if (result != S_OK)
 		{
@@ -1651,8 +1651,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		(
 			&rsd,
 			D3D_ROOT_SIGNATURE_VERSION::D3D_ROOT_SIGNATURE_VERSION_1_0,
-			rsb.GetAddressOf(),
-			err.GetAddressOf()
+			rsb.ReleaseAndGetAddressOf(),
+			err.ReleaseAndGetAddressOf()
 		);
 		if (result != S_OK)
 		{
@@ -1664,15 +1664,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			0,
 			rsb->GetBufferPointer(),
 			rsb->GetBufferSize(),
-			IID_PPV_ARGS(gRootSignature.GetAddressOf())
+			IID_PPV_ARGS(gRootSignature.ReleaseAndGetAddressOf())
 		);
 		if (result != S_OK)
 		{
 			return ReturnWithErrorMessage("Failed Create RootSignature !");
 		}
 
-		SafeRelease(rsb.GetAddressOf());
-		SafeRelease(err.GetAddressOf());
+		SafeRelease(rsb.ReleaseAndGetAddressOf());
+		SafeRelease(err.ReleaseAndGetAddressOf());
 	}
 
 	// パイプラインステートの作成
@@ -1731,7 +1731,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 		// パイプラインステートオブジェクトの生成
-		auto result = gDevice->CreateGraphicsPipelineState(&plsd, IID_PPV_ARGS(gPipelineState.GetAddressOf()));
+		auto result = gDevice->CreateGraphicsPipelineState(&plsd, IID_PPV_ARGS(gPipelineState.ReleaseAndGetAddressOf()));
 		if (result != S_OK)
 		{
 			DebugOutParamHex(result);
