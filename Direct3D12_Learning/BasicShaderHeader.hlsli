@@ -27,5 +27,4 @@ cbuffer material : register(b1)
     float4 diffuse;
     float4 specular;
     float3 ambient;
-    int toonID;
 }

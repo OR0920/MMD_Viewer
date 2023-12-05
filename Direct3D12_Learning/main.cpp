@@ -261,7 +261,6 @@ struct MaterialOnShader
 	MathUtil::float3 specular;
 	float specularity;
 	MathUtil::float3 ambient;
-	int toonIdx;
 
 	void GetDataFromPMD_Material(const MMDsdk::PmdFile::Material& m)
 	{
@@ -269,8 +268,7 @@ struct MaterialOnShader
 		specularity = m.specularity;
 		specular = GetFloat3FromPMD(m.specular);
 		ambient = GetFloat3FromPMD(m.ambient);
-		toonIdx = m.toonIndex + 1;
-		DebugOutParamI(toonIdx);
+	
 	}
 
 	const MaterialOnShader& operator=(const MaterialOnShader& other)
@@ -361,6 +359,7 @@ bool newArray_SplitFileName(char** primaryTex, char** secondaryTex, const char* 
 
 struct MaterialOnCPU
 {
+	int toonIdx;
 	bool edgeFlg;
 private:
 	wchar_t* texPath = nullptr;
@@ -396,7 +395,8 @@ private:
 public:
 	void GetDataFromPMD_Material(const MMDsdk::PmdFile::Material& m)
 	{
-
+		toonIdx = m.toonIndex;
+		DebugOutParamI(toonIdx);
 		edgeFlg = m.edgeFlag;
 	}
 
@@ -1425,7 +1425,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		D3D12_DESCRIPTOR_HEAP_DESC matDescHeapDesc = {};
 		matDescHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		matDescHeapDesc.NodeMask = 0;
-		matDescHeapDesc.NumDescriptors = materialCount * 4;// 各マテリアルにテクスチャ最大3つのため、ディスクリプタ数はマテリアル数の最大4倍
+		matDescHeapDesc.NumDescriptors = materialCount * 5;// 各マテリアルにテクスチャ最大3つのため、ディスクリプタ数はマテリアル数の最大4倍
 		matDescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
 		result = gDevice->CreateDescriptorHeap
@@ -1499,12 +1499,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			}
 
 			matDescHeapHandle.ptr += incrementSize;
+
+			auto toonIndex = gMaterial[i].onCPU.toonIdx;
+
+			if (0 <= toonIndex && toonIndex < 10)
+			{
+				DebugOutParamI(toonIndex);
+				shaderResourceViewDesc.Format = gToonTexResources[toonIndex]->GetDesc().Format;
+				gDevice->CreateShaderResourceView(gToonTexResources[toonIndex].Get(), &shaderResourceViewDesc, matDescHeapHandle);
+			}
+			else
+			{
+				DebugMessage("has no toon texture !");
+				shaderResourceViewDesc.Format = gGrayToonTexResource->GetDesc().Format;
+				gDevice->CreateShaderResourceView(gGrayToonTexResource.Get(), &shaderResourceViewDesc, matDescHeapHandle);
+			}
+
+			matDescHeapHandle.ptr += incrementSize;
+		
 		}
-	}
-
-	// toonテクスチャの作成
-	{
-
 	}
 
 	// シェーダーのコンパイル
@@ -1568,7 +1581,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		descTableRange[1].BaseShaderRegister = 1;
 		descTableRange[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-		descTableRange[2].NumDescriptors = 3;
+		descTableRange[2].NumDescriptors = 4;
 		descTableRange[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		descTableRange[2].BaseShaderRegister = 0;
 		descTableRange[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -1910,7 +1923,7 @@ int Frame()
 
 		gCmdList->DrawIndexedInstanced(gMaterial[i].vertexCount, 1, idxOffset, 0, 0);
 
-		materialHandle.ptr += gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 4;
+		materialHandle.ptr += gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 5;
 		idxOffset += m.vertexCount;
 	}
 
