@@ -491,7 +491,7 @@ static const char* const rukaPath = "../x64/Debug/Test/Model/PMD/巡音ルカ.pmd";
 static const char* const hachunePath = "D:/Projects/MMD_Viewer/x64/Debug/Test/Model/PMD/PMDモデル はちゅねミク_hatsune_hachi_202312021756/PMD_hachune_1.41/hachune.pmd";
 
 const MMDsdk::PmxFile model("ahahaha.text");
-const MMDsdk::PmdFile miku(metalMikuPath);
+const MMDsdk::PmdFile miku(miku2Path);
 
 auto gMatrix = DirectX::XMMatrixIdentity();
 auto gWorld = DirectX::XMMatrixIdentity();
@@ -1619,22 +1619,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//rootParam[1].InitAsDescriptorTable(1, &descTableRange[2]);
 
 		// サンプラーの設定
-		D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
-		samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-		samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-		samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-		samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-		samplerDesc.Filter = D3D12_FILTER::D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-		samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-		samplerDesc.MinLOD = 0.f;
-		samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_PIXEL;
-		samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NEVER;
+		D3D12_STATIC_SAMPLER_DESC samplerDesc[2] = {};
+		samplerDesc[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc[0].BorderColor = D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+		samplerDesc[0].Filter = D3D12_FILTER::D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+		samplerDesc[0].MaxLOD = D3D12_FLOAT32_MAX;
+		samplerDesc[0].MinLOD = 0.f;
+		samplerDesc[0].ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_PIXEL;
+		samplerDesc[0].ComparisonFunc = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NEVER;
+
+		samplerDesc[1] = samplerDesc[0];
+		samplerDesc[1].AddressU = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+		samplerDesc[1].AddressV = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+		samplerDesc[1].AddressW = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+		samplerDesc[1].ShaderRegister = 1;
 
 		D3D12_ROOT_SIGNATURE_DESC rsd = {};
 		rsd.pParameters = rootParam;
 		rsd.NumParameters = 2;
-		rsd.pStaticSamplers = &samplerDesc;
-		rsd.NumStaticSamplers = 1;
+		rsd.pStaticSamplers = samplerDesc;
+		rsd.NumStaticSamplers = 2;
 		rsd.Flags =
 			D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
@@ -1780,8 +1786,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 }
 
 
-DirectX::XMFLOAT3 eye(0.f, 10.f, -15.f);
-DirectX::XMFLOAT3 target(0.f, 10.f, 0.f);
+const DirectX::XMFLOAT3 defaultEye(0.f, 10.f, -50.f);
+DirectX::XMFLOAT3 eye = defaultEye;
+
+const DirectX::XMFLOAT3 defaultTarget(0.f, 10.f, 0.f);
+DirectX::XMFLOAT3 target = defaultTarget;
 DirectX::XMFLOAT3 up(0.f, 1.f, 0.f);
 
 auto gView = DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
@@ -1796,6 +1805,11 @@ LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	}
 	if (msg == WM_KEYDOWN)
 	{
+		if (wp == 'R')
+		{
+			eye = defaultEye;
+			target = defaultTarget;	
+		}
 		float diff = 0.5f;
 		if (wp == 'W')
 		{
@@ -1842,7 +1856,7 @@ int Frame()
 
 	gWorld = DirectX::XMMatrixRotationY(MathUtil::DegreeToRadian(rot));
 	gView = DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eye), DirectX::XMLoadFloat3(&target), DirectX::XMLoadFloat3(&up));
-	gProjection = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, static_cast<float>(gWindowWidth) / static_cast<float>(gWindowHeight), 1.f, 100.f);
+	gProjection = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV4, static_cast<float>(gWindowWidth) / static_cast<float>(gWindowHeight), 1.f, 100.f);
 
 	gMappedMatrix->world = gWorld;
 	gMappedMatrix->view = gView;

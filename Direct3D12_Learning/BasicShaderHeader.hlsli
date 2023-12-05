@@ -12,7 +12,9 @@ struct VS_OutPut
 Texture2D<float4> tex : register(t0);
 Texture2D<float4> sph : register(t1);
 Texture2D<float4> spa : register(t2);
+Texture2D<float4> toon : register(t3);
 SamplerState smp : register(s0);
+SamplerState toonSmp : register(s1);
 
 cbuffer transform : register(b0)
 {

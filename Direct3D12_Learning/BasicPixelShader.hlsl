@@ -4,6 +4,7 @@ float4 BasicPS(VS_OutPut vso) : SV_TARGET
 {
     float3 light = normalize(float3(1.f, -1.f, 1.f));
     float diffuseB = dot(-light, vso.normal.xyz);
+    float4 toonDiffuse = toon.Sample(toonSmp, float2(0, 1.f - diffuseB));
 
     float3 refLight = normalize(reflect(light, vso.normal.xyz));
     float3 specularB = pow(saturate(dot(refLight, -vso.ray)), specular.a);
@@ -17,14 +18,15 @@ float4 BasicPS(VS_OutPut vso) : SV_TARGET
    
     //if(diffuseB > 0.3f)
     //{
-    //    diffuseB = 0.7f;
+    //    diffuseB = 0.7f; 
     //}
     //else
     //{
     //    diffuseB = 0.3f;
     //}
      
-    float4 diffuseColor = diffuseB * diffuse * texColor;
+    
+    float4 diffuseColor = toonDiffuse * diffuse * texColor;
     diffuseColor *= sphColor;
     diffuseColor += spaColor * texColor;
     float4 specularColor = float4(specularB * specular.rgb, 1.f);
