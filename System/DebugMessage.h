@@ -11,6 +11,8 @@
 // コンソール出力マクロ
 // シンプルな一行出力
 #define DebugMessage(x) std::cout << x << std::endl;
+// 関数エラーメッセージ
+#define DebugMessageFunctionError(funcName, at) DebugMessage(ToString(funcName) << " at " << ToString(at) << " is Failed !");
 // ワイド文字用
 #define DebugMessageWide(x) std::wcout << reinterpret_cast<const wchar_t*>(x); std::wcout.clear(); std::cout << std::endl;
 // 改行

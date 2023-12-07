@@ -5,8 +5,21 @@ struct VS_Input
     float4 pos : POSITION;
     float4 normal : NORMAL;
     float2 uv : TEXCOORD;
-    min16int2 boneno : BONE_NO;
-    min16int weight : WEIGHT;
+    //min16int2 boneno : BONE_NO;
+    //min16int weight : WEIGHT;
+};
+
+
+cbuffer scene : register(b0)
+{
+    matrix view;
+    matrix projection;
+    float3 eye;
+}
+
+cbuffer transform : register(b1)
+{
+    matrix world;
 };
 
 VS_OutPut BasicVS(VS_Input vsi)

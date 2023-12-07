@@ -1,0 +1,96 @@
+#pragma once
+
+#include<string>
+#include<vector>
+
+#include<D3D12.h>
+#include<DirectXMath.h>
+
+#include"UsingComPtr.h"
+
+
+class Dx12Wrapper;
+class PMDRenderer;
+
+class PMDActor
+{
+	friend PMDRenderer;
+public:
+	PMDActor(const std::string argPath , PMDRenderer& argRenderer);
+	~PMDActor();
+
+	//PMDActor* Clone();
+	void Update();
+	void Draw();
+
+private:
+	PMDRenderer& mRenderer;
+	Dx12Wrapper& mDx12;
+
+	ComPtr<ID3D12Resource> mVertexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
+
+	ComPtr<ID3D12Resource> mIndexBuffer;
+	D3D12_INDEX_BUFFER_VIEW mIndexBufferView;
+
+	ComPtr<ID3D12Resource> mTransformMat;
+	ComPtr<ID3D12DescriptorHeap> mTransformHeap;
+
+	struct MaterialOnShader
+	{
+		DirectX::XMFLOAT4 diffuse;
+		DirectX::XMFLOAT3 specular;
+		float specularity;
+		DirectX::XMFLOAT3 ambient;
+
+		void GetMaterialDataFromPMD(const void* materialDataFromFile);
+	};
+	struct MaterialOnCPU
+	{
+		std::string texPath;
+		std::string sphPath;
+		std::string spaPath;
+		
+		int toonIndex;
+		bool edgeFlag;
+		
+		void GetMaterialDataFromPMD(const void* materialDataFromFile);
+		void LoadTexturePath(const char* const dirPath, const char* const texFileName);
+	private:
+		void SetTexturePath(const char* const dirPath, const char* const texname);
+	};
+	struct Material
+	{
+		unsigned int vertexCount;
+		MaterialOnShader onShader;
+		MaterialOnCPU onCPU;
+
+		void GetMaterialDataFromPMD(const void* materialDataFromFile);
+	};
+
+	struct Transform
+	{
+		void* operator new(size_t size);
+		DirectX::XMMATRIX world;
+	} mTransform, * mMappedTransform;
+
+	ComPtr<ID3D12Resource> mTransformBuffer;
+
+	std::vector<Material> mMaterials;
+	ComPtr<ID3D12Resource> mMaterialBuffer;
+	std::vector<ComPtr<ID3D12Resource>> mTextureResources;
+	std::vector<ComPtr<ID3D12Resource>> mSPH_TextureResources;
+	std::vector<ComPtr<ID3D12Resource>> mSPA_TextureResources;
+	std::vector<ComPtr<ID3D12Resource>> mToonTextureResources;
+
+	HRESULT CreateMaterialData();
+	ComPtr<ID3D12DescriptorHeap> mMaterialHeap;
+
+	HRESULT CreateMaterialAndTextureView();
+
+	HRESULT CreateTransformView();
+	HRESULT LoadPMDFile(const std::string argPath);
+
+	float mAngle;
+};
+
