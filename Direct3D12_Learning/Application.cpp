@@ -7,17 +7,6 @@
 
 #include"System.h"
 
-static const char* const kabanPath = "../x64/Debug/Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
-static const char* const hashibiroPath = "../x64/debug/PMX/ハシビロコウ/ハシビロコウ.pmx";
-static const char* const stagePath = "../x64/debug/Test/Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/キョウシュウエリア20170914.pmx";
-static const char* const mikuPath = "../x64/Debug/Test/Model/PMD/初音ミク.pmd";
-static const char* const miku2Path = "../x64/Debug/Test/Model/PMD/初音ミクVer2.pmd";
-static const char* const metalMikuPath = "../x64/Debug/Test/Model/PMD/初音ミクmetal.pmd";
-static const char* const meikoPath = "../x64/Debug/Test/Model/PMD/MEIKO.pmd";
-static const char* const kaitoPath = "../x64/Debug/Test/Model/PMD/カイト.pmd";
-static const char* const rinPath = "../x64/Debug/Test/Model/PMD/鏡音リン.pmd";
-static const char* const rukaPath = "../x64/Debug/Test/Model/PMD/巡音ルカ.pmd";
-static const char* const hachunePath = "D:/Projects/MMD_Viewer/x64/Debug/Test/Model/PMD/PMDモデル はちゅねミク_hatsune_hachi_202312021756/PMD_hachune_1.41/hachune.pmd";
 
 
 Application& Application::Instance()
@@ -50,7 +39,8 @@ Application::~Application()
 bool Application::Init
 (
 	const unsigned int argWindowWidth,
-	const unsigned int argWindowHeight
+	const unsigned int argWindowHeight,
+	const char* const modelPath
 )
 {
 	mWindowWidth = argWindowWidth;
@@ -62,7 +52,7 @@ bool Application::Init
 
 	mDx12.reset(new Dx12Wrapper(mWindowHandle));
 	mPmdRenderer.reset(new PMDRenderer(*mDx12));
-	mPmdActor.reset(new PMDActor(mikuPath, *mPmdRenderer));
+	mPmdActor.reset(new PMDActor(modelPath, *mPmdRenderer));
 
 	return true;
 }

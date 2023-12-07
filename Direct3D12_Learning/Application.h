@@ -16,7 +16,8 @@ public:
 	bool Init
 	(
 		const unsigned int argWindowWidth ,
-		const unsigned int argWindowHeight
+		const unsigned int argWindowHeight,
+		const char* const modelPath
 	);
 	void Run();
 	void Term();
