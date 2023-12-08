@@ -26,6 +26,7 @@ if (FAILED(func))\
 	return;\
 }
 
+static const char* const toonDirPath = "../x64/Debug/Test/Model/SharedToonTexture/";
 
 PMDActor::PMDActor(const std::string argFilepath, PMDRenderer& argRenderer)
 	:
@@ -282,7 +283,7 @@ HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)
 	for (int i = 0; i < 10; ++i)
 	{
 		char* texPath = nullptr;
-		System::newArray_CopyAssetPath(&texPath, pmd.GetDirectoryPath(), pmd.GetToonTexturePath(i).GetText());
+		System::newArray_CopyAssetPath(&texPath, toonDirPath, pmd.GetToonTexturePath(i).GetText());
 
 		toonTexPath[i] = texPath;
 		System::SafeDeleteArray(&texPath);

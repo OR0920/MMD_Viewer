@@ -72,8 +72,8 @@ private:
 	}*mMappedSceneData;
 	ComPtr<ID3D12DescriptorHeap> mSceneDescriptorHeap;
 
-	const MathUtil::float3 c_eye = { 0, 15, -50 };
-	const MathUtil::float3 c_target = { 0, 15, 0 };
+	const MathUtil::float3 c_eye = { 0, 10, -40 };
+	const MathUtil::float3 c_target = { 0, 10, 0 };
 	const MathUtil::float3 c_up = { 0, 1, 0 };
 
 	MathUtil::Vector eye = c_eye;
