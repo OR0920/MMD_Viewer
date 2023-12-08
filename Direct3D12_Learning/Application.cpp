@@ -6,7 +6,7 @@
 #include<tchar.h>
 
 #include"System.h"
-
+#include"MathUtil.h"
 
 
 Application& Application::Instance()
@@ -57,6 +57,8 @@ bool Application::Init
 	return true;
 }
 
+double mFrameTime = 0;
+
 LRESULT CALLBACK Application::WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if (msg == WM_DESTROY)
@@ -67,33 +69,34 @@ LRESULT CALLBACK Application::WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam
 
 	if (msg == WM_KEYDOWN)
 	{
-		DirectX::XMFLOAT3 x = { 1.f, 0.f, 0.f }; DirectX::XMVECTOR xv = DirectX::XMLoadFloat3(&x);
-		DirectX::XMFLOAT3 y = { 0.f, 1.f, 0.f }; DirectX::XMVECTOR yv = DirectX::XMLoadFloat3(&y);
-		DirectX::XMFLOAT3 z = { 0.f, 0.f, 1.f }; DirectX::XMVECTOR zv = DirectX::XMLoadFloat3(&z);
+		static const MathUtil::Vector x(1.f, 0.f, 0.f);
+		static const MathUtil::Vector y(0.f, 1.f, 0.f);
+		static const MathUtil::Vector z(0.f, 0.f, 1.f);
+
+		MathUtil::Vector move;
+
 		float speed = 0.5f;
-		DirectX::XMFLOAT3 speedf = { speed, speed, speed };
-		DirectX::XMFLOAT3 ispeedf = { -speed, -speed, -speed };
-
-		DirectX::XMVECTOR speedv = DirectX::XMLoadFloat3(&speedf);
-		DirectX::XMVECTOR ispeedv = DirectX::XMLoadFloat3(&ispeedf);
-
 
 		auto& inst = Application::Instance().mDx12;
 		switch (wparam)
 		{
-		case 'W': inst->MoveCamera(DirectX::XMVectorMultiply(zv, speedv)); break;
-		case 'S': inst->MoveCamera(DirectX::XMVectorMultiply(zv, ispeedv)); break;
-		case 'A': inst->MoveCamera(DirectX::XMVectorMultiply(xv, ispeedv)); break;
-		case 'D': inst->MoveCamera(DirectX::XMVectorMultiply(xv, speedv)); break;
-		case 'Q': inst->MoveCamera(DirectX::XMVectorMultiply(yv, speedv)); break;
-		case 'E': inst->MoveCamera(DirectX::XMVectorMultiply(yv, ispeedv)); break;
-		case 'R': inst->ResetCamera();
+		case 'W': move = z * speed; break;
+		case 'S': move = z * -speed; break;
+		case 'A': move = x * -speed; break;
+		case 'D': move = x * speed; break;
+		case 'Q': move = y * speed; break;
+		case 'E': move = y * -speed; break;
+		case 'R': inst->ResetCamera(); break;
 		default:
 			break;
 		}
+
+		DebugOutVector(move);
+		inst->MoveCamera(move);
 	}
 
 	return DefWindowProc(hwnd, msg, wparam, lparam);
+
 }
 
 void Application::CreateGameWindow()
@@ -153,8 +156,12 @@ void Application::Run()
 
 	unsigned int frame = 0;
 
+	LARGE_INTEGER mTimeFreq = {}, mTimeStart = {}, mTimeEnd = {};
+	QueryPerformanceFrequency(&mTimeFreq);
 	while (true)
 	{
+		QueryPerformanceCounter(&mTimeStart);
+
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
@@ -165,7 +172,7 @@ void Application::Run()
 		{
 			break;
 		}
-
+		
 		mDx12->BeginDraw();
 
 		mDx12->GetCommandList()->SetPipelineState(mPmdRenderer->GetPipelineState().Get());
@@ -181,7 +188,11 @@ void Application::Run()
 		mDx12->EndDraw();
 
 		mDx12->GetSwapChain()->Present(1, 0);
+
+		QueryPerformanceCounter(&mTimeEnd);
+		mFrameTime = static_cast<double>(mTimeEnd.QuadPart - mTimeStart.QuadPart) / static_cast<double>(mTimeFreq.QuadPart);
 	}
+
 }
 
 void

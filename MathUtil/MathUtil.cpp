@@ -1,8 +1,3 @@
-/*
-	実装
-
-	ここではDirectXMathの使用に関して、特に制限なし。
-*/
 
 #include"MathUtil.h"
 
@@ -28,8 +23,8 @@ Vector::Vector
 	:
 	mData()
 {
-	XMFLOAT4 data(_x, _y, _z, _w);
-	mData = XMLoadFloat4(&data);
+	//XMFLOAT4 data(_x, _y, _z, _w);
+	mData = XMVectorSet(_x, _y, _z, _w);
 }
 
 Vector::~Vector() {}
@@ -55,6 +50,11 @@ const float4 Vector::GetFloat4() const
 	float4 ret{};
 	XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&ret), mData);
 	return ret;
+}
+
+const DirectX::XMVECTOR Vector::GetData() const
+{
+	return mData;
 }
 
 const float Vector::x() const { return XMVectorGetX(mData); }
@@ -94,7 +94,8 @@ const Vector Vector::operator-(const Vector& other) const
 const Vector Vector::operator*(const float other) const
 {
 	Vector ret{};
-	ret.mData = XMVectorMultiply(mData, XMLoadFloat(&other));
+	Vector otherv(other, other, other, other);
+	ret.mData = XMVectorMultiply(mData, otherv.mData);
 	return ret;
 }
 

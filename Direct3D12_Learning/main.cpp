@@ -1,6 +1,6 @@
 #include"Application.h"
 
-
+#include"System.h"
 
 static const char* const kabanPath = "../x64/Debug/Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
 static const char* const hashibiroPath = "../x64/debug/PMX/ハシビロコウ/ハシビロコウ.pmx";
@@ -27,6 +27,7 @@ int main()
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif // _DEBUG
 {
+	SET_JAPANESE_ENABLE;
 	auto& app = Application::Instance();
 	if (!app.Init(gWindowWidth, gWindowHeight, modelpath))
 	{

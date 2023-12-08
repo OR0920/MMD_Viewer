@@ -433,7 +433,7 @@ HRESULT PMDActor::CreateMaterialData()
 		//mm.specularity = m.specularity;
 		//mm.ambient = m.ambient;
 		*reinterpret_cast<MaterialOnShader*>(mapMaterial) = mMaterials[i].onShader;
-		mapMaterial += materialBuffSize;
+		mapMaterial += materialBuffSize;	
 	}
 
 	mMaterialBuffer->Unmap(0, nullptr);

@@ -20,6 +20,8 @@
 
 #include"UsingComPtr.h"
 
+#include"MathUtil.h"
+
 class Dx12Wrapper
 {
 public:
@@ -35,7 +37,7 @@ public:
 	ComPtr<ID3D12GraphicsCommandList> GetCommandList();
 	ComPtr<IDXGISwapChain4> GetSwapChain();
 
-	void MoveCamera(DirectX::XMVECTOR velocity);
+	void MoveCamera(MathUtil::Vector& velocity);
 	void ResetCamera();
 
 	void SetScene();
@@ -70,18 +72,16 @@ private:
 	}*mMappedSceneData;
 	ComPtr<ID3D12DescriptorHeap> mSceneDescriptorHeap;
 
-	const DirectX::XMFLOAT3 c_eye = { 0, 15, -50 };
-	const DirectX::XMFLOAT3 c_target = { 0, 15, 0 };
-	const DirectX::XMFLOAT3 c_up = { 0, 1, 0 };
+	const MathUtil::float3 c_eye = { 0, 15, -50 };
+	const MathUtil::float3 c_target = { 0, 15, 0 };
+	const MathUtil::float3 c_up = { 0, 1, 0 };
 
-	DirectX::XMFLOAT3 eye = c_eye;
-	DirectX::XMFLOAT3 target = c_target;
-	DirectX::XMFLOAT3 up = c_up;
-
+	MathUtil::Vector eye = c_eye;
+	MathUtil::Vector target = c_target;
+	MathUtil::Vector up = c_up;
 
 	ComPtr<ID3D12Fence> mFence;
 	UINT64 mFenceValue;
-
 
 	HRESULT CreateFinalRenderTarget();
 	HRESULT CreateDepthStensilView();
@@ -89,8 +89,6 @@ private:
 
 
 	HRESULT InitializeDevices();
-
-
 
 	HRESULT InitializeCommandObjects();
 	HRESULT CreateSceneView();

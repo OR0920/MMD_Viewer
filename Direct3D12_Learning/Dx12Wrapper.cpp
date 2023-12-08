@@ -368,9 +368,9 @@ HRESULT Dx12Wrapper::CreateSceneView()
 	mMappedSceneData->view =
 		DirectX::XMMatrixLookAtLH
 		(
-			DirectX::XMLoadFloat3(&eye),
-			DirectX::XMLoadFloat3(&target),
-			DirectX::XMLoadFloat3(&up)
+			eye.GetData(),
+			target.GetData(),
+			up.GetData()
 		);
 
 	mMappedSceneData->proj =
@@ -382,7 +382,7 @@ HRESULT Dx12Wrapper::CreateSceneView()
 			1000.f
 		);
 
-	mMappedSceneData->eye = eye;
+	mMappedSceneData->eye = eye.GetFloat3();
 
 	D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc = {};
 	descHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
@@ -408,17 +408,15 @@ HRESULT Dx12Wrapper::CreateSceneView()
 	return result;
 }
 
-void Dx12Wrapper::MoveCamera(DirectX::XMVECTOR velocity)
+void Dx12Wrapper::MoveCamera(MathUtil::Vector& velocity)
 {
-	MathUtil::Vector v(DirectX::XMVectorGetX(velocity), DirectX::XMVectorGetY(velocity), DirectX::XMVectorGetZ(velocity));
-	DebugOutVector(v);
-	DirectX::XMVECTOR eyev = DirectX::XMVectorAdd(DirectX::XMLoadFloat3(&eye), velocity);
-	DirectX::XMVECTOR targetv = DirectX::XMVectorAdd(DirectX::XMLoadFloat3(&target), velocity);
-	
-	mMappedSceneData->view = DirectX::XMMatrixLookAtLH(eyev, targetv, DirectX::XMLoadFloat3(&up));
+	eye = eye + velocity;
+	target = target + velocity;
 
-	DirectX::XMStoreFloat3(&eye, eyev);
-	DirectX::XMStoreFloat3(&target, targetv);
+	//DirectX::XMVECTOR eyev = DirectX::XMVectorAdd(DirectX::XMLoadFloat3(&eye), velocity);
+	//DirectX::XMVECTOR targetv = DirectX::XMVectorAdd(DirectX::XMLoadFloat3(&target), velocity);
+	
+	mMappedSceneData->view = DirectX::XMMatrixLookAtLH(eye.GetData(), target.GetData(), up.GetData());
 }
 
 void Dx12Wrapper::ResetCamera()
@@ -426,14 +424,8 @@ void Dx12Wrapper::ResetCamera()
 	eye = c_eye;
 	target = c_target;
 	up = c_up;
-
-	mMappedSceneData->view = 
-		DirectX::XMMatrixLookAtLH
-		(
-			DirectX::XMLoadFloat3(&eye), 
-			DirectX::XMLoadFloat3(&target), 
-			DirectX::XMLoadFloat3(&up)
-		);
+	
+	mMappedSceneData->view = DirectX::XMMatrixLookAtLH(eye.GetData(), target.GetData(), up.GetData());
 }
 
 void Dx12Wrapper::CreateTextureLoaderTable()

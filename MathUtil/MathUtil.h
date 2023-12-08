@@ -1,7 +1,8 @@
 /*
 	数学ライブラリ
 
-	Direct X Mathの使用方法に癖があるのでそれを隠蔽するラッパーライブラリ
+	Direct X Mathから、名前だけ隠ぺいする薄いラッパーライブラリ
+	移植性などは一旦考えない
 
 */
 #ifndef _MATH_UTIL_H_
@@ -23,32 +24,18 @@
 #define DebugOutFloat2(v)
 #endif
 
-
-// 汎用性の高い名前が多いため名前空間に隠蔽
 namespace MathUtil
 {
 
 	//データ用
-	struct float2
-	{
-		float x, y;
-	};
 
-	struct float3
-	{
-		float x, y, z;
-	};
-
-	struct float4
-	{
-		float x, y, z, w;
-	};
+	using float2 = DirectX::XMFLOAT2;
+	using float3 = DirectX::XMFLOAT3;
+	using float4 = DirectX::XMFLOAT4;
 
 	// 演算用ベクトルクラス
-	// DirectXMathに合わせ次元ごとの区別はしない
-	// DirectXMathが使えなくなる場合は
-	// 4次元ベクトルで実装する予定 
-	class Vector {
+	class Vector
+	{
 	public:
 		//デフォルト初期化
 		//特に何も指定しなかった場合零ベクトル
@@ -73,6 +60,8 @@ namespace MathUtil
 		const float2 GetFloat2() const;
 		const float3 GetFloat3() const;
 		const float4 GetFloat4() const;
+
+		const DirectX::XMVECTOR GetData() const;
 
 		//成分アクセス
 		//書き換え用ではない
@@ -105,13 +94,12 @@ namespace MathUtil
 		// 2次元ベクトルが入力された場合は　(x, y, 0.f)として扱う//
 		const Vector Cross3(const Vector& other) const;
 
-
 		static Vector GenerateRotationQuaternionFromEuler(float x, float y, float z);
 
 	private:
-		// 数学ライブラリでnewをあまりしたくないのでpImplの採用は保留
 		DirectX::XMVECTOR mData;
 	};
+
 
 	//雑な少数比較関数　テスト記述用
 	bool FloatEqual(const float a, const float b);
