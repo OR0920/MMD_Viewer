@@ -64,7 +64,7 @@ void TextBufferVariable::Load(void* _file, EncodeType encode)
 	auto& file = GetFile(_file);
 	file.Read(mLength);
 
-	char* s16 = new char[mLength + 2]{ '\0' };
+	char* s16 = new char[mLength + 2] { '\0' };
 	file.ReadArray(s16, mLength);
 
 	if (encode == EncodeType::UTF16)
@@ -139,6 +139,7 @@ PmdFile::PmdFile(const char* const filepath)
 	// ファイルパスそのものが間違い
 	if (file.IsFileOpenSuccsess() == false)
 	{
+		file.Close();
 		return;
 	}
 
@@ -159,6 +160,7 @@ PmdFile::PmdFile(const char* const filepath)
 	{
 		// 間違ったファイル
 		DebugMessage("Not Pmd File !");
+		file.Close();
 		return;
 	}
 
@@ -363,6 +365,7 @@ PmdFile::PmdFile(const char* const filepath)
 		file.Read(j.springPos);
 		file.Read(j.springRot);
 	}
+	file.Close();
 }
 
 
@@ -1179,6 +1182,7 @@ PmxFile::PmxFile(const char* const filepath)
 
 	if (file.IsFileOpenSuccsess() == false)
 	{
+		file.Close();
 		return;
 	}
 
@@ -1188,24 +1192,22 @@ PmxFile::PmxFile(const char* const filepath)
 	uint8_t pmxFormat[4] = { 'P', 'M', 'X', ' ' };
 	file.ReadArray(format, 4);
 
-	if (
-		format[0] != 'P' ||
-		format[1] != 'm' ||
-		format[2] != 'x' ||
-		format[3] != ' '
-		)
+	if (format[0] == 'P' && format[1] == 'm' && format[2] == 'x' && format[3] == ' ') {}
+	else if (format[0] == 'P' && format[1] == 'M' && format[2] == 'X' && format[3] == ' ') {}
+	else if (format[0] == 'P' && format[1] == 'm' && format[2] == 'd')
 	{
-		if (
-			format[0] != 'P' ||
-			format[1] != 'M' ||
-			format[2] != 'X' ||
-			format[3] != ' '
-			)
-		{
-			// 間違ったファイル
-			DebugMessage("Not Pmx File !");
-			return;
-		}
+		DebugMessage("PMD File");
+		file.Close();
+		PmdFile pmd(filepath);
+		// todo pmdファイルをPMXとして読み込む処理
+		return;
+	}
+	else
+	{
+		// 間違ったファイル
+		DebugMessage("Not Pmx File !");
+		file.Close();
+		return;
 	}
 
 	System::newArray_CopyDirPathFromFilePath(&mDirectoryPath, filepath);
@@ -1446,6 +1448,8 @@ PmxFile::PmxFile(const char* const filepath)
 		file.Read(j.springPos);
 		file.Read(j.springRot);
 	}
+
+	file.Close();
 }
 
 PmxFile::~PmxFile()

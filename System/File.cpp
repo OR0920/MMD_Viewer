@@ -21,6 +21,11 @@ FileWriteBin::FileWriteBin(const char* filepath)
 	DebugMessage(filepath << " is opened !");
 }
 
+FileWriteBin::~FileWriteBin()
+{
+	mFile.close();
+}
+
 bool FileWriteBin::IsFileOpenSuccsess() const
 {
 	return !mFile.fail();
@@ -46,6 +51,12 @@ FileReadBin::FileReadBin(const char* filepath)
 
 	DebugMessage(filepath << " is opened !");
 }
+
+FileReadBin::~FileReadBin()
+{
+	mFile.close();
+}
+
 
 bool FileReadBin::IsFileOpenSuccsess() const
 {

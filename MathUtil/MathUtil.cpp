@@ -138,6 +138,57 @@ Vector Vector::GenerateRotationQuaternionFromEuler(float x, float y, float z)
 	return ret;
 }
 
+
+
+Matrix::Matrix()
+	:
+	mData()
+{
+
+}
+
+Matrix::Matrix(const Matrix& matrix)
+	:
+	mData(matrix.mData)
+{
+
+}
+
+Matrix::Matrix(const DirectX::XMMATRIX& matrix)
+	:
+	mData(matrix)
+{
+
+}
+
+
+Matrix::~Matrix()
+{
+
+}
+
+Matrix Matrix::GenerateMatrixLookAtLH(const Vector& eye, const Vector& target, const Vector& up)
+{
+	return XMMatrixLookAtLH(eye.GetData(), target.GetData(), up.GetData());
+}
+
+Matrix Matrix::GenerateMatrixPerspectiveFovLH
+(
+	const float fovAngleY,
+	const float aspectRatio,
+	const float nearZ,
+	const float farZ
+)
+{
+	return XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, nearZ, farZ);
+}
+
+Matrix Matrix::GenerateMatrixRotationY(const float angle)
+{
+	return XMMatrixRotationY(angle);
+}
+
+
 bool MathUtil::FloatEqual(float a, float b)
 {
 	return fabs(a - b) <= 0.00001;

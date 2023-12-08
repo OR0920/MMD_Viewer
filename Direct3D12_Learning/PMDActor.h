@@ -4,8 +4,9 @@
 #include<vector>
 
 #include<D3D12.h>
-#include<DirectXMath.h>
 
+
+#include"MathUtil.h"
 #include"UsingComPtr.h"
 
 
@@ -38,10 +39,10 @@ private:
 
 	struct MaterialOnShader
 	{
-		DirectX::XMFLOAT4 diffuse;
-		DirectX::XMFLOAT3 specular;
+		MathUtil::float4 diffuse;
+		MathUtil::float3 specular;
 		float specularity;
-		DirectX::XMFLOAT3 ambient;
+		MathUtil::float3 ambient;
 
 		void GetMaterialDataFromPMD(const void* materialDataFromFile);
 	};
@@ -71,7 +72,7 @@ private:
 	struct Transform
 	{
 		void* operator new(size_t size);
-		DirectX::XMMATRIX world;
+		MathUtil::Matrix world;
 	} mTransform, * mMappedTransform;
 
 	ComPtr<ID3D12Resource> mTransformBuffer;

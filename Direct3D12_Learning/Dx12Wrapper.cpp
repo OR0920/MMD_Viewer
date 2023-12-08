@@ -364,23 +364,15 @@ HRESULT Dx12Wrapper::CreateSceneView()
 		return result;
 	}
 
+	mMappedSceneData->view = MathUtil::Matrix::GenerateMatrixLookAtLH(eye, target, up);
 
-	mMappedSceneData->view =
-		DirectX::XMMatrixLookAtLH
-		(
-			eye.GetData(),
-			target.GetData(),
-			up.GetData()
-		);
-
-	mMappedSceneData->proj =
-		DirectX::XMMatrixPerspectiveFovLH
-		(
-			DirectX::XM_PIDIV4,
-			static_cast<float>(desc.Width) / static_cast<float>(desc.Height),
-			0.1f,
-			1000.f
-		);
+	mMappedSceneData->proj = MathUtil::Matrix::GenerateMatrixPerspectiveFovLH
+	(
+		DirectX::XM_PIDIV4,
+		static_cast<float>(desc.Width) / static_cast<float>(desc.Height),
+		0.1f,
+		1000.f
+	);
 
 	mMappedSceneData->eye = eye.GetFloat3();
 
@@ -413,10 +405,7 @@ void Dx12Wrapper::MoveCamera(MathUtil::Vector& velocity)
 	eye = eye + velocity;
 	target = target + velocity;
 
-	//DirectX::XMVECTOR eyev = DirectX::XMVectorAdd(DirectX::XMLoadFloat3(&eye), velocity);
-	//DirectX::XMVECTOR targetv = DirectX::XMVectorAdd(DirectX::XMLoadFloat3(&target), velocity);
-	
-	mMappedSceneData->view = DirectX::XMMatrixLookAtLH(eye.GetData(), target.GetData(), up.GetData());
+	mMappedSceneData->view = MathUtil::Matrix::GenerateMatrixLookAtLH(eye, target, up);
 }
 
 void Dx12Wrapper::ResetCamera()
@@ -424,8 +413,8 @@ void Dx12Wrapper::ResetCamera()
 	eye = c_eye;
 	target = c_target;
 	up = c_up;
-	
-	mMappedSceneData->view = DirectX::XMMatrixLookAtLH(eye.GetData(), target.GetData(), up.GetData());
+
+	mMappedSceneData->view = MathUtil::Matrix::GenerateMatrixLookAtLH(eye, target, up);
 }
 
 void Dx12Wrapper::CreateTextureLoaderTable()

@@ -41,9 +41,9 @@ PMDActor::PMDActor(const std::string argFilepath, PMDRenderer& argRenderer)
 }
 
 
-inline DirectX::XMFLOAT4 GetFloat4FromPMD(const MMDsdk::float4& mf)
+inline MathUtil::float4 GetFloat4FromPMD(const MMDsdk::float4& mf)
 {
-	DirectX::XMFLOAT4 ret;
+	MathUtil::float4 ret;
 
 	ret.x = mf.x;
 	ret.y = mf.y;
@@ -53,9 +53,9 @@ inline DirectX::XMFLOAT4 GetFloat4FromPMD(const MMDsdk::float4& mf)
 	return ret;
 }
 
-inline DirectX::XMFLOAT3 GetFloat3FromPMD(const MMDsdk::float3& mf)
+inline MathUtil::float3 GetFloat3FromPMD(const MMDsdk::float3& mf)
 {
-	DirectX::XMFLOAT3 ret;
+	MathUtil::float3 ret;
 
 	ret.x = mf.x;
 	ret.y = mf.y;
@@ -64,9 +64,9 @@ inline DirectX::XMFLOAT3 GetFloat3FromPMD(const MMDsdk::float3& mf)
 	return ret;
 }
 
-inline DirectX::XMFLOAT2 GetFloat2FromPMD(const MMDsdk::float2& mf)
+inline MathUtil::float2 GetFloat2FromPMD(const MMDsdk::float2& mf)
 {
-	DirectX::XMFLOAT2 ret;
+	MathUtil::float2 ret;
 
 	ret.x = mf.x;
 	ret.y = mf.y;
@@ -76,9 +76,9 @@ inline DirectX::XMFLOAT2 GetFloat2FromPMD(const MMDsdk::float2& mf)
 
 struct Vertex
 {
-	DirectX::XMFLOAT3 pos;
-	DirectX::XMFLOAT3 normal;
-	DirectX::XMFLOAT2 uv;
+	MathUtil::float3 pos;
+	MathUtil::float3 normal;
+	MathUtil::float2 uv;
 	unsigned short boneNo[2];
 	unsigned char boneWeight;
 	unsigned char edgeFlg;
@@ -433,7 +433,7 @@ HRESULT PMDActor::CreateMaterialData()
 		//mm.specularity = m.specularity;
 		//mm.ambient = m.ambient;
 		*reinterpret_cast<MaterialOnShader*>(mapMaterial) = mMaterials[i].onShader;
-		mapMaterial += materialBuffSize;	
+		mapMaterial += materialBuffSize;
 	}
 
 	mMaterialBuffer->Unmap(0, nullptr);
@@ -585,7 +585,7 @@ HRESULT PMDActor::CreateMaterialAndTextureView()
 void PMDActor::Update()
 {
 	mAngle += 0.03f;
-	mMappedTransform->world = DirectX::XMMatrixRotationY(mAngle);
+	mMappedTransform->world = MathUtil::Matrix::GenerateMatrixRotationY(mAngle);
 }
 
 void PMDActor::Draw()

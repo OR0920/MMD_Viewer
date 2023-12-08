@@ -15,7 +15,7 @@
 // DirextX
 #include<DXGI1_6.h>
 #include<D3D12.h>
-#include<DirectXMath.h>
+//#include<DirectXMath.h>
 #include<DirectXTex.h>
 
 #include"UsingComPtr.h"
@@ -66,9 +66,9 @@ private:
 	ComPtr<ID3D12Resource> mSceneConstantBuffer;
 	struct SceneData
 	{
-		DirectX::XMMATRIX view;
-		DirectX::XMMATRIX proj;
-		DirectX::XMFLOAT3 eye;
+		MathUtil::Matrix view;
+		MathUtil::Matrix proj;
+		MathUtil::float3 eye;
 	}*mMappedSceneData;
 	ComPtr<ID3D12DescriptorHeap> mSceneDescriptorHeap;
 

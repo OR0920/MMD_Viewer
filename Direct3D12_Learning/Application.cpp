@@ -90,8 +90,6 @@ LRESULT CALLBACK Application::WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam
 		default:
 			break;
 		}
-
-		DebugOutVector(move);
 		inst->MoveCamera(move);
 	}
 

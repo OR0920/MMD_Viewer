@@ -4,6 +4,8 @@
 	Direct X Mathから、名前だけ隠ぺいする薄いラッパーライブラリ
 	移植性などは一旦考えない
 
+	必要なものだけラップする
+
 */
 #ifndef _MATH_UTIL_H_
 #define _MATH_UTIL_H_
@@ -28,7 +30,6 @@ namespace MathUtil
 {
 
 	//データ用
-
 	using float2 = DirectX::XMFLOAT2;
 	using float3 = DirectX::XMFLOAT3;
 	using float4 = DirectX::XMFLOAT4;
@@ -101,7 +102,34 @@ namespace MathUtil
 	};
 
 
-	//雑な少数比較関数　テスト記述用
+	class Matrix
+	{
+	public:
+		Matrix(); ~Matrix();
+		Matrix(const Matrix& mat);
+		Matrix(const DirectX::XMMATRIX& mat);
+
+		static Matrix GenerateMatrixLookAtLH
+		(
+			const Vector& eye, 
+			const Vector& target, 
+			const Vector& up
+		);
+		
+		static Matrix GenerateMatrixPerspectiveFovLH
+		(
+			const float FovAngleY,
+			const float AspectRatio, 
+			const float NearZ,
+			const float FarZ
+		);
+
+		static Matrix GenerateMatrixRotationY(const float angle);
+	private:
+		DirectX::XMMATRIX mData;
+	};
+
+	//雑な少数比較関数　
 	bool FloatEqual(const float a, const float b);
 
 	float RadianToDegree(float radian);

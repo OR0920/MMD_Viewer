@@ -15,6 +15,7 @@ namespace System
 	{
 	public:
 		FileWriteBin(const char* filepath);
+		~FileWriteBin();
 
 		// ポインタ経由での書き出し
 		// 標準ライブラリとほぼ変わらず
@@ -65,6 +66,7 @@ namespace System
 	{
 	public:
 		FileReadBin(const char* filepath);
+		~FileReadBin();
 
 		// ポインタ経由での読み込み 
 		// 標準ライブラリとほぼ同じ
