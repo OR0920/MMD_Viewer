@@ -12,6 +12,7 @@
 
 class Dx12Wrapper;
 class PMDRenderer;
+class MMD_Model;
 
 class PMDActor
 {
@@ -24,18 +25,6 @@ public:
 	void Update();
 	void Draw();
 
-private:
-	PMDRenderer& mRenderer;
-	Dx12Wrapper& mDx12;
-
-	ComPtr<ID3D12Resource> mVertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
-
-	ComPtr<ID3D12Resource> mIndexBuffer;
-	D3D12_INDEX_BUFFER_VIEW mIndexBufferView;
-
-	ComPtr<ID3D12Resource> mTransformMat;
-	ComPtr<ID3D12DescriptorHeap> mTransformHeap;
 
 	struct MaterialOnShader
 	{
@@ -51,10 +40,11 @@ private:
 		std::string texPath;
 		std::string sphPath;
 		std::string spaPath;
-		
+		std::string uniqueToonPath;
+
 		int toonIndex;
 		bool edgeFlag;
-		
+
 		void GetMaterialDataFromPMD(const void* materialDataFromFile);
 		void LoadTexturePath(const char* const dirPath, const char* const texFileName);
 	private:
@@ -69,6 +59,22 @@ private:
 		void GetMaterialDataFromPMD(const void* materialDataFromFile);
 	};
 
+private:
+	MMD_Model* model;
+
+	PMDRenderer& mRenderer;
+	Dx12Wrapper& mDx12;
+
+	ComPtr<ID3D12Resource> mVertexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
+
+	ComPtr<ID3D12Resource> mIndexBuffer;
+	D3D12_INDEX_BUFFER_VIEW mIndexBufferView;
+
+	ComPtr<ID3D12Resource> mTransformMat;
+	ComPtr<ID3D12DescriptorHeap> mTransformHeap;
+
+
 	struct Transform
 	{
 		void* operator new(size_t size);
@@ -77,7 +83,7 @@ private:
 
 	ComPtr<ID3D12Resource> mTransformBuffer;
 
-	std::vector<Material> mMaterials;
+	//std::vector<Material> mMaterials;
 	ComPtr<ID3D12Resource> mMaterialBuffer;
 	std::vector<ComPtr<ID3D12Resource>> mTextureResources;
 	std::vector<ComPtr<ID3D12Resource>> mSPH_TextureResources;

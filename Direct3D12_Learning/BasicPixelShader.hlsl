@@ -27,9 +27,12 @@ float4 BasicPS(VS_OutPut vso) : SV_TARGET
     sphereMapUV = (sphereMapUV + float2(1.f, -1.f)) * float2(0.5f, -0.5f);
 
     float4 texColor = tex.Sample(smp, vso.uv);
+    
     float4 sphColor = sph.Sample(smp, sphereMapUV);
     float4 spaColor = spa.Sample(smp, sphereMapUV);
    
+    //return toonDiffuse * diffuse * texColor;
+    
     //if(diffuseB > 0.3f)
     //{
     //    diffuseB = 0.7f; 
