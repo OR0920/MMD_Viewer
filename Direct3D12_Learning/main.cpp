@@ -19,7 +19,7 @@ static const char* const hachunePath = "D:/Projects/MMD_Viewer/x64/Debug/Test/Mo
 static const int gWindowHeight = 1080;
 static const int gWindowWidth = gWindowHeight * 16 / 9;
 
-auto modelpath = metalMikuPath;
+auto modelpath = mikuPath;
 
 #ifdef _DEBUG
 int main()
@@ -30,8 +30,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 	SET_JAPANESE_ENABLE;
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-
-	MMDsdk::PmxFile pmx(mikuPath);
 
 	auto& app = Application::Instance();
 	if (!app.Init(gWindowWidth, gWindowHeight, modelpath))

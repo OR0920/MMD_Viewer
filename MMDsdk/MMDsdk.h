@@ -128,6 +128,8 @@ namespace MMDsdk
 		// コンストラクタの処理で一気にファイルを読み込み閉じる
 		PmdFile(const char* const filepath);  ~PmdFile();
 
+		bool IsSuccessLoad () const;
+
 		// ディレクトリのパスを取得する
 		// テクスチャなどのファイルはすべて同じディレクトリに入れること //
 		const char* const GetDirectoryPath() const;
@@ -550,6 +552,8 @@ namespace MMDsdk
 		PmdFile(); PmdFile(const PmdFile& copy);
 		const PmdFile& operator=(const PmdFile&) const;
 
+		bool isSuccess;
+
 		char* mDirectoryPath;
 
 		//　各種データ実態
@@ -603,6 +607,8 @@ namespace MMDsdk
 	{
 	public:
 		PmxFile(const char* const filepath); ~PmxFile();
+
+		bool IsSuccessLoad() const;
 
 		const char* const GetDirectoryPath() const;
 
@@ -1181,6 +1187,8 @@ namespace MMDsdk
 		// デフォルト、コピー禁止
 		PmxFile(); PmxFile(const PmxFile& copy);
 		const PmxFile& operator=(const PmxFile&) const;
+
+		bool mIsSuccess;
 
 		char* mDirectoryPath;
 

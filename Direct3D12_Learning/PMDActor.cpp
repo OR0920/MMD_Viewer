@@ -179,6 +179,12 @@ HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)
 {
 	MMDsdk::PmdFile pmd(argFilepath.c_str());
 
+	if (pmd.IsSuccessLoad() == false)
+	{
+		DebugMessageFunctionError(MMDsdk::PmdFile::PmdFile(), LoadPMDFile());
+		return S_FALSE;
+	}
+
 	std::vector<Vertex> mesh;
 	mesh.assign(pmd.GetVertexCount(), {});
 	for (int i = 0; i < pmd.GetVertexCount(); ++i)

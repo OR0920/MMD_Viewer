@@ -107,6 +107,7 @@ void LoadTextBufferFixed(System::FileReadBin& file, TextBufferFixed<size>& text)
 
 PmdFile::PmdFile(const char* const filepath)
 	:
+	isSuccess(false),
 	mDirectoryPath(nullptr),
 	mHeader(),
 	mVertexCount(0),
@@ -366,6 +367,8 @@ PmdFile::PmdFile(const char* const filepath)
 		file.Read(j.springRot);
 	}
 	file.Close();
+
+	isSuccess = true;
 }
 
 
@@ -387,6 +390,11 @@ PmdFile::~PmdFile()
 	SafeDeleteArray(&mVertex);
 
 	SafeDeleteArray(&mDirectoryPath);
+}
+
+bool PmdFile::IsSuccessLoad() const
+{
+	return isSuccess;
 }
 
 const char* const PmdFile::GetDirectoryPath() const
@@ -1157,6 +1165,7 @@ void LoadID_AsInt32(System::FileReadBin& file, int32_t& buf, const size_t idByte
 
 PmxFile::PmxFile(const char* const filepath)
 	:
+	mIsSuccess(false),
 	mDirectoryPath(nullptr),
 	mHeader(),
 	mVertexCount(0),
@@ -1450,6 +1459,7 @@ PmxFile::PmxFile(const char* const filepath)
 	}
 
 	file.Close();
+	mIsSuccess = true;
 }
 
 PmxFile::~PmxFile()
@@ -1464,6 +1474,11 @@ PmxFile::~PmxFile()
 	SafeDeleteArray(&mIndex);
 	SafeDeleteArray(&mVertex);
 	SafeDeleteArray(&mDirectoryPath);
+}
+
+bool PmxFile::IsSuccessLoad() const
+{
+	return mIsSuccess;
 }
 
 const char* const PmxFile::GetDirectoryPath() const
