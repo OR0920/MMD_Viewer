@@ -22,7 +22,7 @@ static const char* const hachunePath = "D:/Projects/MMD_Viewer/x64/Debug/Test/Mo
 static const int gWindowHeight = 1080;
 static const int gWindowWidth = gWindowHeight * 16 / 9;
 
-auto modelpath = mikuPath;
+auto modelpath = metalMikuPath;
 
 #ifdef _DEBUG
 int main()
