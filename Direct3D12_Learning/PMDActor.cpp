@@ -324,7 +324,7 @@ private:
 				System::SafeDeleteArray(&texPath);
 				DebugOutString(mc.texPath.c_str());
 			}
-			if (xm.sphereTextureID != -1) 
+			if (xm.sphereTextureID != -1)
 			{
 				System::newArray_CopyAssetPath(&texPath, pmx.GetDirectoryPath(), pmx.GetTexturePath(xm.sphereTextureID).GetText());
 				switch (xm.sphereMode)
@@ -407,7 +407,7 @@ HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)
 	mVertexBufferView.StrideInBytes = sizeof(Vertex);
 
 
-	auto indexResDesc = CD3DX12_RESOURCE_DESC::Buffer(model->GetIndexCount() * sizeof(model->GetIndex()[0]));
+	auto indexResDesc = CD3DX12_RESOURCE_DESC::Buffer(model->GetIndexCount() * sizeof(int));
 	DebugOutParam(model->GetIndexCount());
 	DebugOutParam(indexResDesc.Width);
 	result = mDx12.GetDevice()->CreateCommittedResource
@@ -426,7 +426,7 @@ HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)
 		return result;
 	}
 
-	unsigned short* mappedIndex = nullptr;
+	int* mappedIndex = nullptr;
 	result = mIndexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mappedIndex));
 	if (FAILED(result))
 	{
@@ -443,8 +443,8 @@ HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)
 	mIndexBuffer->Unmap(0, nullptr);
 
 	mIndexBufferView.BufferLocation = mIndexBuffer->GetGPUVirtualAddress();
-	mIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
-	mIndexBufferView.SizeInBytes = model->GetIndex().size() * sizeof(model->GetIndex()[0]);
+	mIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	mIndexBufferView.SizeInBytes = sizeof(int) * model->GetIndexCount();
 
 
 	std::vector<std::string> toonTexPath(10);
@@ -749,8 +749,8 @@ HRESULT PMDActor::CreateMaterialAndTextureView()
 		}
 		matDescHeapHandle.Offset(incSize);
 
-		
-		
+
+
 
 		if (mToonTextureResources[i] == nullptr)
 		{
