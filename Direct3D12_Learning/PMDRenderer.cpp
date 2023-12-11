@@ -165,7 +165,7 @@ HRESULT PMDRenderer::CreateGraphicsPipelineForPMD()
 
 
 	pso.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-
+	pso.BlendState.AlphaToCoverageEnable = true;
 
 	pso.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	pso.RasterizerState.CullMode = D3D12_CULL_MODE::D3D12_CULL_MODE_NONE;

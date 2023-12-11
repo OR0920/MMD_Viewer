@@ -31,7 +31,8 @@ float4 BasicPS(VS_OutPut vso) : SV_TARGET
     float4 sphColor = sph.Sample(smp, sphereMapUV);
     float4 spaColor = spa.Sample(smp, sphereMapUV);
    
-    //return toonDiffuse * diffuse * texColor;
+   
+    //return diffuse * texColor * sphColor + spaColor;
     
     //if(diffuseB > 0.3f)
     //{
@@ -54,8 +55,11 @@ float4 BasicPS(VS_OutPut vso) : SV_TARGET
     count %= 3;
     
     
-    return diffuseColor + specularColor + ambientColor;
+    float4 finalColor = diffuseColor + specularColor + ambientColor;
     
+    finalColor = float4(finalColor.rgb, diffuse.a);
+    
+    return finalColor;
     //if (diffuseB > 0.25)
     //{
     //    diffuseB = 1;
