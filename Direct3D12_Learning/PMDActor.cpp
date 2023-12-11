@@ -754,10 +754,10 @@ HRESULT PMDActor::CreateMaterialAndTextureView()
 
 		if (mToonTextureResources[i] == nullptr)
 		{
-			srvDesc.Format = mRenderer.mDefaultTextureWhite->GetDesc().Format;
+			srvDesc.Format = mRenderer.mDefaultTextureGrad->GetDesc().Format;
 			mDx12.GetDevice()->CreateShaderResourceView
 			(
-				mRenderer.mDefaultTextureWhite.Get(),
+				mRenderer.mDefaultTextureGrad.Get(),
 				&srvDesc,
 				matDescHeapHandle
 			);

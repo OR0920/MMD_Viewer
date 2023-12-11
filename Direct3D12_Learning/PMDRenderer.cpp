@@ -297,13 +297,13 @@ ComPtr<ID3D12Resource> PMDRenderer::CreateGrayGradTexture() {
 	unsigned int c = 0xff;
 	for (; it != data.end(); it += 4) {
 		auto col = (0xff << 24);
-		if (c > 0xff / 2)
+		if (c > 0xff / 4)
 		{
 			col |= RGB(0xff, 0xff, 0xff);//RGBAが逆並びしているためRGBマクロと0xff<<24を用いて表す;
 		}
 		else
 		{
-			col |= RGB(0xff / 2, 0xff / 2, 0xff / 2);
+			col |= RGB(0xff*3/4, 0xff*3 / 4, 0xff *3/4);
 		}
 		std::fill(it, it + 4, col);
 		--c;
