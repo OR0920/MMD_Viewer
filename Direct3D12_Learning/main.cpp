@@ -17,12 +17,14 @@ static const char* const kaitoPath = "../x64/Debug/Test/Model/PMD/カイト.pmd";
 static const char* const rinPath = "../x64/Debug/Test/Model/PMD/鏡音リン.pmd";
 static const char* const rukaPath = "../x64/Debug/Test/Model/PMD/巡音ルカ.pmd";
 static const char* const hachunePath = "D:/Projects/MMD_Viewer/x64/Debug/Test/Model/PMD/PMDモデル はちゅねミク_hatsune_hachi_202312021756/PMD_hachune_1.41/hachune.pmd";
+static const char* const samePath = "../x64/Debug/Test/Model/PMX/GawrGura/GawrGura/GawrGura.pmx";
+static const char* const senchoPath = "D:/Projects/MMD_Viewer/x64/Debug/Test/Model/PMX/宝鐘マリン公式mmd_ver1.1/螳晞据繝槭Μ繝ｳ蜈ｬ蠑塾md_ver1.1/marin220809.pmx";
 
 
 static const int gWindowHeight = 1080;
 static const int gWindowWidth = gWindowHeight * 16 / 9;
 
-auto modelpath = hakasePath;
+auto modelpath = miku2Path;
 
 #ifdef _DEBUG
 int main()
