@@ -24,7 +24,7 @@ static const char* const senchoPath = "D:/Projects/MMD_Viewer/x64/Debug/Test/Mod
 static const int gWindowHeight = 1080;
 static const int gWindowWidth = gWindowHeight * 16 / 9;
 
-auto modelpath = miku2Path;
+auto modelpath = kabanPath;
 
 #ifdef _DEBUG
 int main()

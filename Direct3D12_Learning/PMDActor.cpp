@@ -246,7 +246,7 @@ private:
 		index.assign(pmd.GetIndexCount(), 0);
 		for (int i = 0; i < pmd.GetIndexCount(); ++i)
 		{
-			index[i] = pmd.GetIndex(i);
+			index[i] = static_cast<int>(pmd.GetIndex(i));
 		}
 
 
@@ -408,7 +408,8 @@ HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)
 
 
 	auto indexResDesc = CD3DX12_RESOURCE_DESC::Buffer(model->GetIndexCount() * sizeof(model->GetIndex()[0]));
-
+	DebugOutParam(model->GetIndexCount());
+	DebugOutParam(indexResDesc.Width);
 	result = mDx12.GetDevice()->CreateCommittedResource
 	(
 		&heapProp,
@@ -433,7 +434,12 @@ HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)
 		assert(SUCCEEDED(result));
 		return result;
 	}
-	std::copy(model->GetIndex().begin(), model->GetIndex().end(), mappedIndex);
+	MMDsdk::PmxFile pmx(argFilepath.c_str());
+	for (int i = 0; i < model->GetIndexCount(); ++i)
+	{
+		mappedIndex[i] = model->GetIndex()[i];
+	}
+	//std::copy(model->GetIndex().begin(), model->GetIndex().end(), mappedIndex);
 	mIndexBuffer->Unmap(0, nullptr);
 
 	mIndexBufferView.BufferLocation = mIndexBuffer->GetGPUVirtualAddress();
