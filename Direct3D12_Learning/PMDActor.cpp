@@ -286,6 +286,8 @@ private:
 		}
 
 		auto materialCount = pmx.GetMaterialCount();
+		pmx.DebugOutAllTexturePath();
+
 		mMaterials.assign(materialCount, {});
 		for (int i = 0; i < materialCount; ++i)
 		{
@@ -313,7 +315,6 @@ private:
 			{
 				mc.toonIndex = -1;
 			}
-
 			mMaterials[i].vertexCount = xm.vertexCount;
 			char* texPath = nullptr;
 			if (xm.textureID != -1)
@@ -321,16 +322,19 @@ private:
 				System::newArray_CopyAssetPath(&texPath, pmx.GetDirectoryPath(), pmx.GetTexturePath(xm.textureID).GetText());
 				mc.texPath = texPath;
 				System::SafeDeleteArray(&texPath);
+				DebugOutString(mc.texPath.c_str());
 			}
-			else if (xm.sphereTextureID != -1) 
+			if (xm.sphereTextureID != -1) 
 			{
 				System::newArray_CopyAssetPath(&texPath, pmx.GetDirectoryPath(), pmx.GetTexturePath(xm.sphereTextureID).GetText());
 				switch (xm.sphereMode)
 				{
 				case MMDsdk::PmxFile::Material::SphereMode::SM_SPH:
 					mc.sphPath = texPath;
+					DebugOutString(mc.sphPath.c_str());
 				case MMDsdk::PmxFile::Material::SphereMode::SM_SPA:
 					mc.spaPath = texPath;
+					DebugOutString(mc.spaPath.c_str());
 				default:
 					break;
 				}
@@ -468,7 +472,6 @@ HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)
 
 	for (int i = 0; i < model->GetMaterialCount(); ++i)
 	{
-		DebugOutParamI(i);
 		auto& m = model->GetMaterial(i).onCPU;
 		if (0 <= m.toonIndex && m.toonIndex < 10)
 		{
@@ -667,6 +670,11 @@ HRESULT PMDActor::CreateMaterialAndTextureView()
 		mDx12.GetDevice()->CreateConstantBufferView(&matCBV_Desc, matDescHeapHandle);
 		matDescHeapHandle.ptr += incSize;
 		matCBV_Desc.BufferLocation += materialBuffSize;
+		auto m = mMaterials[i].onCPU;
+		DebugOutString(m.texPath.c_str());
+		DebugOutString(m.sphPath.c_str());
+		DebugOutString(m.spaPath.c_str());
+		DebugOutString(m.uniqueToonPath.c_str());
 
 		if (mTextureResources[i] == nullptr)
 		{
