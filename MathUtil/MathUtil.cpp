@@ -167,9 +167,24 @@ Matrix::~Matrix()
 
 }
 
+const Matrix Matrix::operator*(const Matrix& ohter) const
+{
+	return mData * ohter.mData;
+}
+
+void Matrix::operator*=(const Matrix& other) 
+{
+	mData *= other.mData;
+}
+
 Matrix Matrix::GenerateMatrixIdentity()
 {
 	return XMMatrixIdentity();
+}
+
+Matrix Matrix::GenerateMatrixInverse(const Matrix& matrix)
+{
+	return XMMatrixInverse(nullptr, matrix.mData);
 }
 
 Matrix Matrix::GenerateMatrixLookAtLH(const Vector& eye, const Vector& target, const Vector& up)
@@ -188,11 +203,20 @@ Matrix Matrix::GenerateMatrixPerspectiveFovLH
 	return XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, nearZ, farZ);
 }
 
+Matrix Matrix::GenerateMatrixTranslation(const float3 position)
+{
+	return XMMatrixTranslation(position.x, position.y, position.z);
+}
+
 Matrix Matrix::GenerateMatrixRotationY(const float angle)
 {
 	return XMMatrixRotationY(angle);
 }
 
+Matrix Matrix::GenerateMatrixRotationZ(const float angle)
+{
+	return XMMatrixRotationZ(angle);
+}
 
 bool MathUtil::FloatEqual(float a, float b)
 {

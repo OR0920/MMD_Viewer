@@ -253,9 +253,37 @@ public:
 		return mBoneMatrices[i];
 	}
 
+	void RecurSiveMatrixMultiply(BoneNode* node, const MathUtil::Matrix& mat)
+	{
+		mBoneMatrices[node->boneId] *= mat;
+
+		DebugOutParamI(node->boneId);
+		for (auto& childNodes : node->children)
+		{
+			RecurSiveMatrixMultiply(childNodes, mBoneMatrices[node->boneId]);
+		}
+	}
+
+	void Update()
+	{
+		std::fill(mBoneMatrices.begin(), mBoneMatrices.end(), MathUtil::Matrix::GenerateMatrixIdentity());
+
+		auto node = mBoneNodeTable["ç∂òr"];
+		auto& pos = node.startPos;
+
+		DebugOutParamI(node.boneId);
+
+		auto bonePosMat = MathUtil::Matrix::GenerateMatrixTranslation(pos);
+		auto iBonePosMat = MathUtil::Matrix::GenerateMatrixInverse(bonePosMat);
+		auto poseMat = iBonePosMat * MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f)) * bonePosMat;
+
+		RecurSiveMatrixMultiply(&node, poseMat);
+	}
+
 private:
 	void LoadModel(const MMDsdk::PmdFile& pmd)
 	{
+		pmd.DebugOutAllBone();
 		mMesh.assign(pmd.GetVertexCount(), {});
 		for (int i = 0; i < pmd.GetVertexCount(); ++i)
 		{
@@ -294,13 +322,11 @@ private:
 		{
 			auto& fb = pmd.GetBone(i);
 
-			if (fb.parentIndex >= pmd.GetBoneCount())
+			if (0 <= fb.parentIndex && fb.parentIndex < pmd.GetBoneCount())
 			{
-				continue;
+				auto& parentName = mBoneNames[fb.parentIndex];
+				mBoneNodeTable[parentName].children.emplace_back(&mBoneNodeTable[fb.name.GetText()]);
 			}
-
-			auto& parentName = mBoneNames[fb.parentIndex];
-			mBoneNodeTable[parentName].children.emplace_back(&mBoneNodeTable[fb.name.GetText()]);
 		}
 
 		mBoneMatrices.assign(pmd.GetBoneCount(), MathUtil::Matrix::GenerateMatrixIdentity());
@@ -385,6 +411,29 @@ private:
 				System::SafeDeleteArray(&texPath);
 			}
 		}
+
+		mBoneNames.assign(pmx.GetBoneCount(), {});
+
+		for (int i = 0; i < pmx.GetBoneCount(); ++i)
+		{
+			auto& fb = pmx.GetBone(i);
+			mBoneNames[i] = fb.name.GetText();
+			auto& node = mBoneNodeTable[fb.name.GetText()];
+			node.boneId = i;
+			node.startPos = GetFloat3FromPMD(fb.position);
+		}
+		for (int i = 0; i < pmx.GetBoneCount(); ++i)
+		{
+			auto& fb = pmx.GetBone(i);
+
+			if (0 <= fb.parentBoneID && fb.parentBoneID < pmx.GetBoneCount())
+			{
+				auto& parentName = mBoneNames[fb.parentBoneID];
+				mBoneNodeTable[parentName].children.emplace_back(&mBoneNodeTable[fb.name.GetText()]);
+			}
+		}
+
+		mBoneMatrices.assign(pmx.GetBoneCount(), MathUtil::Matrix::GenerateMatrixIdentity());
 
 		isSuccess = true;
 	}
@@ -587,11 +636,13 @@ HRESULT PMDActor::CreateTransformView()
 		assert(SUCCEEDED(result));
 		return result;
 	}
-	
+
 	*mMappedMatrices = mTransform.world;
+
+	model->Update();
 	for (int i = 0; i < model->GetBoneCount(); ++i)
 	{
-		mMappedMatrices[i+1] = model->GetBone(i);
+		mMappedMatrices[i + 1] = model->GetBone(i);
 	}
 
 
@@ -832,6 +883,12 @@ void PMDActor::Update()
 {
 	mAngle += 0.03f;
 	mMappedMatrices[0] = MathUtil::Matrix::GenerateMatrixRotationY(mAngle);
+
+	model->Update();
+	for (int i = 0; i < model->GetBoneCount(); ++i)
+	{
+		mMappedMatrices[i + 1] = model->GetBone(i);
+	}
 }
 
 void PMDActor::Draw()

@@ -109,7 +109,12 @@ namespace MathUtil
 		Matrix(const Matrix& mat);
 		Matrix(const DirectX::XMMATRIX& mat);
 
+		const Matrix operator*(const Matrix& other) const;
+		void operator*=(const Matrix& other);
+
 		static Matrix GenerateMatrixIdentity();
+
+		static Matrix GenerateMatrixInverse(const Matrix& matrix);
 
 		static Matrix GenerateMatrixLookAtLH
 		(
@@ -126,7 +131,10 @@ namespace MathUtil
 			const float FarZ
 		);
 
+		static Matrix GenerateMatrixTranslation(const float3 position);
+
 		static Matrix GenerateMatrixRotationY(const float angle);
+		static Matrix GenerateMatrixRotationZ(const float angle);
 	private:
 		DirectX::XMMATRIX mData;
 	};

@@ -290,34 +290,36 @@ ComPtr<ID3D12Resource> PMDRenderer::CreateBlackTexture()
 	return blackBuff;
 }
 ComPtr<ID3D12Resource> PMDRenderer::CreateGrayGradTexture() {
-	auto gradBuff = CreateDefaultTexture(4, 256);
-	//上が白くて下が黒いテクスチャデータを作成
-	std::vector<unsigned int> data(4 * 256);
-	auto it = data.begin();
-	unsigned int c = 0xff;
-	for (; it != data.end(); it += 4) {
-		auto col = (0xff << 24);
-		if (c > 0xff / 16)
-		{
-			col |= RGB(0xff, 0xff, 0xff);//RGBAが逆並びしているためRGBマクロと0xff<<24を用いて表す;
-		}
-		else
-		{
-			col |= RGB(0xff * 0.8, 0xff * 0.8, 0xff * 0.8);
-		}
-		std::fill(it, it + 4, col);
-		--c;
-	}
+	return CreateWhiteTexture();
 
-	auto result = gradBuff->WriteToSubresource(0, nullptr, data.data(), 4 * sizeof(unsigned int), sizeof(unsigned int) * data.size());
-	if (FAILED(result))
-	{
-		DebugMessageFunctionError(gradBuff->WriteToSubresource(), PMDRenderer::CreateGrayGradTexture());
-		assert(SUCCEEDED(result));
-		return nullptr;
-	}
+	//auto gradBuff = CreateDefaultTexture(4, 256);
+	////上が白くて下が黒いテクスチャデータを作成
+	//std::vector<unsigned int> data(4 * 256);
+	//auto it = data.begin();
+	//unsigned int c = 0xff;
+	//for (; it != data.end(); it += 4) {
+	//	auto col = (0xff << 24);
+	//	if (c > 0xff / 16)
+	//	{
+	//		col |= RGB(0xff, 0xff, 0xff);//RGBAが逆並びしているためRGBマクロと0xff<<24を用いて表す;
+	//	}
+	//	else
+	//	{
+	//		col |= RGB(0xff * 0.8, 0xff * 0.8, 0xff * 0.8);
+	//	}
+	//	std::fill(it, it + 4, col);
+	//	--c;
+	//}
 
-	return gradBuff;
+	//auto result = gradBuff->WriteToSubresource(0, nullptr, data.data(), 4 * sizeof(unsigned int), sizeof(unsigned int) * data.size());
+	//if (FAILED(result))
+	//{
+	//	DebugMessageFunctionError(gradBuff->WriteToSubresource(), PMDRenderer::CreateGrayGradTexture());
+	//	assert(SUCCEEDED(result));
+	//	return nullptr;
+	//}
+
+	//return gradBuff;
 }
 
 ComPtr<ID3D12Resource> PMDRenderer::CreateDefaultTexture
