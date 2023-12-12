@@ -5,8 +5,8 @@ struct VS_Input
     float4 pos : POSITION;
     float4 normal : NORMAL;
     float2 uv : TEXCOORD;
-    min16int2 boneno : BONE_NO;
-    //min16int weight : WEIGHT;
+    uint4 boneno : BONE_NO;
+    float4 weight : WEIGHT;
 };
 
 
@@ -28,7 +28,15 @@ VS_OutPut BasicVS(VS_Input vsi)
     vsi.pos.w = 1.f;
     VS_OutPut vso;
     
-    vsi.pos = mul(bone[vsi.boneno[0]], vsi.pos);
+    //vsi.pos = mul(bone[vsi.boneno[0]], vsi.pos);
+    
+    matrix bm =
+        bone[vsi.boneno[0]] * vsi.weight[0] +
+        bone[vsi.boneno[1]] * vsi.weight[1] +
+        bone[vsi.boneno[2]] * vsi.weight[2] +
+        bone[vsi.boneno[3]] * vsi.weight[3];
+    
+    vsi.pos = mul(bm, vsi.pos);
     
     vso.pos = vsi.pos;
     vsi.pos = mul(world, vsi.pos);

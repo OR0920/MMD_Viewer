@@ -112,7 +112,7 @@ namespace MathUtil
 		const Matrix operator*(const Matrix& other) const;
 		void operator*=(const Matrix& other);
 
-		static Matrix GenerateMatrixIdentity();
+		static const Matrix& GenerateMatrixIdentity();
 
 		static Matrix GenerateMatrixInverse(const Matrix& matrix);
 
@@ -133,6 +133,7 @@ namespace MathUtil
 
 		static Matrix GenerateMatrixTranslation(const float3 position);
 
+		static Matrix GenerateMatrixRotationX(const float angle);
 		static Matrix GenerateMatrixRotationY(const float angle);
 		static Matrix GenerateMatrixRotationZ(const float angle);
 	private:

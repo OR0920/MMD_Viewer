@@ -26,7 +26,7 @@ static const int gWindowWidth = gWindowHeight * 16 / 9;
 
 auto modelpath = samePath;
 
-#ifdef _DEBUG
+#ifdef _DEBUG	
 int main()
 #else
 #include<Windows.h>

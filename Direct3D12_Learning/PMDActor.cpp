@@ -80,8 +80,8 @@ struct Vertex
 	MathUtil::float3 pos;
 	MathUtil::float3 normal;
 	MathUtil::float2 uv;
-	unsigned short boneNo[2];
-	unsigned char boneWeight;
+	unsigned int boneNo[4];
+	float boneWeight[4];
 	unsigned char edgeFlg;
 	uint16_t pad = 0;
 
@@ -92,7 +92,8 @@ struct Vertex
 		uv = GetFloat2FromPMD(v.uv);
 		boneNo[0] = v.GetBoneID(0);
 		boneNo[1] = v.GetBoneID(1);
-		boneWeight = v.weight;
+		boneWeight[0] = (v.weight / 100.f);
+		boneWeight[1] = 1 - boneWeight[0];
 		edgeFlg = v.edgeFlag;
 	}
 };
@@ -257,27 +258,37 @@ public:
 	{
 		mBoneMatrices[node->boneId] *= mat;
 
-		DebugOutParamI(node->boneId);
 		for (auto& childNodes : node->children)
 		{
 			RecurSiveMatrixMultiply(childNodes, mBoneMatrices[node->boneId]);
 		}
 	}
 
+	void AddBoneMatrix(std::string name, const MathUtil::Matrix& mat)
+	{
+		auto& bone = mBoneNodeTable[name];
+		auto& pos = bone.startPos;
+		auto boneMat = MathUtil::Matrix::GenerateMatrixTranslation(pos);
+		auto iBoneMat = MathUtil::Matrix::GenerateMatrixInverse(boneMat);
+
+		auto poseMat = iBoneMat * mat * boneMat;
+
+		mBoneMatrices[bone.boneId] = poseMat;
+	}
+
 	void Update()
 	{
 		std::fill(mBoneMatrices.begin(), mBoneMatrices.end(), MathUtil::Matrix::GenerateMatrixIdentity());
 
-		auto node = mBoneNodeTable["左腕"];
-		auto& pos = node.startPos;
+		AddBoneMatrix("右手首", MathUtil::Matrix::GenerateMatrixRotationX(MathUtil::DegreeToRadian(40.f)));
 
-		DebugOutParamI(node.boneId);
+		AddBoneMatrix("右ひじ", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(-90.f)));
 
-		auto bonePosMat = MathUtil::Matrix::GenerateMatrixTranslation(pos);
-		auto iBonePosMat = MathUtil::Matrix::GenerateMatrixInverse(bonePosMat);
-		auto poseMat = iBonePosMat * MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f)) * bonePosMat;
+		AddBoneMatrix("左手首", MathUtil::Matrix::GenerateMatrixRotationX(MathUtil::DegreeToRadian(50.f)));
 
-		RecurSiveMatrixMultiply(&node, poseMat);
+		AddBoneMatrix("左ひじ", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f)));
+
+		RecurSiveMatrixMultiply(&mBoneNodeTable["センター"], MathUtil::Matrix::GenerateMatrixIdentity());
 	}
 
 private:
@@ -343,10 +354,18 @@ private:
 			v.pos = GetFloat3FromPMD(xv.position);
 			v.normal = GetFloat3FromPMD(xv.normal);
 			v.uv = GetFloat2FromPMD(xv.uv);
+
+
 			v.boneNo[0] = xv.GetBoneID(0);
 			v.boneNo[1] = xv.GetBoneID(1);
-			v.boneWeight = xv.GetWeight(0);
+			v.boneNo[2] = xv.GetBoneID(2);
+			v.boneNo[3] = xv.GetBoneID(3);
+			v.boneWeight[0] = xv.GetWeight(0);
+			v.boneWeight[1] = xv.GetWeight(1);
+			v.boneWeight[2] = xv.GetWeight(2);
+			v.boneWeight[3] = xv.GetWeight(3);
 			v.edgeFlg = xv.edgeRate;
+
 		}
 
 		mIndex.assign(pmx.GetIndexCount(), 0);

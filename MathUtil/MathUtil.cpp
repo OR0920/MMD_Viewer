@@ -177,9 +177,10 @@ void Matrix::operator*=(const Matrix& other)
 	mData *= other.mData;
 }
 
-Matrix Matrix::GenerateMatrixIdentity()
+const Matrix& Matrix::GenerateMatrixIdentity()
 {
-	return XMMatrixIdentity();
+	static auto mi = XMMatrixIdentity();
+	return mi;
 }
 
 Matrix Matrix::GenerateMatrixInverse(const Matrix& matrix)
@@ -206,6 +207,11 @@ Matrix Matrix::GenerateMatrixPerspectiveFovLH
 Matrix Matrix::GenerateMatrixTranslation(const float3 position)
 {
 	return XMMatrixTranslation(position.x, position.y, position.z);
+}
+
+Matrix Matrix::GenerateMatrixRotationX(const float angle)
+{
+	return XMMatrixRotationX(angle);
 }
 
 Matrix Matrix::GenerateMatrixRotationY(const float angle)
