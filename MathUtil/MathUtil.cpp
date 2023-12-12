@@ -167,6 +167,11 @@ Matrix::~Matrix()
 
 }
 
+Matrix Matrix::GenerateMatrixIdentity()
+{
+	return XMMatrixIdentity();
+}
+
 Matrix Matrix::GenerateMatrixLookAtLH(const Vector& eye, const Vector& target, const Vector& up)
 {
 	return XMMatrixLookAtLH(eye.GetData(), target.GetData(), up.GetData());

@@ -175,6 +175,14 @@ void PMDActor::Material::GetMaterialDataFromPMD(const void* materialDataFromFile
 	vertexCount = data.vertexCount;
 }
 
+struct BoneNode
+{
+	int boneId = 0;
+	MathUtil::float3 startPos;
+	MathUtil::float3 endPosth;
+	std::vector<BoneNode*> children;
+};
+
 
 
 class MMD_Model
@@ -206,19 +214,19 @@ public:
 
 	const int GetVertexCount() const
 	{
-		return mesh.size();
+		return mMesh.size();
 	}
 	const Vertex& GetVertex(const int i) const
 	{
-		return mesh[i];
+		return mMesh[i];
 	}
 	const int GetIndexCount() const
 	{
-		return index.size();
+		return mIndex.size();
 	}
 	const std::vector<int>& GetIndex() const
 	{
-		return index;
+		return mIndex;
 	}
 
 	const int GetMaterialCount() const
@@ -237,16 +245,16 @@ public:
 private:
 	void LoadModel(const MMDsdk::PmdFile& pmd)
 	{
-		mesh.assign(pmd.GetVertexCount(), {});
+		mMesh.assign(pmd.GetVertexCount(), {});
 		for (int i = 0; i < pmd.GetVertexCount(); ++i)
 		{
-			mesh[i].GetDataFromPMD_Vertex(pmd.GetVertex(i));
+			mMesh[i].GetDataFromPMD_Vertex(pmd.GetVertex(i));
 		}
 
-		index.assign(pmd.GetIndexCount(), 0);
+		mIndex.assign(pmd.GetIndexCount(), 0);
 		for (int i = 0; i < pmd.GetIndexCount(); ++i)
 		{
-			index[i] = static_cast<int>(pmd.GetIndex(i));
+			mIndex[i] = static_cast<int>(pmd.GetIndex(i));
 		}
 
 
@@ -261,14 +269,39 @@ private:
 			}
 		}
 
+		mBoneNames.assign(pmd.GetBoneCount(), {});
+
+		for (int i = 0; i < pmd.GetBoneCount(); ++i)
+		{
+			auto& fb = pmd.GetBone(i);
+			mBoneNames[i] = fb.name.GetText();
+			auto& node = mBoneNodeTable[fb.name.GetText()];
+			node.boneId = i;
+			node.startPos = GetFloat3FromPMD(fb.headPos);
+		}
+		for (int i = 0; i < pmd.GetBoneCount(); ++i)
+		{
+			auto& fb = pmd.GetBone(i);
+
+			if (fb.parentIndex >= pmd.GetBoneCount())
+			{
+				continue;
+			}
+
+			auto& parentName = mBoneNames[fb.parentIndex];
+			mBoneNodeTable[parentName].children.emplace_back(&mBoneNodeTable[fb.name.GetText()]);
+		}
+
+		mBoneMatrices.assign(pmd.GetBoneCount(), MathUtil::Matrix::GenerateMatrixIdentity());
+
 		isSuccess = true;
 	}
 	void LoadModel(const MMDsdk::PmxFile& pmx)
 	{
-		mesh.assign(pmx.GetVertexCount(), {});
+		mMesh.assign(pmx.GetVertexCount(), {});
 		for (int i = 0; i < pmx.GetVertexCount(); ++i)
 		{
-			auto& v = mesh[i];
+			auto& v = mMesh[i];
 			auto& xv = pmx.GetVertex(i);
 			v.pos = GetFloat3FromPMD(xv.position);
 			v.normal = GetFloat3FromPMD(xv.normal);
@@ -279,10 +312,10 @@ private:
 			v.edgeFlg = xv.edgeRate;
 		}
 
-		index.assign(pmx.GetIndexCount(), 0);
+		mIndex.assign(pmx.GetIndexCount(), 0);
 		for (int i = 0; i < pmx.GetIndexCount(); ++i)
 		{
-			index[i] = pmx.GetIndex(i);
+			mIndex[i] = pmx.GetIndex(i);
 		}
 
 		auto materialCount = pmx.GetMaterialCount();
@@ -347,9 +380,12 @@ private:
 
 	bool isSuccess = false;
 
-	std::vector<Vertex> mesh;
-	std::vector<int> index;
+	std::vector<Vertex> mMesh;
+	std::vector<int> mIndex;
 	std::vector<PMDActor::Material> mMaterials;
+	std::map<std::string, BoneNode> mBoneNodeTable;
+	std::vector<std::string> mBoneNames;
+	std::vector<MathUtil::Matrix> mBoneMatrices;
 };
 
 HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)

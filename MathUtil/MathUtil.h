@@ -109,6 +109,8 @@ namespace MathUtil
 		Matrix(const Matrix& mat);
 		Matrix(const DirectX::XMMATRIX& mat);
 
+		static Matrix GenerateMatrixIdentity();
+
 		static Matrix GenerateMatrixLookAtLH
 		(
 			const Vector& eye, 

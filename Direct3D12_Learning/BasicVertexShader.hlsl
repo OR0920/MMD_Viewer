@@ -5,7 +5,7 @@ struct VS_Input
     float4 pos : POSITION;
     float4 normal : NORMAL;
     float2 uv : TEXCOORD;
-    //min16int2 boneno : BONE_NO;
+    min16int2 boneno : BONE_NO;
     //min16int weight : WEIGHT;
 };
 
@@ -20,17 +20,19 @@ cbuffer scene : register(b0)
 cbuffer transform : register(b1)
 {
     matrix world;
+    matrix bone[256];
 };
 
 VS_OutPut BasicVS(VS_Input vsi)
 {
     vsi.pos.w = 1.f;
     VS_OutPut vso;
+    
+    vsi.pos = mul(bone[vsi.boneno[0]], vsi.pos);
+    
     vso.pos = vsi.pos;
     vsi.pos = mul(world, vsi.pos);
-
     vso.ray = normalize(eye - vsi.pos.xyz);
-
     vso.svpos = mul(mul(projection, view), vsi.pos);
     vsi.normal.w = 0.f;
     vso.normal = mul(world, vsi.normal);

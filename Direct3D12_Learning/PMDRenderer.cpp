@@ -148,7 +148,7 @@ HRESULT PMDRenderer::CreateGraphicsPipelineForPMD()
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		//{ "BONE_NO",0,DXGI_FORMAT_R16G16_UINT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		{ "BONE_NO",0,DXGI_FORMAT_R16G16_UINT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
 		//{ "WEIGHT",0,DXGI_FORMAT_R8_UINT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
 		//{ "EDGE_FLG",0,DXGI_FORMAT_R8_UINT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
 	};
@@ -262,7 +262,7 @@ ComPtr<ID3D12Resource> PMDRenderer::CreateWhiteTexture()
 	{
 		DebugMessageFunctionError
 		(
-			whiteBuff->WriteToSubresource(), 
+			whiteBuff->WriteToSubresource(),
 			PMDRenderer::CreateWhiteTexture()
 		);
 
@@ -273,7 +273,7 @@ ComPtr<ID3D12Resource> PMDRenderer::CreateWhiteTexture()
 	return whiteBuff;
 }
 
-ComPtr<ID3D12Resource> PMDRenderer::CreateBlackTexture() 
+ComPtr<ID3D12Resource> PMDRenderer::CreateBlackTexture()
 {
 	auto blackBuff = CreateDefaultTexture(4, 4);
 	std::vector<unsigned char> data(4 * 4 * 4);
@@ -303,7 +303,7 @@ ComPtr<ID3D12Resource> PMDRenderer::CreateGrayGradTexture() {
 		}
 		else
 		{
-			col |= RGB(0xff*0.8, 0xff*0.8, 0xff *0.8);
+			col |= RGB(0xff * 0.8, 0xff * 0.8, 0xff * 0.8);
 		}
 		std::fill(it, it + 4, col);
 		--c;
@@ -322,26 +322,26 @@ ComPtr<ID3D12Resource> PMDRenderer::CreateGrayGradTexture() {
 
 ComPtr<ID3D12Resource> PMDRenderer::CreateDefaultTexture
 (
-	size_t argWidth, 
+	size_t argWidth,
 	size_t argHeight
 )
 {
-	auto resDesc = 
+	auto resDesc =
 		CD3DX12_RESOURCE_DESC::Tex2D
 		(
-			DXGI_FORMAT_R8G8B8A8_UNORM, 
-			argWidth, 
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			argWidth,
 			argHeight
 		);
-	auto texHeapProp = 
+	auto texHeapProp =
 		CD3DX12_HEAP_PROPERTIES
 		(
-			D3D12_CPU_PAGE_PROPERTY_WRITE_BACK, 
+			D3D12_CPU_PAGE_PROPERTY_WRITE_BACK,
 			D3D12_MEMORY_POOL_L0
 		);
 
 	ComPtr<ID3D12Resource> buff = nullptr;
-	
+
 	auto result = mDx12.GetDevice()->CreateCommittedResource
 	(
 		&texHeapProp,
@@ -356,7 +356,7 @@ ComPtr<ID3D12Resource> PMDRenderer::CreateDefaultTexture
 	{
 		DebugMessageFunctionError
 		(
-			mDx12.GetDevice()->CreateCommittedResource(), 
+			mDx12.GetDevice()->CreateCommittedResource(),
 			PMDRenderer::CreateDefaultTexture()
 		);
 		assert(SUCCEEDED(result));
