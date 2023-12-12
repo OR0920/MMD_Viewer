@@ -224,6 +224,11 @@ Matrix Matrix::GenerateMatrixRotationZ(const float angle)
 	return XMMatrixRotationZ(angle);
 }
 
+Matrix Matrix::GenerateMatrixRotationQ(const Vector& q)
+{
+	return XMMatrixRotationQuaternion(q.GetData());
+}
+
 bool MathUtil::FloatEqual(float a, float b)
 {
 	return fabs(a - b) <= 0.00001;

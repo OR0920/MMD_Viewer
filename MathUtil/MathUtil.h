@@ -136,6 +136,7 @@ namespace MathUtil
 		static Matrix GenerateMatrixRotationX(const float angle);
 		static Matrix GenerateMatrixRotationY(const float angle);
 		static Matrix GenerateMatrixRotationZ(const float angle);
+		static Matrix GenerateMatrixRotationQ(const Vector& q);
 	private:
 		DirectX::XMMATRIX mData;
 	};

@@ -28,6 +28,8 @@ if (FAILED(func))\
 
 static const char* const toonDirPath = "../x64/Debug/Test/Model/SharedToonTexture/";
 
+static const char* const poseFilePath = "D:/Projects/directx12_samples-master/directx12_samples-master/Chapter10/motion/pose.vmd";
+
 PMDActor::PMDActor(const std::string argFilepath, PMDRenderer& argRenderer)
 	:
 	mRenderer(argRenderer),
@@ -184,7 +186,24 @@ struct BoneNode
 	std::vector<BoneNode*> children;
 };
 
+struct KeyFrame
+{
+	unsigned int frameNo;
+	MathUtil::Vector position;
+	MathUtil::Vector q;
+	unsigned char bezierParam[64];
 
+	KeyFrame(const MMDsdk::VmdFile::Mortion& file)
+	{
+		frameNo = file.frameNumber;
+		position = GetFloat3FromPMD(file.position);
+		q = GetFloat4FromPMD(file.rotation);
+		for (int i = 0; i < 64; ++i)
+		{
+			bezierParam[i] = file.GetBezierParam(i);
+		}
+	}
+};
 
 class MMD_Model
 {
@@ -205,6 +224,17 @@ public:
 			LoadModel(pmx);
 			DebugMessage("load as pmx");
 			return;
+		}
+	}
+
+	void LoadMortion(const char* const filepath)
+	{
+		MMDsdk::VmdFile vmdPose(filepath);
+
+		for (int i = 0; i < vmdPose.GetMortionCount(); ++i)
+		{
+			auto& m = vmdPose.GetMortion(i);
+			mMortion[m.name.GetText()].emplace_back(KeyFrame(m));
 		}
 	}
 
@@ -264,7 +294,7 @@ public:
 		}
 	}
 
-	void AddBoneMatrix(std::string name, const MathUtil::Matrix& mat)
+	void AddBoneTransform(std::string name, const MathUtil::Matrix& mat)
 	{
 		auto& bone = mBoneNodeTable[name];
 		auto& pos = bone.startPos;
@@ -280,21 +310,24 @@ public:
 	{
 		std::fill(mBoneMatrices.begin(), mBoneMatrices.end(), MathUtil::Matrix::GenerateMatrixIdentity());
 
-		AddBoneMatrix("右手首", MathUtil::Matrix::GenerateMatrixRotationX(MathUtil::DegreeToRadian(40.f)));
+		//AddBoneTransform("右手首", MathUtil::Matrix::GenerateMatrixRotationX(MathUtil::DegreeToRadian(40.f)));
+		//AddBoneTransform("右ひじ", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(-90.f)));
+		//AddBoneTransform("左手首", MathUtil::Matrix::GenerateMatrixRotationX(MathUtil::DegreeToRadian(50.f)));
+		//AddBoneTransform("左ひじ", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f)));
 
-		AddBoneMatrix("右ひじ", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(-90.f)));
+		for (auto& m : mMortion)
+		{
+			AddBoneTransform(m.first, MathUtil::Matrix::GenerateMatrixRotationQ(m.second[0].q));
+		}
 
-		AddBoneMatrix("左手首", MathUtil::Matrix::GenerateMatrixRotationX(MathUtil::DegreeToRadian(50.f)));
-
-		AddBoneMatrix("左ひじ", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f)));
-
-		RecurSiveMatrixMultiply(&mBoneNodeTable["センター"], MathUtil::Matrix::GenerateMatrixIdentity());
+		auto centerMat = MathUtil::Matrix::GenerateMatrixIdentity();
+		RecurSiveMatrixMultiply(&mBoneNodeTable["センター"], centerMat);
 	}
+
 
 private:
 	void LoadModel(const MMDsdk::PmdFile& pmd)
 	{
-		pmd.DebugOutAllBone();
 		mMesh.assign(pmd.GetVertexCount(), {});
 		for (int i = 0; i < pmd.GetVertexCount(); ++i)
 		{
@@ -355,7 +388,6 @@ private:
 			v.normal = GetFloat3FromPMD(xv.normal);
 			v.uv = GetFloat2FromPMD(xv.uv);
 
-
 			v.boneNo[0] = xv.GetBoneID(0);
 			v.boneNo[1] = xv.GetBoneID(1);
 			v.boneNo[2] = xv.GetBoneID(2);
@@ -365,7 +397,6 @@ private:
 			v.boneWeight[2] = xv.GetWeight(2);
 			v.boneWeight[3] = xv.GetWeight(3);
 			v.edgeFlg = xv.edgeRate;
-
 		}
 
 		mIndex.assign(pmx.GetIndexCount(), 0);
@@ -375,7 +406,6 @@ private:
 		}
 
 		auto materialCount = pmx.GetMaterialCount();
-		pmx.DebugOutAllTexturePath();
 
 		mMaterials.assign(materialCount, {});
 		for (int i = 0; i < materialCount; ++i)
@@ -411,7 +441,6 @@ private:
 				System::newArray_CopyAssetPath(&texPath, pmx.GetDirectoryPath(), pmx.GetTexturePath(xm.textureID).GetText());
 				mc.texPath = texPath;
 				System::SafeDeleteArray(&texPath);
-				DebugOutString(mc.texPath.c_str());
 			}
 			if (xm.sphereTextureID != -1)
 			{
@@ -420,10 +449,8 @@ private:
 				{
 				case MMDsdk::PmxFile::Material::SphereMode::SM_SPH:
 					mc.sphPath = texPath;
-					DebugOutString(mc.sphPath.c_str());
 				case MMDsdk::PmxFile::Material::SphereMode::SM_SPA:
 					mc.spaPath = texPath;
-					DebugOutString(mc.spaPath.c_str());
 				default:
 					break;
 				}
@@ -465,18 +492,20 @@ private:
 	std::map<std::string, BoneNode> mBoneNodeTable;
 	std::vector<std::string> mBoneNames;
 	std::vector<MathUtil::Matrix> mBoneMatrices;
+	std::unordered_map<std::string, std::vector<KeyFrame>> mMortion;
 };
 
 HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)
 {
 	model = new MMD_Model();
 	model->Load(argFilepath.c_str());
-
+	
 	if (model->IsSuccessLoad() == false)
 	{
 		return S_FALSE;
 	}
 
+	model->LoadMortion(poseFilePath);
 
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	DebugOutParam(model->GetVertexCount());

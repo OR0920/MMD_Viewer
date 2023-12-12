@@ -1256,12 +1256,15 @@ namespace MMDsdk
 
 			void LoadBezierParam(void* _file);
 			Mortion(); ~Mortion();
+			void DebugOut()const;
 		private:
 			Mortion(const Mortion&);
 			const Mortion& operator=(const Mortion&) const;
 		};
 		const Mortion& GetMortion(const int32_t i) const;
 		const int32_t GetLastMortionID() const;
+		void DebugOutMortion(const int32_t i) const;
+		void DebugOutAllMortion() const;
 
 	private:
 		VmdFile(); VmdFile(VmdFile&);

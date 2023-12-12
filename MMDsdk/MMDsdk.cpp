@@ -2351,6 +2351,7 @@ const int32_t& PmxFile::GetJointCount() const
 
 void PmxFile::Joint::DebugOut() const
 {
+#ifdef _DEBUG
 	DebugOutString(GetTextMacro(name));
 	DebugOutString(GetTextMacro(nameEng));
 
@@ -2381,6 +2382,7 @@ void PmxFile::Joint::DebugOut() const
 	DebugOutFloat3(springRot);
 
 	DebugMessageNewLine();
+#endif // _DEBUG
 }
 
 PmxFile::Joint::Joint() {};
@@ -2460,7 +2462,6 @@ VmdFile::VmdFile(const char* const filepath)
 		file.Read(m.rotation);
 
 		m.LoadBezierParam(&file);
-		DebugOutFloat3(m.position);
 	}
 	//last
 }
@@ -2498,6 +2499,16 @@ void VmdFile::Mortion::LoadBezierParam(void* _file)
 VmdFile::Mortion::Mortion() {}
 VmdFile::Mortion::~Mortion() {}
 
+void VmdFile::Mortion::DebugOut() const
+{
+#ifdef _DEBUG
+	DebugOutString(name.GetText());
+	DebugOutParamI(frameNumber);
+	DebugOutFloat3(position);
+	DebugOutFloat4(rotation);
+#endif // _DEBUG
+}
+
 const VmdFile::Mortion& VmdFile::GetMortion(const int32_t i) const
 {
 	ID_IS_NO_REF(i);
@@ -2510,6 +2521,22 @@ const VmdFile::Mortion& VmdFile::GetMortion(const int32_t i) const
 const int32_t VmdFile::GetLastMortionID() const
 {
 	return mMortionCount - 1;
+}
+
+void VmdFile::DebugOutMortion(const int32_t i) const
+{
+	DebugMessage("Mortion [" << i << "]");
+	GetMortion(i).DebugOut();
+}
+
+void VmdFile::DebugOutAllMortion() const
+{
+#ifdef _DEBUG
+	for (int32_t i = 0; i < mMortionCount; ++i)
+	{
+		DebugOutMortion(i);
+	}
+#endif // _DEBUG
 }
 
 //last
