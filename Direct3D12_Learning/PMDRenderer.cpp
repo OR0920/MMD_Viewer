@@ -303,7 +303,7 @@ ComPtr<ID3D12Resource> PMDRenderer::CreateGrayGradTexture() {
 		}
 		else
 		{
-			col |= RGB(0xff*3/4, 0xff*3 / 4, 0xff *3/4);
+			col |= RGB(0xff*0.8, 0xff*0.8, 0xff *0.8);
 		}
 		std::fill(it, it + 4, col);
 		--c;

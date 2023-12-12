@@ -105,29 +105,29 @@ HRESULT Dx12Wrapper::InitializeDevices()
 		return result;
 	}
 
-	// アダプターを列挙しNVIDIAのものを見つける
-	std::vector<ComPtr<IDXGIAdapter>> adapters;
-	ComPtr<IDXGIAdapter> tmpAdapter = nullptr;
-	bool forContinueFlag = true;
-	for (int i = 0; forContinueFlag; ++i)
-	{
-		forContinueFlag =
-			mDxgiFactory->EnumAdapters(i, tmpAdapter.ReleaseAndGetAddressOf())
-			!= DXGI_ERROR_NOT_FOUND;
-		adapters.push_back(tmpAdapter);
-	}
-	for (auto adapter : adapters)
-	{
-		DXGI_ADAPTER_DESC adapterDesc = {};
-		adapter->GetDesc(&adapterDesc);
-		std::wstring strDesc = adapterDesc.Description;
-		if (strDesc.find(L"NVIDIA") != std::string::npos)
-		{
-			tmpAdapter = adapter;
-			break;
-		}
-	}
-	result = S_FALSE;
+	//// アダプターを列挙しNVIDIAのものを見つける
+	//std::vector<ComPtr<IDXGIAdapter>> adapters;
+	//ComPtr<IDXGIAdapter> tmpAdapter = nullptr;
+	//bool forContinueFlag = true;
+	//for (int i = 0; forContinueFlag; ++i)
+	//{
+	//	forContinueFlag =
+	//		mDxgiFactory->EnumAdapters(i, tmpAdapter.ReleaseAndGetAddressOf())
+	//		!= DXGI_ERROR_NOT_FOUND;
+	//	adapters.push_back(tmpAdapter);
+	//}
+	//for (auto adapter : adapters)
+	//{
+	//	DXGI_ADAPTER_DESC adapterDesc = {};
+	//	adapter->GetDesc(&adapterDesc);
+	//	std::wstring strDesc = adapterDesc.Description;
+	//	if (strDesc.find(L"NVIDIA") != std::string::npos)
+	//	{
+	//		tmpAdapter = adapter;
+	//		break;
+	//	}
+	//}
+	//result = S_FALSE;
 
 
 	// デバイスの初期化
@@ -142,7 +142,7 @@ HRESULT Dx12Wrapper::InitializeDevices()
 
 	for (auto level : levels)
 	{
-		if (SUCCEEDED(D3D12CreateDevice(tmpAdapter.Get(), level, IID_PPV_ARGS(mDevice.ReleaseAndGetAddressOf()))))
+		if (SUCCEEDED(D3D12CreateDevice(nullptr, level, IID_PPV_ARGS(mDevice.ReleaseAndGetAddressOf()))))
 		{
 			featureLevel = level;
 			result = S_OK;
