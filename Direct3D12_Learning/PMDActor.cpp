@@ -242,6 +242,17 @@ public:
 	{
 		return mMaterials;
 	}
+
+	const int GetBoneCount() const
+	{
+		return mBoneMatrices.size();
+	}
+
+	const MathUtil::Matrix& GetBone(const int i) const
+	{
+		return mBoneMatrices[i];
+	}
+
 private:
 	void LoadModel(const MMDsdk::PmdFile& pmd)
 	{
@@ -543,11 +554,10 @@ HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)
 
 HRESULT PMDActor::CreateTransformView()
 {
-	auto buffSize = sizeof(Transform);
+	auto buffSize = sizeof(Transform) + sizeof(MathUtil::Matrix) * model->GetBoneCount();
 	buffSize = (buffSize + 0xff) & ~0xff;
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(buffSize);
-
 
 	auto result = mDx12.GetDevice()->CreateCommittedResource
 	(
@@ -570,15 +580,20 @@ HRESULT PMDActor::CreateTransformView()
 		return result;
 	}
 
-	result = mTransformBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mMappedTransform));
+	result = mTransformBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mMappedMatrices));
 	if (FAILED(result))
 	{
 		DebugMessageFunctionError(mTransformBuffer->Map(), PMDActor::CreateTransformView());
 		assert(SUCCEEDED(result));
 		return result;
 	}
+	
+	*mMappedMatrices = mTransform.world;
+	for (int i = 0; i < model->GetBoneCount(); ++i)
+	{
+		mMappedMatrices[i+1] = model->GetBone(i);
+	}
 
-	*mMappedTransform = mTransform;
 
 	D3D12_DESCRIPTOR_HEAP_DESC transformDescHeapDesc = {};
 	transformDescHeapDesc.NumDescriptors = 1;
@@ -816,7 +831,7 @@ HRESULT PMDActor::CreateMaterialAndTextureView()
 void PMDActor::Update()
 {
 	mAngle += 0.03f;
-	mMappedTransform->world = MathUtil::Matrix::GenerateMatrixRotationY(mAngle);
+	mMappedMatrices[0] = MathUtil::Matrix::GenerateMatrixRotationY(mAngle);
 }
 
 void PMDActor::Draw()

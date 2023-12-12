@@ -77,9 +77,9 @@ private:
 
 	struct Transform
 	{
-		void* operator new(size_t size);
 		MathUtil::Matrix world;
-	} mTransform, * mMappedTransform;
+	} mTransform;
+	MathUtil::Matrix *mMappedMatrices;
 
 	ComPtr<ID3D12Resource> mTransformBuffer;
 
