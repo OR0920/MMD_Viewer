@@ -7,6 +7,7 @@
 #include<cassert>
 
 // windows
+#pragma comment(lib, "winmm.lib")
 
 // directx
 #include"d3dx12.h"
@@ -35,19 +36,7 @@ static const char* const mortionFilePath = "D:/_3DModel/6666AAP‚Ìƒ‚[ƒVƒ‡ƒ“‘fŞ
 
 static const char* const danceFilePath = "D:/_3DModel/ƒ[ƒ‹ƒhƒCƒYƒ}ƒCƒ“‚ğƒlƒ‹‚É—x‚ç‚¹‚Ä‚İ‚½/ƒ[ƒ‹ƒhƒCƒYƒ}ƒCƒ“‚ğƒlƒ‹‚É—x‚ç‚¹‚Ä‚İ‚½/ƒ[ƒ‹ƒhƒCƒYƒ}ƒCƒ“_ƒlƒ‹.vmd";
 
-PMDActor::PMDActor(const std::string argFilepath, PMDRenderer& argRenderer)
-	:
-	mRenderer(argRenderer),
-	mDx12(argRenderer.mDx12),
-	mAngle(0.f)
-{
-	mTransform.world = DirectX::XMMatrixIdentity();
-	CallInitFunctionWithAssert(LoadPMDFile(argFilepath));
-	CallInitFunctionWithAssert(CreateTransformView());
-	CallInitFunctionWithAssert(CreateMaterialData());
-	CallInitFunctionWithAssert(CreateMaterialAndTextureView());
-}
-
+auto mfp = simpleMortionFilePath;
 
 inline MathUtil::float4 GetFloat4FromPMD(const MMDsdk::float4& mf)
 {
@@ -310,18 +299,44 @@ public:
 		mBoneMatrices[bone.boneId] = poseMat;
 	}
 
+
+	DWORD _startTime = 0;
+
+	void PlayAnimation()
+	{
+		_startTime = timeGetTime();
+	}
+
 	void Update()
 	{
+		DWORD elapsedTime = timeGetTime() - _startTime;
+		DWORD frameNo = 30 * (elapsedTime / 1000.f);
+
+		//DebugOutParamI(frameNo);
+
 		std::fill(mBoneMatrices.begin(), mBoneMatrices.end(), MathUtil::Matrix::GenerateMatrixIdentity());
 
 		//AddBoneTransform("‰Eèñ", MathUtil::Matrix::GenerateMatrixRotationX(MathUtil::DegreeToRadian(40.f)));
 		//AddBoneTransform("‰E‚Ğ‚¶", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(-90.f)));
 		//AddBoneTransform("¶èñ", MathUtil::Matrix::GenerateMatrixRotationX(MathUtil::DegreeToRadian(50.f)));
 		//AddBoneTransform("¶‚Ğ‚¶", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f)));
-
 		for (auto& m : mMortion)
 		{
-			AddBoneTransform(m.first, MathUtil::Matrix::GenerateMatrixRotationQ(m.second[0].q));
+			//auto node = mBoneNodeTable[m.first];
+			auto mortion = m.second;
+			auto rit = std::find_if
+			(
+				mortion.rbegin(), mortion.rend(),
+				[frameNo](const KeyFrame& mortion)
+				{
+				
+					return mortion.frameNo <= frameNo;
+				}
+			);
+
+			if (rit == mortion.rend()) continue;
+
+			AddBoneTransform(m.first, MathUtil::Matrix::GenerateMatrixRotationQ(rit->q));
 		}
 
 		auto centerMat = MathUtil::Matrix::GenerateMatrixIdentity();
@@ -503,13 +518,13 @@ HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)
 {
 	model = new MMD_Model();
 	model->Load(argFilepath.c_str());
-	
+
 	if (model->IsSuccessLoad() == false)
 	{
 		return S_FALSE;
 	}
 
-	model->LoadMortion(simpleMortionFilePath);
+	model->LoadMortion(mfp);
 
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	DebugOutParam(model->GetVertexCount());
@@ -975,3 +990,17 @@ PMDActor::~PMDActor()
 	System::SafeDelete(&model);
 }
 
+
+PMDActor::PMDActor(const std::string argFilepath, PMDRenderer& argRenderer)
+	:
+	mRenderer(argRenderer),
+	mDx12(argRenderer.mDx12),
+	mAngle(0.f)
+{
+	mTransform.world = DirectX::XMMatrixIdentity();
+	CallInitFunctionWithAssert(LoadPMDFile(argFilepath));
+	CallInitFunctionWithAssert(CreateTransformView());
+	CallInitFunctionWithAssert(CreateMaterialData());
+	CallInitFunctionWithAssert(CreateMaterialAndTextureView());
+	model->PlayAnimation();
+}
