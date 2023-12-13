@@ -400,21 +400,21 @@ HRESULT Dx12Wrapper::CreateSceneView()
 	return result;
 }
 
-void Dx12Wrapper::MoveCamera(MathUtil::Vector& velocity)
+void Dx12Wrapper::MoveCamera(const MathUtil::Vector& velocity)
 {
 	eye = eye + velocity;
-	target = target + velocity;
 
-	mMappedSceneData->view = MathUtil::Matrix::GenerateMatrixLookAtLH(eye, target, up);
+	mMappedSceneData->view = MathUtil::Matrix::GenerateMatrixLookToLH(eye, eyeDir, up);
 }
 
 void Dx12Wrapper::ResetCamera()
 {
 	eye = c_eye;
+	eyeDir = c_eyeDir;
 	target = c_target;
 	up = c_up;
 
-	mMappedSceneData->view = MathUtil::Matrix::GenerateMatrixLookAtLH(eye, target, up);
+	mMappedSceneData->view = MathUtil::Matrix::GenerateMatrixLookToLH(eye, eyeDir, up);
 }
 
 void Dx12Wrapper::CreateTextureLoaderTable()

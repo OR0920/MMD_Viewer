@@ -37,7 +37,7 @@ public:
 	ComPtr<ID3D12GraphicsCommandList> GetCommandList();
 	ComPtr<IDXGISwapChain4> GetSwapChain();
 
-	void MoveCamera(MathUtil::Vector& velocity);
+	void MoveCamera(const MathUtil::Vector& velocity);
 	void ResetCamera();
 
 	void SetScene();
@@ -73,10 +73,12 @@ private:
 	ComPtr<ID3D12DescriptorHeap> mSceneDescriptorHeap;
 
 	const MathUtil::float3 c_eye = { 0, 10, -40 };
+	const MathUtil::float3 c_eyeDir = {0.f, 0.f, 1.f};
 	const MathUtil::float3 c_target = { 0, 10, 0 };
 	const MathUtil::float3 c_up = { 0, 1, 0 };
 
 	MathUtil::Vector eye = c_eye;
+	MathUtil::Vector eyeDir = c_eyeDir;
 	MathUtil::Vector target = c_target;
 	MathUtil::Vector up = c_up;
 

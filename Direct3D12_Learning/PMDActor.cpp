@@ -27,7 +27,7 @@ if (FAILED(func))\
 	assert(false);\
 	return;\
 }
- 
+
 static const char* const toonDirPath = "../x64/Debug/Test/Model/SharedToonTexture/";
 
 
@@ -173,9 +173,23 @@ void PMDActor::Material::GetMaterialDataFromPMD(const void* materialDataFromFile
 	vertexCount = data.vertexCount;
 }
 
+enum BoneType
+{
+	ROTATION,
+	ROTATION_MOVE,
+	IK,
+	UNDEFINED,
+	IK_CHILD,
+	ROTATION_CHILD,
+	IK_DESTINATION,
+	INVISIVBLE
+};
+
 struct BoneNode
 {
-	int boneId = 0;
+	int boneID = 0;
+	BoneType type;
+	int ikParentBoneID;
 	MathUtil::float3 startPos;
 	MathUtil::float3 endPosth;
 	std::vector<BoneNode*> children;
@@ -195,12 +209,12 @@ struct KeyFrame
 		position = GetFloat3FromPMD(file.position);
 		q = GetFloat4FromPMD(file.rotation);
 
-		p1 = 
+		p1 =
 		{
 			file.GetBezierParam(3) / 127.f,
 			file.GetBezierParam(7) / 127.f
 		};
-		p2 = 
+		p2 =
 		{
 			file.GetBezierParam(11) / 127.f,
 			file.GetBezierParam(15) / 127.f
@@ -212,6 +226,15 @@ struct KeyFrame
 		}
 
 	}
+};
+
+struct IK_Data
+{
+	int boneID;
+	int targetID;
+	int iterations;
+	float limit;
+	std::vector<int> nodeIDs;
 };
 
 class MMD_Model
@@ -310,11 +333,11 @@ public:
 
 	void RecurSiveMatrixMultiply(BoneNode* node, const MathUtil::Matrix& mat)
 	{
-		mBoneMatrices[node->boneId] *= mat;
+		mBoneMatrices[node->boneID] *= mat;
 
 		for (auto& childNodes : node->children)
 		{
-			RecurSiveMatrixMultiply(childNodes, mBoneMatrices[node->boneId]);
+			RecurSiveMatrixMultiply(childNodes, mBoneMatrices[node->boneID]);
 		}
 	}
 
@@ -327,7 +350,7 @@ public:
 
 		auto poseMat = iBoneMat * mat * boneMat;
 
-		mBoneMatrices[bone.boneId] = poseMat;
+		mBoneMatrices[bone.boneID] = poseMat;
 	}
 
 private:
@@ -360,6 +383,35 @@ private:
 
 		auto r = 1 - t;
 		return t * t * t + 3 * t * t * r * b.y + 3 * t * r * r * a.y;
+	}
+
+	void SolveCCDIK(const IK_Data& ik)
+	{
+
+	}
+
+	void SolveCosIK(const IK_Data& ik)
+	{
+
+	}
+
+	void SolveLookAtIK(const IK_Data& ik)
+	{
+		
+	}
+
+	void SolveIK()
+	{
+		for (auto& ik : mIK_Data)
+		{
+			switch (ik.nodeIDs.size())
+			{
+			case 0: assert(true); break;
+			case 1: SolveLookAtIK(ik); break;
+			case 2: SolveCosIK(ik); break;
+			default: SolveCCDIK(ik); break;
+			}
+		}
 	}
 
 public:
@@ -453,13 +505,17 @@ private:
 
 		mBoneNames.assign(pmd.GetBoneCount(), {});
 
+		mBoneNodeAddressArray.assign(pmd.GetBoneCount(), nullptr);
+
 		for (int i = 0; i < pmd.GetBoneCount(); ++i)
 		{
 			auto& fb = pmd.GetBone(i);
 			mBoneNames[i] = fb.name.GetText();
 			auto& node = mBoneNodeTable[fb.name.GetText()];
-			node.boneId = i;
+			node.boneID = i;
 			node.startPos = GetFloat3FromPMD(fb.headPos);
+
+			mBoneNodeAddressArray[i] = &node;
 		}
 		for (int i = 0; i < pmd.GetBoneCount(); ++i)
 		{
@@ -473,6 +529,24 @@ private:
 		}
 
 		mBoneMatrices.assign(pmd.GetBoneCount(), MathUtil::Matrix::GenerateMatrixIdentity());
+
+		mIK_Data.assign(pmd.GetIKCount(), {});
+		for (int i = 0; i < pmd.GetIKCount(); ++i)
+		{
+			auto& ik = pmd.GetIKData(i);
+			auto& mik = mIK_Data[i];
+
+			mik.boneID = ik.ikBoneIndex;
+			mik.targetID = ik.ikTargetBoneIndex;
+			mik.iterations = ik.iterations;
+			mik.limit = ik.controlWeight;
+			
+			mik.nodeIDs.assign(ik.ikChainCount, -1);
+			for (int i = 0; i < ik.ikChainCount; ++i)
+			{
+				mik.nodeIDs[i] = ik.GetIkChildBoneID(i);
+			}
+		}
 
 		isSuccess = true;
 	}
@@ -564,7 +638,7 @@ private:
 			auto& fb = pmx.GetBone(i);
 			mBoneNames[i] = fb.name.GetText();
 			auto& node = mBoneNodeTable[fb.name.GetText()];
-			node.boneId = i;
+			node.boneID = i;
 			node.startPos = GetFloat3FromPMD(fb.position);
 		}
 		for (int i = 0; i < pmx.GetBoneCount(); ++i)
@@ -592,6 +666,10 @@ private:
 	std::vector<std::string> mBoneNames;
 	std::vector<MathUtil::Matrix> mBoneMatrices;
 	std::unordered_map<std::string, std::vector<KeyFrame>> mMotion;
+
+	std::vector<IK_Data> mIK_Data;
+
+	std::vector<BoneNode*> mBoneNodeAddressArray;
 };
 
 HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)

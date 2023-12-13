@@ -122,6 +122,13 @@ namespace MathUtil
 
 		static Matrix GenerateMatrixInverse(const Matrix& matrix);
 
+		static Matrix GenerateMatrixLookToLH
+		(
+			const Vector& eye, 
+			const Vector& eyeDir, 
+			const Vector& up
+		);
+
 		static Matrix GenerateMatrixLookAtLH
 		(
 			const Vector& eye, 

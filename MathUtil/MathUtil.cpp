@@ -193,6 +193,11 @@ Matrix Matrix::GenerateMatrixInverse(const Matrix& matrix)
 	return XMMatrixInverse(nullptr, matrix.mData);
 }
 
+Matrix Matrix::GenerateMatrixLookToLH(const Vector& eye, const Vector& eyeDir, const Vector& up)
+{
+	return XMMatrixLookToLH(eye.GetData(), eyeDir.GetData(), up.GetData());
+}
+
 Matrix Matrix::GenerateMatrixLookAtLH(const Vector& eye, const Vector& target, const Vector& up)
 {
 	return XMMatrixLookAtLH(eye.GetData(), target.GetData(), up.GetData());
