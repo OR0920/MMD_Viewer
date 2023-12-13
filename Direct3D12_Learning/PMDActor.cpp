@@ -5,6 +5,7 @@
 
 // std
 #include<cassert>
+#include<algorithm>
 
 // windows
 #pragma comment(lib, "winmm.lib")
@@ -31,12 +32,13 @@ static const char* const toonDirPath = "../x64/Debug/Test/Model/SharedToonTextur
 
 static const char* const poseFilePath = "D:/Projects/directx12_samples-master/directx12_samples-master/Chapter10/motion/pose.vmd";
 static const char* const simpleMortionFilePath = "D:/Projects/directx12_samples-master/directx12_samples-master/Chapter10/motion/swing.vmd";
+static const char* const simpleMortionFilePath2 = "D:/Projects/directx12_samples-master/directx12_samples-master/Chapter10/motion/motion.vmd";
 
 static const char* const mortionFilePath = "D:/_3DModel/6666AAPのモーション素材集vol01/6666AAPのモーション素材集vol.01 歩き/Motion/シンプルウォーク.vmd";
 
 static const char* const danceFilePath = "D:/_3DModel/ワールドイズマインをネルに踊らせてみた/ワールドイズマインをネルに踊らせてみた/ワールドイズマイン_ネル.vmd";
 
-auto mfp = simpleMortionFilePath;
+auto mfp = simpleMortionFilePath2;
 
 inline MathUtil::float4 GetFloat4FromPMD(const MMDsdk::float4& mf)
 {
@@ -227,7 +229,19 @@ public:
 		for (int i = 0; i < vmdPose.GetMortionCount(); ++i)
 		{
 			auto& m = vmdPose.GetMortion(i);
-			mMortion[m.name.GetText()].emplace_back(KeyFrame(m));
+			mMotion[m.name.GetText()].emplace_back(KeyFrame(m));
+		}
+
+		for (auto& motion : mMotion)
+		{
+			std::sort
+			(
+				motion.second.begin(), motion.second.end(),
+				[](const KeyFrame& l, const KeyFrame& r) 
+				{
+					return l.frameNo < r.frameNo;
+				}
+			);
 		}
 	}
 
@@ -320,7 +334,7 @@ public:
 		//AddBoneTransform("右ひじ", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(-90.f)));
 		//AddBoneTransform("左手首", MathUtil::Matrix::GenerateMatrixRotationX(MathUtil::DegreeToRadian(50.f)));
 		//AddBoneTransform("左ひじ", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f)));
-		for (auto& m : mMortion)
+		for (auto& m : mMotion)
 		{
 			//auto node = mBoneNodeTable[m.first];
 			auto mortion = m.second;
@@ -336,7 +350,21 @@ public:
 
 			if (rit == mortion.rend()) continue;
 
-			AddBoneTransform(m.first, MathUtil::Matrix::GenerateMatrixRotationQ(rit->q));
+			auto it = rit.base();
+
+			MathUtil::Vector rotationQ;
+			if (it != mortion.end())
+			{
+				auto t = static_cast<float>(frameNo - rit->frameNo) / static_cast<float>(it->frameNo - rit->frameNo);
+
+				rotationQ = MathUtil::Vector::GenerateRotationQuaternionSlerp(rit->q, it->q, t);
+			}
+			else
+			{
+				rotationQ = rit->q;
+			}
+
+			AddBoneTransform(m.first, MathUtil::Matrix::GenerateMatrixRotationQ(rotationQ));
 		}
 
 		auto centerMat = MathUtil::Matrix::GenerateMatrixIdentity();
@@ -511,7 +539,7 @@ private:
 	std::map<std::string, BoneNode> mBoneNodeTable;
 	std::vector<std::string> mBoneNames;
 	std::vector<MathUtil::Matrix> mBoneMatrices;
-	std::unordered_map<std::string, std::vector<KeyFrame>> mMortion;
+	std::unordered_map<std::string, std::vector<KeyFrame>> mMotion;
 };
 
 HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)

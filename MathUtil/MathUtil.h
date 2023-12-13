@@ -53,8 +53,10 @@ namespace MathUtil
 		Vector(const float _x, const float _y, const float _z = 0.f, const float _w = 0.f);
 
 		//コピーで初期化
-		//参照ではなくmDataの実態をコピー
+		//参照ではなくmDataの実体コピー
 		Vector(const Vector& other);
+
+		Vector(const DirectX::XMVECTOR& other);
 
 		//データ用構造体を取得
 		//書き換え用ではない
@@ -95,7 +97,8 @@ namespace MathUtil
 		// 2次元ベクトルが入力された場合は　(x, y, 0.f)として扱う//
 		const Vector Cross3(const Vector& other) const;
 
-		static Vector GenerateRotationQuaternionFromEuler(float x, float y, float z);
+		static Vector GenerateRotationQuaternionSlerp(const Vector a, const Vector b, const float t);
+		static Vector GenerateRotationQuaternionFromEuler(const float x, const float y, const float z);
 
 	private:
 		DirectX::XMVECTOR mData;
@@ -109,6 +112,9 @@ namespace MathUtil
 		Matrix(const Matrix& mat);
 		Matrix(const DirectX::XMMATRIX& mat);
 
+		const Matrix operator+(const Matrix& other) const;
+
+		const Matrix operator*(const float other) const;
 		const Matrix operator*(const Matrix& other) const;
 		void operator*=(const Matrix& other);
 

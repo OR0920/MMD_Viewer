@@ -12,6 +12,7 @@ Vector::Vector(const float2& data) : mData(XMLoadFloat2(reinterpret_cast<const X
 Vector::Vector(const float3& data) : mData(XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(&data))) {}
 Vector::Vector(const float4& data) : mData(XMLoadFloat4(reinterpret_cast<const XMFLOAT4*>(&data))) {}
 Vector::Vector(const Vector& other) : mData(other.mData) {};
+Vector::Vector(const DirectX::XMVECTOR& other) : mData(other) {};
 
 Vector::Vector
 (
@@ -79,24 +80,17 @@ const Vector& Vector::operator=(const Vector& other)
 
 const Vector Vector::operator+(const Vector& other) const
 {
-	Vector ret{};
-	ret.mData = XMVectorAdd(mData, other.mData);
-	return ret;
+	return XMVectorAdd(mData, other.mData);
 }
 
 const Vector Vector::operator-(const Vector& other) const
 {
-	Vector ret{};
-	ret.mData = XMVectorSubtract(mData, other.mData);
-	return ret;
+	return XMVectorSubtract(mData, other.mData);
 }
 
 const Vector Vector::operator*(const float other) const
 {
-	Vector ret{};
-	Vector otherv(other, other, other, other);
-	ret.mData = XMVectorMultiply(mData, otherv.mData);
-	return ret;
+	return XMVectorScale(mData, other);
 }
 
 const float Vector::Dot2(const Vector& other) const
@@ -121,21 +115,22 @@ const float Vector::Cross2(const Vector& other) const
 
 const Vector Vector::Cross3(const Vector& other) const
 {
-	Vector ret;
-	ret.mData = XMVector3Cross(mData, other.mData);
-	return ret;
+	return XMVector3Cross(mData, other.mData);
 }
 
-Vector Vector::GenerateRotationQuaternionFromEuler(float x, float y, float z)
+Vector Vector::GenerateRotationQuaternionSlerp(const Vector a, const Vector b, const float t)
 {
-	Vector ret;
-	ret.mData = XMQuaternionRotationRollPitchYaw
+	return XMQuaternionSlerp(a.mData, b.mData, t);
+}
+
+Vector Vector::GenerateRotationQuaternionFromEuler(const float x, const float y, const float z)
+{
+	return XMQuaternionRotationRollPitchYaw
 	(
 		XMConvertToRadians(x),
 		XMConvertToRadians(y),
 		XMConvertToRadians(z)
 	);
-	return ret;
 }
 
 
@@ -167,12 +162,22 @@ Matrix::~Matrix()
 
 }
 
+const Matrix Matrix::operator+(const Matrix& other) const
+{
+	return mData + other.mData;
+}
+
+const Matrix Matrix::operator*(const float other) const
+{
+	return mData * other;
+}
+
 const Matrix Matrix::operator*(const Matrix& ohter) const
 {
 	return mData * ohter.mData;
 }
 
-void Matrix::operator*=(const Matrix& other) 
+void Matrix::operator*=(const Matrix& other)
 {
 	mData *= other.mData;
 }
