@@ -29,8 +29,8 @@ float4 MMDToonShader(VS_OutPut vso)
     sphereUV = (sphereUV + float2(1.f, -1.f)) * float2(0.5f, -0.5f);
         
     float4 finalColor = tex.Sample(smp, vso.uv) * sph.Sample(smp, sphereUV) + spa.Sample(smp, sphereUV);
-    
     float3 light = normalize(float3(-1.f, -1.f, 1.f));
+    
     
     float diffuseB = -dot(vso.normal.xyz, light);
     if (diffuseB < 0.f)

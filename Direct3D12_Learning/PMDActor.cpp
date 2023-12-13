@@ -27,15 +27,14 @@ if (FAILED(func))\
 	assert(false);\
 	return;\
 }
-
+ 
 static const char* const toonDirPath = "../x64/Debug/Test/Model/SharedToonTexture/";
+
 
 static const char* const poseFilePath = "D:/Projects/directx12_samples-master/directx12_samples-master/Chapter10/motion/pose.vmd";
 static const char* const simpleMortionFilePath = "D:/Projects/directx12_samples-master/directx12_samples-master/Chapter10/motion/swing.vmd";
 static const char* const simpleMortionFilePath2 = "D:/Projects/directx12_samples-master/directx12_samples-master/Chapter10/motion/motion.vmd";
-
 static const char* const mortionFilePath = "D:/_3DModel/6666AAPのモーション素材集vol01/6666AAPのモーション素材集vol.01 歩き/Motion/シンプルウォーク.vmd";
-
 static const char* const danceFilePath = "D:/_3DModel/ワールドイズマインをネルに踊らせてみた/ワールドイズマインをネルに踊らせてみた/ワールドイズマイン_ネル.vmd";
 
 auto mfp = simpleMortionFilePath2;
@@ -187,6 +186,7 @@ struct KeyFrame
 	unsigned int frameNo;
 	MathUtil::Vector position;
 	MathUtil::Vector q;
+	MathUtil::float2 p1, p2;
 	unsigned char bezierParam[64];
 
 	KeyFrame(const MMDsdk::VmdFile::Mortion& file)
@@ -194,10 +194,23 @@ struct KeyFrame
 		frameNo = file.frameNumber;
 		position = GetFloat3FromPMD(file.position);
 		q = GetFloat4FromPMD(file.rotation);
+
+		p1 = 
+		{
+			file.GetBezierParam(3) / 127.f,
+			file.GetBezierParam(7) / 127.f
+		};
+		p2 = 
+		{
+			file.GetBezierParam(11) / 127.f,
+			file.GetBezierParam(15) / 127.f
+		};
+
 		for (int i = 0; i < 64; ++i)
 		{
 			bezierParam[i] = file.GetBezierParam(i);
 		}
+
 	}
 };
 
@@ -222,7 +235,9 @@ public:
 			return;
 		}
 	}
-
+private:
+	int frameCount = 0;
+public:
 	void LoadMortion(const char* const filepath)
 	{
 		MMDsdk::VmdFile vmdPose(filepath);
@@ -230,6 +245,8 @@ public:
 		{
 			auto& m = vmdPose.GetMortion(i);
 			mMotion[m.name.GetText()].emplace_back(KeyFrame(m));
+
+			frameCount = std::max<unsigned int>(frameCount, m.frameNumber);
 		}
 
 		for (auto& motion : mMotion)
@@ -237,7 +254,7 @@ public:
 			std::sort
 			(
 				motion.second.begin(), motion.second.end(),
-				[](const KeyFrame& l, const KeyFrame& r) 
+				[](const KeyFrame& l, const KeyFrame& r)
 				{
 					return l.frameNo <= r.frameNo;
 				}
@@ -313,9 +330,39 @@ public:
 		mBoneMatrices[bone.boneId] = poseMat;
 	}
 
-
+private:
 	DWORD _startTime = 0;
 
+	float GetYFromXOnVezier(float x, const MathUtil::float2& a, const MathUtil::float2& b, uint8_t n)
+	{
+		if (a.x == a.y && b.x == b.y)
+		{
+			return x;
+		}
+
+		float t = x;
+		const float k0 = 1 + 3 * a.x - 3 * b.x;
+		const float k1 = 3 * b.x - 6 * a.x;
+		const float k2 = 3 * a.x;
+
+		constexpr float epsilon = 0.0005f;
+
+		for (int i = 0; i < n; ++i)
+		{
+			auto ft = k0 * t * t * t + k1 * t * t + k2 * t - x;
+			if (-epsilon <= ft && ft <= epsilon)
+			{
+				break;
+			}
+
+			t -= ft / 2;
+		}
+
+		auto r = 1 - t;
+		return t * t * t + 3 * t * t * r * b.y + 3 * t * r * r * a.y;
+	}
+
+public:
 	void PlayAnimation()
 	{
 		_startTime = timeGetTime();
@@ -325,6 +372,8 @@ public:
 	{
 		DWORD elapsedTime = timeGetTime() - _startTime;
 		DWORD frameNo = 30 * (elapsedTime / 1000.f);
+
+		frameNo %= frameCount;
 
 		//DebugOutParamI(frameNo);
 
@@ -336,14 +385,15 @@ public:
 		//AddBoneTransform("左ひじ", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f)));
 		for (auto& m : mMotion)
 		{
-			//auto node = mBoneNodeTable[m.first];
+			if (mBoneNodeTable.find(m.first) == mBoneNodeTable.end()) continue;
+
 			auto mortion = m.second;
 			auto rit = std::find_if
 			(
 				mortion.rbegin(), mortion.rend(),
 				[frameNo](const KeyFrame& mortion)
 				{
-				
+
 					return mortion.frameNo <= frameNo;
 				}
 			);
@@ -356,6 +406,8 @@ public:
 			if (it != mortion.end())
 			{
 				auto t = static_cast<float>(frameNo - rit->frameNo) / static_cast<float>(it->frameNo - rit->frameNo);
+
+				t = GetYFromXOnVezier(t, it->p1, it->p2, 12);
 
 				rotationQ = MathUtil::Vector::GenerateRotationQuaternionSlerp(rit->q, it->q, t);
 			}

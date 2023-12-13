@@ -24,7 +24,7 @@ static const char* const mikuPmxPath2 = "D:/Projects/MMD_Viewer/x64/Debug/Test/M
 static const int gWindowHeight = 1080;
 static const int gWindowWidth = gWindowHeight * 16 / 9;
 
-auto modelpath = mikuPath;
+auto modelpath = hakasePath;
 
 #ifdef _DEBUG	
 int main()
