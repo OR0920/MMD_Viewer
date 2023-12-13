@@ -30,7 +30,7 @@ static const char* const toonDirPath = "../x64/Debug/Test/Model/SharedToonTextur
 
 static const char* const poseFilePath = "D:/Projects/directx12_samples-master/directx12_samples-master/Chapter10/motion/pose.vmd";
 
-static const char* const mortionFilePath = "D:/_3DModel/ワールドイズマインをネルに踊らせてみた/ワールドイズマインをネルに踊らせてみた/ワールドイズマイン_ミク.vmd";
+static const char* const mortionFilePath = "D:/_3DModel/ワールドイズマインをネルに踊らせてみた/ワールドイズマインをネルに踊らせてみた/ワールドイズマイン_ネル.vmd";
 
 PMDActor::PMDActor(const std::string argFilepath, PMDRenderer& argRenderer)
 	:
