@@ -30,7 +30,9 @@ static const char* const toonDirPath = "../x64/Debug/Test/Model/SharedToonTextur
 
 static const char* const poseFilePath = "D:/Projects/directx12_samples-master/directx12_samples-master/Chapter10/motion/pose.vmd";
 
-static const char* const mortionFilePath = "D:/_3DModel/ワールドイズマインをネルに踊らせてみた/ワールドイズマインをネルに踊らせてみた/ワールドイズマイン_ネル.vmd";
+static const char* const mortionFilePath = "D:/_3DModel/6666AAPのモーション素材集vol01/6666AAPのモーション素材集vol.01 歩き/Motion/シンプルウォーク.vmd";
+
+static const char* const danceFilePath = "D:/_3DModel/ワールドイズマインをネルに踊らせてみた/ワールドイズマインをネルに踊らせてみた/ワールドイズマイン_ネル.vmd";
 
 PMDActor::PMDActor(const std::string argFilepath, PMDRenderer& argRenderer)
 	:
@@ -232,7 +234,6 @@ public:
 	void LoadMortion(const char* const filepath)
 	{
 		MMDsdk::VmdFile vmdPose(filepath);
-
 		for (int i = 0; i < vmdPose.GetMortionCount(); ++i)
 		{
 			auto& m = vmdPose.GetMortion(i);
@@ -507,7 +508,7 @@ HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)
 		return S_FALSE;
 	}
 
-	model->LoadMortion(mortionFilePath);
+	model->LoadMortion(poseFilePath);
 
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	DebugOutParam(model->GetVertexCount());
