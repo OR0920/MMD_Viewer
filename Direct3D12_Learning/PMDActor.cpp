@@ -239,7 +239,7 @@ public:
 				motion.second.begin(), motion.second.end(),
 				[](const KeyFrame& l, const KeyFrame& r) 
 				{
-					return l.frameNo < r.frameNo;
+					return l.frameNo <= r.frameNo;
 				}
 			);
 		}
@@ -976,7 +976,7 @@ HRESULT PMDActor::CreateMaterialAndTextureView()
 
 void PMDActor::Update()
 {
-	mAngle += 0.03f;
+	//mAngle += 0.03f;
 	mMappedMatrices[0] = MathUtil::Matrix::GenerateMatrixRotationY(mAngle);
 
 	model->Update();
