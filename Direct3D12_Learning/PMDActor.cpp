@@ -40,7 +40,7 @@ static const char* const mortionFilePath = "D:/_3DModel/6666AAP‚Ìƒ‚[ƒVƒ‡ƒ“‘fŞ
 static const char* const danceFilePath = "D:/_3DModel/ƒ[ƒ‹ƒhƒCƒYƒ}ƒCƒ“‚ğƒlƒ‹‚É—x‚ç‚¹‚Ä‚İ‚½/ƒ[ƒ‹ƒhƒCƒYƒ}ƒCƒ“‚ğƒlƒ‹‚É—x‚ç‚¹‚Ä‚İ‚½/ƒ[ƒ‹ƒhƒCƒYƒ}ƒCƒ“_ƒlƒ‹.vmd";
 
 // mortion file
-auto mfp = simpleMortionFilePathIK;
+auto mfp = mortionFilePath;
 
 inline MathUtil::float4 GetFloat4FromPMD(const MMDsdk::float4& mf)
 {
@@ -103,7 +103,6 @@ void PMDActor::MaterialOnShader::GetMaterialDataFromPMD(const void* materialData
 	const auto& data = *reinterpret_cast<const MMDsdk::PmdFile::Material*>(materialDataFromFile);
 
 	diffuse = GetFloat4FromPMD(data.diffuse);
-	DebugOutFloat4(diffuse);
 	specularity = data.specularity;
 
 	specular = GetFloat3FromPMD(data.specular);
@@ -325,6 +324,7 @@ public:
 			);
 		}
 
+		vmdPose.DebugOutAllMortion();
 	}
 
 	bool IsSuccessLoad() const
@@ -383,21 +383,27 @@ public:
 		}
 	}
 
-	MathUtil::Matrix GetBoneTransForm(std::string name, const MathUtil::Matrix& mat)
+	//MathUtil::Matrix GetBoneTransForm(std::string name, const MathUtil::Matrix& mat)
+	//{
+	//	auto& bone = mBoneNodeTable[name];
+	//	auto& pos = bone.startPos;
+	//	auto boneMat = MathUtil::Matrix::GenerateMatrixTranslation(pos);
+	//	auto iBoneMat = MathUtil::Matrix::GenerateMatrixInverse(boneMat);
+
+	//	return iBoneMat * mat * boneMat;
+	//}
+
+	void AddBoneTransform(std::string name, const MathUtil::Matrix& rotation, const MathUtil::Matrix& translation = MathUtil::Matrix::GenerateMatrixIdentity())
 	{
 		auto& bone = mBoneNodeTable[name];
+
 		auto& pos = bone.startPos;
 		auto boneMat = MathUtil::Matrix::GenerateMatrixTranslation(pos);
 		auto iBoneMat = MathUtil::Matrix::GenerateMatrixInverse(boneMat);
 
-		return iBoneMat * mat * boneMat;
-	}
-
-	void AddBoneTransform(std::string name, const MathUtil::Matrix& mat)
-	{
-		auto& bone = mBoneNodeTable[name];
-	
-		mBoneMatrices[bone.boneID] = GetBoneTransForm(name, mat);
+		auto lastMat = iBoneMat * rotation * boneMat;
+		lastMat *= translation;
+		mBoneMatrices[bone.boneID] = lastMat;
 	}
 
 private:
@@ -460,7 +466,7 @@ private:
 				MathUtil::float3(1.f, 0.f, 0.f)
 			)
 			* MathUtil::Matrix::GenerateMatrixTranslation(rootPos_2);
-			
+
 	}
 
 	void SolveCosIK(const IK_Data& ik)
@@ -543,7 +549,7 @@ private:
 		auto boneMat = mBoneMatrices[ik.boneID];
 
 		auto targetNextPos = MathUtil::Vector::GenerateVector3Transform(boneMat * iParentMat, targetOriginPos);
-		
+
 		MathUtil::Vector endPos = mBoneNodeAddressArray[ik.targetID]->startPos;
 
 		std::vector<MathUtil::Vector> bonePositions;
@@ -587,9 +593,9 @@ private:
 				float angle = vecToEnd.AngleBetWeenVector3(vecToTarget);
 
 				angle = std::min<>(angle, ikLimitRad);
-				
+
 				MathUtil::Matrix rot = MathUtil::Matrix::GenerateMatrixRotationAxis(cross, angle);
-				
+
 				auto mat =
 					MathUtil::Matrix::GenerateMatrixTranslation(-pos)
 					* rot
@@ -631,9 +637,8 @@ private:
 		{
 			switch (ik.nodeIDs.size())
 			{
-			case 0: assert(true); break;
-			case 1: SolveLookAtIK(ik); break;
-			case 2: SolveCosIK(ik); break;
+			//case 1:	SolveLookAtIK(ik); break;
+			//case 2: SolveCosIK(ik); break;
 			default: SolveCCDIK(ik); break;
 			}
 		}
@@ -645,6 +650,7 @@ public:
 		_startTime = timeGetTime();
 	}
 
+	MathUtil::Vector mOffs = MathUtil::Vector::zero;
 	void Update()
 	{
 		DWORD elapsedTime = timeGetTime() - _startTime;
@@ -657,11 +663,11 @@ public:
 		std::fill(mBoneMatrices.begin(), mBoneMatrices.end(), MathUtil::Matrix::GenerateMatrixIdentity());
 		//SolveIK();
 
-		//AddBoneTransform("‰Eèñ", MathUtil::Matrix::GenerateMatrixRotationX(MathUtil::DegreeToRadian(40.f)));
-		//AddBoneTransform("‰E‚Ğ‚¶", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(-90.f)));
-		//AddBoneTransform("¶èñ", MathUtil::Matrix::GenerateMatrixRotationX(MathUtil::DegreeToRadian(50.f)));
-		//AddBoneTransform("¶‚Ğ‚¶", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f)));
-		for (auto& m : mMotion)
+		/*AddBoneTransform("‰Eèñ", MathUtil::Matrix::GenerateMatrixRotationX(MathUtil::DegreeToRadian(40.f)));
+		AddBoneTransform("‰E‚Ğ‚¶", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(-90.f)));
+		AddBoneTransform("¶èñ", MathUtil::Matrix::GenerateMatrixRotationX(MathUtil::DegreeToRadian(50.f)));
+		AddBoneTransform("¶‚Ğ‚¶", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f)));*/
+	/*	for (auto& m : mMotion)
 		{
 			if (mBoneNodeTable.find(m.first) == mBoneNodeTable.end()) continue;
 
@@ -696,15 +702,26 @@ public:
 				rotationQ = rit->q;
 			}
 
-			auto rotMat = GetBoneTransForm(m.first, MathUtil::Matrix::GenerateMatrixRotationQ(rotationQ));
-			mBoneMatrices[mBoneNodeTable.find(m.first)->second.boneID] = rotMat * MathUtil::Matrix::GenerateMatrixTranslation(offset);
+			auto rotMat = MathUtil::Matrix::GenerateMatrixRotationQ(rotationQ);
+			auto transMat = MathUtil::Matrix::GenerateMatrixTranslation(offset);
+
+			AddBoneTransform(m.first, rotMat, transMat);
 		}
+		*/
+
+
+
+		mOffs = { 0.f, 0.f, -2.f };
+		AddBoneTransform("¶‘«‚h‚j", MathUtil::Matrix::GenerateMatrixIdentity(), MathUtil::Matrix::GenerateMatrixTranslation(mOffs));
+
 
 
 		auto centerMat = MathUtil::Matrix::GenerateMatrixIdentity();
-		RecurSiveMatrixMultiply(&mBoneNodeTable["ƒZƒ“ƒ^["], centerMat);
-		
+		//RecurSiveMatrixMultiply(&mBoneNodeTable["ƒZƒ“ƒ^["], centerMat);
+
 		SolveIK(frameNo);
+
+		RecurSiveMatrixMultiply(&mBoneNodeTable["ƒZƒ“ƒ^["], centerMat);
 
 	}
 
@@ -1347,7 +1364,7 @@ HRESULT PMDActor::CreateMaterialAndTextureView()
 
 void PMDActor::Update()
 {
-	//mAngle += 0.03f;
+	mAngle += 0.03f;// MathUtil::DegreeToRadian(90.f);
 	mMappedMatrices[0] = MathUtil::Matrix::GenerateMatrixRotationY(mAngle);
 
 	model->Update();

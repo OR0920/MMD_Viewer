@@ -167,8 +167,6 @@ PmdFile::PmdFile(const char* const filepath)
 
 	// ディレクトリのパスを取得する
 	System::newArray_CopyDirPathFromFilePath(&mDirectoryPath, filepath);
-	DebugMessage(mDirectoryPath);
-	DebugMessageNewLine();
 
 	file.Read(mHeader.version);
 

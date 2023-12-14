@@ -1265,6 +1265,7 @@ namespace MMDsdk
 		void DebugOutMortion(const int32_t i) const;
 		void DebugOutAllMortion() const;
 
+		
 	private:
 		VmdFile(); VmdFile(VmdFile&);
 		const VmdFile& operator=(const VmdFile&) const;

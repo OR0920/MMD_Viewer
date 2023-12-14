@@ -16,7 +16,6 @@ void newArray_GetExtention(char** extPtr, const char* const filename)
 	}
 	int extLength = length - dotId;//ƒhƒbƒg‚Í”²‚­
 	*extPtr = new char[extLength] {};
-	DebugOutParamI(extLength);
 
 	for (int i = extLength; i > 0; --i)
 	{

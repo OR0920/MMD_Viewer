@@ -24,7 +24,7 @@ static const char* const mikuPmxPath2 = "D:/Projects/MMD_Viewer/x64/Debug/Test/M
 static const int gWindowHeight = 1080;
 static const int gWindowWidth = gWindowHeight * 16 / 9;
 
-auto modelpath = miku2Path;
+auto modelpath = mikuPath;
 
 #ifdef _DEBUG	
 int main()
@@ -39,7 +39,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	auto& app = Application::Instance();
 	if (!app.Init(gWindowWidth, gWindowHeight, modelpath))
 	{
-		return -1;
+		return -1;	
 	}
 	app.Run();
 	app.Term();
