@@ -4,6 +4,11 @@
 using namespace DirectX;
 using namespace MathUtil;
 
+const float MathUtil::PI = XM_PI;
+const float MathUtil::PI_DIV2 = XM_PIDIV2;
+const float MathUtil::PI_DIV4 = XM_PIDIV4;
+const float MathUtil::_2PI = XM_2PI;
+
 // ベクトルクラスの実装
 
 // コンストラクタ群・デストラクタ
@@ -53,17 +58,16 @@ const float4 Vector::GetFloat4() const
 	return ret;
 }
 
-const DirectX::XMVECTOR Vector::GetData() const
-{
-	return mData;
-}
-
 const float Vector::x() const { return XMVectorGetX(mData); }
 const float Vector::y() const { return XMVectorGetY(mData); }
 const float Vector::z() const { return XMVectorGetZ(mData); }
 const float Vector::w() const { return XMVectorGetW(mData); }
 
-// 演算子オーバーロード
+const float Vector::Vector2Length() const { return XMVectorGetX(XMVector2Length(mData)); }
+const float Vector::Vector3Length() const { return XMVectorGetX(XMVector3Length(mData)); }
+const float Vector::Vector4Length() const { return XMVectorGetX(XMVector4Length(mData)); }
+
+// 演算
 bool Vector::operator==(const Vector& other) const
 {
 	auto resultVec = XMVectorEqual(mData, other.mData);
@@ -86,6 +90,11 @@ const Vector Vector::operator+(const Vector& other) const
 const Vector Vector::operator-(const Vector& other) const
 {
 	return XMVectorSubtract(mData, other.mData);
+}
+
+const Vector Vector::operator-() const
+{
+	return -mData;
 }
 
 const Vector Vector::operator*(const float other) const
@@ -116,6 +125,49 @@ const float Vector::Cross2(const Vector& other) const
 const Vector Vector::Cross3(const Vector& other) const
 {
 	return XMVector3Cross(mData, other.mData);
+}
+
+const float Vector::AngleBetWeenVector2(const Vector& other) const
+{
+	return	XMVectorGetX(XMVector2AngleBetweenVectors(mData, other.mData));
+}
+
+const float Vector::AngleBetWeenVector3(const Vector& other) const
+{
+	return XMVectorGetX(XMVector3AngleBetweenVectors(mData, other.mData));
+}
+
+// static メンバ　定数や生成メソッド
+
+const Vector Vector::zero(0.f, 0.f, 0.f, 0.f);
+const Vector Vector::basicX(1.f, 0.f, 0.f, 0.f);
+const Vector Vector::basicY(0.f, 1.f, 0.f, 0.f);
+const Vector Vector::basicZ(0.f, 0.f, 1.f, 0.f);
+const Vector Vector::basicW(0.f, 0.f, 0.f, 1.f);
+
+Vector Vector::GenerateVectorNormalized(const float2& rawVec)
+{
+	return XMVector2Normalize(XMLoadFloat2(&rawVec));
+}
+
+Vector Vector::GenerateVectorNormalized(const float3& rawVec)
+{
+	return XMVector3Normalize(XMLoadFloat3(&rawVec));
+}
+
+Vector Vector::GenerateVectorNormalized(const float4& rawVec)
+{
+	return XMVector4Normalize(XMLoadFloat4(&rawVec));
+}
+
+Vector Vector::GenerateVector3Transform(const Matrix& matrix, const Vector& vector)
+{
+	return XMVector3Transform(vector.mData, matrix.mData);
+}
+
+Vector Vector::GenerateVectorLerp(const Vector a, const Vector b, const float t)
+{
+	return XMVectorLerp(a.mData, b.mData, t);
 }
 
 Vector Vector::GenerateRotationQuaternionSlerp(const Vector a, const Vector b, const float t)
@@ -156,6 +208,16 @@ Matrix::Matrix(const DirectX::XMMATRIX& matrix)
 
 }
 
+Matrix::Matrix(const Vector vectors[4])
+	:
+	mData(XMMatrixIdentity())
+{
+	for (int i = 0; i < 4; i++)
+	{
+		mData.r[i] = vectors[i].mData;
+	}
+}
+
 
 Matrix::~Matrix()
 {
@@ -182,10 +244,9 @@ void Matrix::operator*=(const Matrix& other)
 	mData *= other.mData;
 }
 
-const Matrix& Matrix::GenerateMatrixIdentity()
+Matrix Matrix::GenerateMatrixIdentity()
 {
-	static auto mi = XMMatrixIdentity();
-	return mi;
+	return  XMMatrixIdentity();
 }
 
 Matrix Matrix::GenerateMatrixInverse(const Matrix& matrix)
@@ -193,14 +254,20 @@ Matrix Matrix::GenerateMatrixInverse(const Matrix& matrix)
 	return XMMatrixInverse(nullptr, matrix.mData);
 }
 
+Matrix Matrix::GenerateMatrixTranspose(const Matrix& matrix)
+{
+	return XMMatrixTranspose(matrix.mData);
+}
+
+
 Matrix Matrix::GenerateMatrixLookToLH(const Vector& eye, const Vector& eyeDir, const Vector& up)
 {
-	return XMMatrixLookToLH(eye.GetData(), eyeDir.GetData(), up.GetData());
+	return XMMatrixLookToLH(eye.mData, eyeDir.mData, up.mData);
 }
 
 Matrix Matrix::GenerateMatrixLookAtLH(const Vector& eye, const Vector& target, const Vector& up)
 {
-	return XMMatrixLookAtLH(eye.GetData(), target.GetData(), up.GetData());
+	return XMMatrixLookAtLH(eye.mData, target.mData, up.mData);
 }
 
 Matrix Matrix::GenerateMatrixPerspectiveFovLH
@@ -214,9 +281,9 @@ Matrix Matrix::GenerateMatrixPerspectiveFovLH
 	return XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, nearZ, farZ);
 }
 
-Matrix Matrix::GenerateMatrixTranslation(const float3 position)
+Matrix Matrix::GenerateMatrixTranslation(const Vector& position)
 {
-	return XMMatrixTranslation(position.x, position.y, position.z);
+	return XMMatrixTranslationFromVector(position.mData);
 }
 
 Matrix Matrix::GenerateMatrixRotationX(const float angle)
@@ -236,7 +303,12 @@ Matrix Matrix::GenerateMatrixRotationZ(const float angle)
 
 Matrix Matrix::GenerateMatrixRotationQ(const Vector& q)
 {
-	return XMMatrixRotationQuaternion(q.GetData());
+	return XMMatrixRotationQuaternion(q.mData);
+}
+
+Matrix Matrix::GenerateMatrixRotationAxis(const Vector& axis, const float angle)
+{
+	return XMMatrixRotationAxis(axis.mData, angle);
 }
 
 bool MathUtil::FloatEqual(float a, float b)

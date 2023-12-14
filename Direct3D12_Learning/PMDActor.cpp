@@ -6,6 +6,7 @@
 // std
 #include<cassert>
 #include<algorithm>
+#include<array>
 
 // windows
 #pragma comment(lib, "winmm.lib")
@@ -34,10 +35,12 @@ static const char* const toonDirPath = "../x64/Debug/Test/Model/SharedToonTextur
 static const char* const poseFilePath = "D:/Projects/directx12_samples-master/directx12_samples-master/Chapter10/motion/pose.vmd";
 static const char* const simpleMortionFilePath = "D:/Projects/directx12_samples-master/directx12_samples-master/Chapter10/motion/swing.vmd";
 static const char* const simpleMortionFilePath2 = "D:/Projects/directx12_samples-master/directx12_samples-master/Chapter10/motion/motion.vmd";
+static const char* const simpleMortionFilePathIK = "D:/Projects/directx12_samples-master/directx12_samples-master/Chapter11/motion/squat.vmd";
 static const char* const mortionFilePath = "D:/_3DModel/6666AAPのモーション素材集vol01/6666AAPのモーション素材集vol.01 歩き/Motion/シンプルウォーク.vmd";
 static const char* const danceFilePath = "D:/_3DModel/ワールドイズマインをネルに踊らせてみた/ワールドイズマインをネルに踊らせてみた/ワールドイズマイン_ネル.vmd";
 
-auto mfp = simpleMortionFilePath2;
+// mortion file
+auto mfp = simpleMortionFilePathIK;
 
 inline MathUtil::float4 GetFloat4FromPMD(const MMDsdk::float4& mf)
 {
@@ -237,6 +240,44 @@ struct IK_Data
 	std::vector<int> nodeIDs;
 };
 
+MathUtil::Matrix LookAtMatrix
+(
+	const MathUtil::Vector& lookAt,
+	const MathUtil::float3& up,
+	const MathUtil::float3& right
+)
+{
+	MathUtil::Vector vz = lookAt;
+
+	MathUtil::Vector vy = MathUtil::Vector::GenerateVectorNormalized(up);
+	MathUtil::Vector vx = MathUtil::Vector::GenerateVectorNormalized(vy.Cross3(vz).GetFloat3());
+	vy = MathUtil::Vector::GenerateVectorNormalized(vz.Cross3(vx).GetFloat3());
+
+	if (std::abs(vy.Dot3(vz)) == 1.f)
+	{
+		vx = MathUtil::Vector::GenerateVectorNormalized(right);
+		vy = MathUtil::Vector::GenerateVectorNormalized(vz.Cross3(vx).GetFloat3());
+		vx = MathUtil::Vector::GenerateVectorNormalized(vy.Cross3(vz).GetFloat3());
+	}
+
+	MathUtil::Vector vr[4] = { vx, vy, vz, MathUtil::Vector::basicW };
+	return MathUtil::Matrix(vr);
+}
+
+MathUtil::Matrix LookAtMatrix
+(
+	const MathUtil::Vector& origin,
+	const MathUtil::Vector& lookAt,
+	const MathUtil::float3& up,
+	const MathUtil::float3& right
+)
+{
+	return
+		MathUtil::Matrix::
+		GenerateMatrixTranspose(LookAtMatrix(origin, up, right))
+		* LookAtMatrix(lookAt, up, right);
+}
+
 class MMD_Model
 {
 public:
@@ -283,6 +324,7 @@ public:
 				}
 			);
 		}
+
 	}
 
 	bool IsSuccessLoad() const
@@ -341,20 +383,26 @@ public:
 		}
 	}
 
-	void AddBoneTransform(std::string name, const MathUtil::Matrix& mat)
+	MathUtil::Matrix GetBoneTransForm(std::string name, const MathUtil::Matrix& mat)
 	{
 		auto& bone = mBoneNodeTable[name];
 		auto& pos = bone.startPos;
 		auto boneMat = MathUtil::Matrix::GenerateMatrixTranslation(pos);
 		auto iBoneMat = MathUtil::Matrix::GenerateMatrixInverse(boneMat);
 
-		auto poseMat = iBoneMat * mat * boneMat;
+		return iBoneMat * mat * boneMat;
+	}
 
-		mBoneMatrices[bone.boneID] = poseMat;
+	void AddBoneTransform(std::string name, const MathUtil::Matrix& mat)
+	{
+		auto& bone = mBoneNodeTable[name];
+	
+		mBoneMatrices[bone.boneID] = GetBoneTransForm(name, mat);
 	}
 
 private:
 	DWORD _startTime = 0;
+	const float epsilon = 0.0005f;
 
 	float GetYFromXOnVezier(float x, const MathUtil::float2& a, const MathUtil::float2& b, uint8_t n)
 	{
@@ -368,7 +416,6 @@ private:
 		const float k1 = 3 * b.x - 6 * a.x;
 		const float k2 = 3 * a.x;
 
-		constexpr float epsilon = 0.0005f;
 
 		for (int i = 0; i < n; ++i)
 		{
@@ -385,22 +432,200 @@ private:
 		return t * t * t + 3 * t * t * r * b.y + 3 * t * r * r * a.y;
 	}
 
-	void SolveCCDIK(const IK_Data& ik)
+	void SolveLookAtIK(const IK_Data& ik)
 	{
+		auto rootNode = mBoneNodeAddressArray[ik.nodeIDs[0]];
+		auto targetNode = mBoneNodeAddressArray[ik.targetID];
 
+		auto rootPos_1 = MathUtil::Vector(rootNode->startPos);
+		auto targetPos_1 = MathUtil::Vector(targetNode->startPos);
+
+		auto originVector = targetPos_1 - rootPos_1;
+		originVector = MathUtil::Vector::GenerateVectorNormalized(originVector.GetFloat3());
+
+		// xmvector3TransformCoordとの違いが判らなかったためバグったら修正する
+		auto rootPos_2 = MathUtil::Vector::GenerateVector3Transform(mBoneMatrices[ik.nodeIDs[0]], rootPos_1);
+		auto targetPos_2 = MathUtil::Vector::GenerateVector3Transform(mBoneMatrices[ik.boneID], targetPos_1);
+
+		auto targetVector = targetPos_1 - rootPos_2;
+		targetVector = MathUtil::Vector::GenerateVectorNormalized(targetVector.GetFloat3());
+
+		mBoneMatrices[ik.nodeIDs[0]] =
+			MathUtil::Matrix::GenerateMatrixTranslation(-rootPos_2)
+			* LookAtMatrix
+			(
+				originVector,
+				targetVector,
+				MathUtil::float3(0.f, 1.f, 0.f),
+				MathUtil::float3(1.f, 0.f, 0.f)
+			)
+			* MathUtil::Matrix::GenerateMatrixTranslation(rootPos_2);
+			
 	}
 
 	void SolveCosIK(const IK_Data& ik)
 	{
+		std::vector<MathUtil::Vector> positions;
+		std::array<float, 2> edgeLens;
 
+		auto& targetNode = mBoneNodeAddressArray[ik.boneID];
+		auto targetPos = MathUtil::Vector::GenerateVector3Transform(mBoneMatrices[ik.boneID], targetNode->startPos);
+
+		auto endNode = mBoneNodeAddressArray[ik.targetID];
+		positions.emplace_back(endNode->startPos);
+
+		for (auto chainBoneID : ik.nodeIDs)
+		{
+			positions.emplace_back(mBoneNodeAddressArray[chainBoneID]->startPos);
+		}
+
+		std::reverse(positions.begin(), positions.end());
+
+		edgeLens[0] = (positions[1] - positions[0]).Vector3Length();
+		edgeLens[1] = (positions[2] - positions[1]).Vector3Length();
+
+		positions[0] = MathUtil::Vector::GenerateVector3Transform(mBoneMatrices[ik.nodeIDs[1]], positions[0]);
+		positions[2] = MathUtil::Vector::GenerateVector3Transform(mBoneMatrices[ik.boneID], positions[2]);
+
+		auto linearVector = positions[2] - positions[0];
+
+		float A = linearVector.Vector3Length();
+		float B = edgeLens[0];
+		float C = edgeLens[0];
+
+		linearVector = MathUtil::Vector::GenerateVectorNormalized(linearVector.GetFloat3());
+
+		float theta_1 = std::acosf((A * A + B * B - C * C) / (2 * A * B));
+		float theta_2 = std::acosf((B * B + C * C - A * A) / (2 * B * C));
+
+
+		MathUtil::Vector axis = MathUtil::Vector::zero;
+
+		if (std::find(kneeIDs.begin(), kneeIDs.end(), ik.nodeIDs[0]) == kneeIDs.end())
+		{
+			auto vm = positions[2] - positions[0];
+			vm = MathUtil::Vector::GenerateVectorNormalized(vm.GetFloat3());
+
+			auto vt = targetPos - positions[0];
+			vt = MathUtil::Vector::GenerateVectorNormalized(vt.GetFloat3());
+
+			axis = vt.Cross3(vm);
+		}
+		else
+		{
+			axis = MathUtil::Vector::basicX;
+		}
+
+		auto mat_1 =
+			MathUtil::Matrix::GenerateMatrixTranslation(-positions[0])
+			* MathUtil::Matrix::GenerateMatrixRotationAxis(axis, theta_1)
+			* MathUtil::Matrix::GenerateMatrixTranslation(positions[0]);
+
+		auto mat_2 =
+			MathUtil::Matrix::GenerateMatrixTranslation(-positions[1])
+			* MathUtil::Matrix::GenerateMatrixRotationAxis(axis, theta_2 - MathUtil::PI)
+			* MathUtil::Matrix::GenerateMatrixTranslation(positions[1]);
+
+		mBoneMatrices[ik.nodeIDs[1]] *= mat_1;
+		mBoneMatrices[ik.nodeIDs[0]] = mat_2 * mBoneMatrices[ik.nodeIDs[1]];
+		mBoneMatrices[ik.targetID] = mBoneMatrices[ik.nodeIDs[0]];
 	}
 
-	void SolveLookAtIK(const IK_Data& ik)
+	void SolveCCDIK(const IK_Data& ik)
 	{
+		auto targetBoneNode = mBoneNodeAddressArray[ik.boneID];
+		auto targetOriginPos = targetBoneNode->startPos;
+
+		// キャンセル用親ボーン逆行列
+		auto parentMat = mBoneMatrices[mBoneNodeAddressArray[ik.boneID]->ikParentBoneID];
+		auto iParentMat = MathUtil::Matrix::GenerateMatrixInverse(parentMat);
+		// ボーン行列
+		auto boneMat = mBoneMatrices[ik.boneID];
+
+		auto targetNextPos = MathUtil::Vector::GenerateVector3Transform(boneMat * iParentMat, targetOriginPos);
 		
+		MathUtil::Vector endPos = mBoneNodeAddressArray[ik.targetID]->startPos;
+
+		std::vector<MathUtil::Vector> bonePositions;
+
+		for (auto& ci : ik.nodeIDs)
+		{
+			bonePositions.push_back(mBoneNodeAddressArray[ci]->startPos);
+		}
+
+		std::vector<MathUtil::Matrix> mats;
+		mats.assign(bonePositions.size(), MathUtil::Matrix::GenerateMatrixIdentity());
+
+		auto ikLimitRad = ik.limit * MathUtil::PI;
+
+		for (int c = 0; c < ik.iterations; ++c)
+		{
+			auto ikVec = endPos - targetNextPos;
+			if (ikVec.Vector3Length() <= epsilon)
+			{
+				break;
+			}
+
+			for (int bi = 0; bi < bonePositions.size(); ++bi)
+			{
+				const auto& pos = bonePositions[bi];
+
+				auto vecToEnd = endPos - pos;
+				vecToEnd = MathUtil::Vector::GenerateVectorNormalized(vecToEnd.GetFloat3());
+				auto vecToTarget = targetNextPos - pos;
+				vecToTarget = MathUtil::Vector::GenerateVectorNormalized(vecToTarget.GetFloat3());
+
+				auto vecTargetToEnd = vecToEnd - vecToTarget;
+				if (vecTargetToEnd.Vector3Length() <= epsilon)
+				{
+					continue;
+				}
+
+				auto cross = vecToEnd.Cross3(vecToTarget);
+				cross = MathUtil::Vector::GenerateVectorNormalized(cross.GetFloat3());
+
+				float angle = vecToEnd.AngleBetWeenVector3(vecToTarget);
+
+				angle = std::min<>(angle, ikLimitRad);
+				
+				MathUtil::Matrix rot = MathUtil::Matrix::GenerateMatrixRotationAxis(cross, angle);
+				
+				auto mat =
+					MathUtil::Matrix::GenerateMatrixTranslation(-pos)
+					* rot
+					* MathUtil::Matrix::GenerateMatrixTranslation(pos);
+
+				mats[bi] *= mat;
+
+				for (auto i = bi - 1; i >= 0; --i)
+				{
+					bonePositions[i] = MathUtil::Vector::GenerateVector3Transform(mat, bonePositions[i]);
+				}
+
+				endPos = MathUtil::Vector::GenerateVector3Transform(mat, endPos);
+
+				if ((endPos - targetNextPos).Vector3Length() <= epsilon)
+				{
+					break;
+				}
+			}
+		}
+
+
+		int i = 0;
+
+		for (auto& c : ik.nodeIDs)
+		{
+			mBoneMatrices[c] = mats[i];
+			++i;
+		}
+
+		auto rootNode = mBoneNodeAddressArray[ik.nodeIDs.back()];
+		RecurSiveMatrixMultiply(rootNode, parentMat);
+		// last
 	}
 
-	void SolveIK()
+	void SolveIK(int frameNo)
 	{
 		for (auto& ik : mIK_Data)
 		{
@@ -430,6 +655,7 @@ public:
 		//DebugOutParamI(frameNo);
 
 		std::fill(mBoneMatrices.begin(), mBoneMatrices.end(), MathUtil::Matrix::GenerateMatrixIdentity());
+		//SolveIK();
 
 		//AddBoneTransform("右手首", MathUtil::Matrix::GenerateMatrixRotationX(MathUtil::DegreeToRadian(40.f)));
 		//AddBoneTransform("右ひじ", MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(-90.f)));
@@ -455,6 +681,7 @@ public:
 			auto it = rit.base();
 
 			MathUtil::Vector rotationQ;
+			MathUtil::Vector offset = rit->position;
 			if (it != mortion.end())
 			{
 				auto t = static_cast<float>(frameNo - rit->frameNo) / static_cast<float>(it->frameNo - rit->frameNo);
@@ -462,17 +689,23 @@ public:
 				t = GetYFromXOnVezier(t, it->p1, it->p2, 12);
 
 				rotationQ = MathUtil::Vector::GenerateRotationQuaternionSlerp(rit->q, it->q, t);
+				offset = MathUtil::Vector::GenerateVectorLerp(offset, it->position, t);
 			}
 			else
 			{
 				rotationQ = rit->q;
 			}
 
-			AddBoneTransform(m.first, MathUtil::Matrix::GenerateMatrixRotationQ(rotationQ));
+			auto rotMat = GetBoneTransForm(m.first, MathUtil::Matrix::GenerateMatrixRotationQ(rotationQ));
+			mBoneMatrices[mBoneNodeTable.find(m.first)->second.boneID] = rotMat * MathUtil::Matrix::GenerateMatrixTranslation(offset);
 		}
+
 
 		auto centerMat = MathUtil::Matrix::GenerateMatrixIdentity();
 		RecurSiveMatrixMultiply(&mBoneNodeTable["センター"], centerMat);
+		
+		SolveIK(frameNo);
+
 	}
 
 
@@ -504,8 +737,9 @@ private:
 		}
 
 		mBoneNames.assign(pmd.GetBoneCount(), {});
-
 		mBoneNodeAddressArray.assign(pmd.GetBoneCount(), nullptr);
+
+		kneeIDs.clear();
 
 		for (int i = 0; i < pmd.GetBoneCount(); ++i)
 		{
@@ -516,6 +750,12 @@ private:
 			node.startPos = GetFloat3FromPMD(fb.headPos);
 
 			mBoneNodeAddressArray[i] = &node;
+
+			std::string boneName = fb.name.GetText();
+			if (boneName.find("ひざ") != std::string::npos)
+			{
+				kneeIDs.emplace_back(i);
+			}
 		}
 		for (int i = 0; i < pmd.GetBoneCount(); ++i)
 		{
@@ -540,7 +780,7 @@ private:
 			mik.targetID = ik.ikTargetBoneIndex;
 			mik.iterations = ik.iterations;
 			mik.limit = ik.controlWeight;
-			
+
 			mik.nodeIDs.assign(ik.ikChainCount, -1);
 			for (int i = 0; i < ik.ikChainCount; ++i)
 			{
@@ -670,6 +910,7 @@ private:
 	std::vector<IK_Data> mIK_Data;
 
 	std::vector<BoneNode*> mBoneNodeAddressArray;
+	std::vector<uint32_t> kneeIDs;
 };
 
 HRESULT PMDActor::LoadPMDFile(const std::string argFilepath)
