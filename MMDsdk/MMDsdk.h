@@ -128,6 +128,8 @@ namespace MMDsdk
 		// コンストラクタの処理で一気にファイルを読み込み閉じる
 		PmdFile(const char* const filepath);  ~PmdFile();
 
+		bool IsSuccessLoad () const;
+
 		// ディレクトリのパスを取得する
 		// テクスチャなどのファイルはすべて同じディレクトリに入れること //
 		const char* const GetDirectoryPath() const;
@@ -267,9 +269,8 @@ namespace MMDsdk
 
 			// 0:回転 1:回転と移動 2:IK 3:不明 4:IK影響下 
 			// 5:回転影響下 6:IK接続先 7:非表示 8:捻り 9:回転運動
-			// 英訳は割と適当
-			// 内部仕様が公開されていないため3:不明はガチで不明
-			// PMXと比較すると　移動影響下？　みたいなデータかもしれないが未検証
+			// 英訳は適当
+			// 内部仕様が公式に公開されていないため 3:不明 は本当に不明
 			enum BoneType : uint8_t
 			{
 				BT_ROTATE = 0,
@@ -550,6 +551,8 @@ namespace MMDsdk
 		PmdFile(); PmdFile(const PmdFile& copy);
 		const PmdFile& operator=(const PmdFile&) const;
 
+		bool isSuccess;
+
 		char* mDirectoryPath;
 
 		//　各種データ実態
@@ -604,7 +607,9 @@ namespace MMDsdk
 	public:
 		PmxFile(const char* const filepath); ~PmxFile();
 
-		const char* const GetDirectoryPathStart() const;
+		bool IsSuccessLoad() const;
+
+		const char* const GetDirectoryPath() const;
 
 		// ヘッダ情報
 		struct Header
@@ -1182,6 +1187,8 @@ namespace MMDsdk
 		PmxFile(); PmxFile(const PmxFile& copy);
 		const PmxFile& operator=(const PmxFile&) const;
 
+		bool mIsSuccess;
+
 		char* mDirectoryPath;
 
 		Header mHeader;
@@ -1248,13 +1255,17 @@ namespace MMDsdk
 
 			void LoadBezierParam(void* _file);
 			Mortion(); ~Mortion();
+			void DebugOut()const;
 		private:
 			Mortion(const Mortion&);
 			const Mortion& operator=(const Mortion&) const;
 		};
 		const Mortion& GetMortion(const int32_t i) const;
 		const int32_t GetLastMortionID() const;
+		void DebugOutMortion(const int32_t i) const;
+		void DebugOutAllMortion() const;
 
+		
 	private:
 		VmdFile(); VmdFile(VmdFile&);
 		const VmdFile& operator=(const VmdFile&) const;

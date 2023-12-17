@@ -14,10 +14,16 @@ FileWriteBin::FileWriteBin(const char* filepath)
 	if (IsFileOpenSuccsess() == false)
 	{
 		DebugMessage(filepath << " is can't open !");
-		assert(false && "FileWrite open failed ! ");
+		//assert(false && "FileWrite open failed ! ");
+		return;
 	}
 
 	DebugMessage(filepath << " is opened !");
+}
+
+FileWriteBin::~FileWriteBin()
+{
+	mFile.close();
 }
 
 bool FileWriteBin::IsFileOpenSuccsess() const
@@ -39,11 +45,18 @@ FileReadBin::FileReadBin(const char* filepath)
 	if (IsFileOpenSuccsess() == false)
 	{
 		DebugMessage(filepath << " is can't open !");
-		assert(false && "FileRead Open Failed ! ");
+		//assert(false && "FileRead Open Failed ! ");
+		return;
 	}
 
 	DebugMessage(filepath << " is opened !");
 }
+
+FileReadBin::~FileReadBin()
+{
+	mFile.close();
+}
+
 
 bool FileReadBin::IsFileOpenSuccsess() const
 {

@@ -11,6 +11,8 @@
 // コンソール出力マクロ
 // シンプルな一行出力
 #define DebugMessage(x) std::cout << x << std::endl;
+// 関数エラーメッセージ
+#define DebugMessageFunctionError(funcName, at) DebugMessage(ToString(funcName) << " at " << ToString(at) << " is Failed !");
 // ワイド文字用
 #define DebugMessageWide(x) std::wcout << reinterpret_cast<const wchar_t*>(x); std::wcout.clear(); std::cout << std::endl;
 // 改行
@@ -21,10 +23,12 @@
 #define DebugOutParam(p) std::cout << ToString(p) << " = " << p << std::endl;
 // バイナリ出力　桁数をdigで指定する
 #define DebugOutParamBin(p, dig) std::cout << ToString(p) << " = " <<  std::bitset<dig>(p) << std::endl;
+// バイナリ出力　16進数
+#define DebugOutParamHex(p) std::cout << ToString(p) << " = " << std::hex << p << std::endl;
 // 文字列表示、変数名と一緒に
-#define DebugOutString(s) std::cout << ToString(s) << " = " << s << std::endl;
+#define DebugOutString(s) if(s!= nullptr){std::cout << ToString(s) << " = " << s << std::endl;}
 // ワイド文字列表示
-#define DebugOutStringWide(w) std::wcout << ToString(w) << " = " << reinterpret_cast<const wchar_t*>(w); std::wcout.clear(); std::cout << std::endl;
+#define DebugOutStringWide(w)if(w != nullptr) {std::wcout << ToString(w) << " = " << reinterpret_cast<const wchar_t*>(w); std::wcout.clear(); std::cout << std::endl;}
 // 配列の添え字と一緒に出力する
 #define DebugOutArray(a, id) std::cout << ToString(a) << "[" << id << "] = " << a[id] << std::endl;
 // 配列、整数用

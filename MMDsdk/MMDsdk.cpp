@@ -64,14 +64,17 @@ void TextBufferVariable::Load(void* _file, EncodeType encode)
 	auto& file = GetFile(_file);
 	file.Read(mLength);
 
-	char* s16 = new char[mLength + 2] {'\0'};
+	char* s16 = new char[mLength + 2] { '\0' };
 	file.ReadArray(s16, mLength);
 
 	if (encode == EncodeType::UTF16)
 	{
-		auto bytesize = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, NULL, 0, NULL, NULL);
-		mStr = new char[bytesize] {};
-		WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, (LPSTR)mStr, bytesize, NULL, NULL);
+		System::newArray_CreateMultiByteStrFromWideCharStr(&mStr, reinterpret_cast<char16_t*>(s16));
+
+		// apiベタ打ちなので後でラッピングする
+		//auto bytesize = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, NULL, 0, NULL, NULL);
+		//mStr = new char[bytesize] {};
+		//WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, (LPSTR)mStr, bytesize, NULL, NULL);
 	}
 
 	SafeDeleteArray(&s16);
@@ -104,6 +107,7 @@ void LoadTextBufferFixed(System::FileReadBin& file, TextBufferFixed<size>& text)
 
 PmdFile::PmdFile(const char* const filepath)
 	:
+	isSuccess(false),
 	mDirectoryPath(nullptr),
 	mHeader(),
 	mVertexCount(0),
@@ -136,6 +140,7 @@ PmdFile::PmdFile(const char* const filepath)
 	// ファイルパスそのものが間違い
 	if (file.IsFileOpenSuccsess() == false)
 	{
+		file.Close();
 		return;
 	}
 
@@ -156,13 +161,12 @@ PmdFile::PmdFile(const char* const filepath)
 	{
 		// 間違ったファイル
 		DebugMessage("Not Pmd File !");
+		file.Close();
 		return;
 	}
 
 	// ディレクトリのパスを取得する
-	System::NewArrayAndCopyDirPathFromFilePath(&mDirectoryPath, filepath);
-	DebugMessage(mDirectoryPath);
-	DebugMessageNewLine();
+	System::newArray_CopyDirPathFromFilePath(&mDirectoryPath, filepath);
 
 	file.Read(mHeader.version);
 
@@ -360,6 +364,9 @@ PmdFile::PmdFile(const char* const filepath)
 		file.Read(j.springPos);
 		file.Read(j.springRot);
 	}
+	file.Close();
+
+	isSuccess = true;
 }
 
 
@@ -381,6 +388,11 @@ PmdFile::~PmdFile()
 	SafeDeleteArray(&mVertex);
 
 	SafeDeleteArray(&mDirectoryPath);
+}
+
+bool PmdFile::IsSuccessLoad() const
+{
+	return isSuccess;
 }
 
 const char* const PmdFile::GetDirectoryPath() const
@@ -1151,6 +1163,7 @@ void LoadID_AsInt32(System::FileReadBin& file, int32_t& buf, const size_t idByte
 
 PmxFile::PmxFile(const char* const filepath)
 	:
+	mIsSuccess(false),
 	mDirectoryPath(nullptr),
 	mHeader(),
 	mVertexCount(0),
@@ -1176,6 +1189,7 @@ PmxFile::PmxFile(const char* const filepath)
 
 	if (file.IsFileOpenSuccsess() == false)
 	{
+		file.Close();
 		return;
 	}
 
@@ -1185,27 +1199,25 @@ PmxFile::PmxFile(const char* const filepath)
 	uint8_t pmxFormat[4] = { 'P', 'M', 'X', ' ' };
 	file.ReadArray(format, 4);
 
-	if (
-		format[0] != 'P' ||
-		format[1] != 'm' ||
-		format[2] != 'x' ||
-		format[3] != ' '
-		)
+	if (format[0] == 'P' && format[1] == 'm' && format[2] == 'x' && format[3] == ' ') {}
+	else if (format[0] == 'P' && format[1] == 'M' && format[2] == 'X' && format[3] == ' ') {}
+	else if (format[0] == 'P' && format[1] == 'm' && format[2] == 'd')
 	{
-		if (
-			format[0] != 'P' ||
-			format[1] != 'M' ||
-			format[2] != 'X' ||
-			format[3] != ' '
-			)
-		{
-			// 間違ったファイル
-			DebugMessage("Not Pmx File !");
-			return;
-		}
+		DebugMessage("PMD File");
+		file.Close();
+		PmdFile pmd(filepath);
+		// todo pmdファイルをPMXとして読み込む処理
+		return;
+	}
+	else
+	{
+		// 間違ったファイル
+		DebugMessage("Not Pmx File !");
+		file.Close();
+		return;
 	}
 
-	System::NewArrayAndCopyDirPathFromFilePath(&mDirectoryPath, filepath);
+	System::newArray_CopyDirPathFromFilePath(&mDirectoryPath, filepath);
 
 	file.Read(mHeader.version, 4);
 	file.Read(mHeader.fileConfigLength);
@@ -1443,6 +1455,9 @@ PmxFile::PmxFile(const char* const filepath)
 		file.Read(j.springPos);
 		file.Read(j.springRot);
 	}
+
+	file.Close();
+	mIsSuccess = true;
 }
 
 PmxFile::~PmxFile()
@@ -1459,7 +1474,12 @@ PmxFile::~PmxFile()
 	SafeDeleteArray(&mDirectoryPath);
 }
 
-const char* const PmxFile::GetDirectoryPathStart() const
+bool PmxFile::IsSuccessLoad() const
+{
+	return mIsSuccess;
+}
+
+const char* const PmxFile::GetDirectoryPath() const
 {
 	return mDirectoryPath;
 }
@@ -2329,6 +2349,7 @@ const int32_t& PmxFile::GetJointCount() const
 
 void PmxFile::Joint::DebugOut() const
 {
+#ifdef _DEBUG
 	DebugOutString(GetTextMacro(name));
 	DebugOutString(GetTextMacro(nameEng));
 
@@ -2359,6 +2380,7 @@ void PmxFile::Joint::DebugOut() const
 	DebugOutFloat3(springRot);
 
 	DebugMessageNewLine();
+#endif // _DEBUG
 }
 
 PmxFile::Joint::Joint() {};
@@ -2436,9 +2458,8 @@ VmdFile::VmdFile(const char* const filepath)
 		file.Read(m.frameNumber);
 		file.Read(m.position);
 		file.Read(m.rotation);
-		
+
 		m.LoadBezierParam(&file);
-		DebugOutFloat3(m.position);
 	}
 	//last
 }
@@ -2476,6 +2497,16 @@ void VmdFile::Mortion::LoadBezierParam(void* _file)
 VmdFile::Mortion::Mortion() {}
 VmdFile::Mortion::~Mortion() {}
 
+void VmdFile::Mortion::DebugOut() const
+{
+#ifdef _DEBUG
+	DebugOutString(name.GetText());
+	DebugOutParamI(frameNumber);
+	DebugOutFloat3(position);
+	DebugOutFloat4(rotation);
+#endif // _DEBUG
+}
+
 const VmdFile::Mortion& VmdFile::GetMortion(const int32_t i) const
 {
 	ID_IS_NO_REF(i);
@@ -2488,6 +2519,22 @@ const VmdFile::Mortion& VmdFile::GetMortion(const int32_t i) const
 const int32_t VmdFile::GetLastMortionID() const
 {
 	return mMortionCount - 1;
+}
+
+void VmdFile::DebugOutMortion(const int32_t i) const
+{
+	DebugMessage("Mortion [" << i << "]");
+	GetMortion(i).DebugOut();
+}
+
+void VmdFile::DebugOutAllMortion() const
+{
+#ifdef _DEBUG
+	for (int32_t i = 0; i < mMortionCount; ++i)
+	{
+		DebugOutMortion(i);
+	}
+#endif // _DEBUG
 }
 
 //last

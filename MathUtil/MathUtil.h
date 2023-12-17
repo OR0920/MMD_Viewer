@@ -1,7 +1,10 @@
 /*
 	数学ライブラリ
 
-	Direct X Mathの使用方法に癖があるのでそれを隠蔽するラッパーライブラリ
+	Direct X Mathから、名前だけ隠ぺいする薄いラッパーライブラリ
+	移植性などは一旦考えない
+
+	必要なものだけラップする
 
 */
 #ifndef _MATH_UTIL_H_
@@ -23,32 +26,24 @@
 #define DebugOutFloat2(v)
 #endif
 
-
-// 汎用性の高い名前が多いため名前空間に隠蔽
 namespace MathUtil
 {
+	extern const float PI;
+	extern const float PI_DIV2;
+	extern const float PI_DIV4;
+	extern const float _2PI;
 
 	//データ用
-	struct float2
-	{
-		float x, y;
-	};
+	using float2 = DirectX::XMFLOAT2;
+	using float3 = DirectX::XMFLOAT3;
+	using float4 = DirectX::XMFLOAT4;
 
-	struct float3
-	{
-		float x, y, z;
-	};
-
-	struct float4
-	{
-		float x, y, z, w;
-	};
+	class Matrix;
 
 	// 演算用ベクトルクラス
-	// DirectXMathに合わせ次元ごとの区別はしない
-	// DirectXMathが使えなくなる場合は
-	// 4次元ベクトルで実装する予定 
-	class Vector {
+	class Vector
+	{
+		friend Matrix;
 	public:
 		//デフォルト初期化
 		//特に何も指定しなかった場合零ベクトル
@@ -65,8 +60,10 @@ namespace MathUtil
 		Vector(const float _x, const float _y, const float _z = 0.f, const float _w = 0.f);
 
 		//コピーで初期化
-		//参照ではなくmDataの実態をコピー
+		//参照ではなくmDataの実体コピー
 		Vector(const Vector& other);
+
+		Vector(const DirectX::XMVECTOR& other);
 
 		//データ用構造体を取得
 		//書き換え用ではない
@@ -81,6 +78,18 @@ namespace MathUtil
 		const float z() const;
 		const float w() const;
 
+		const float Vector2Length() const;
+		const float Vector3Length() const;
+		const float Vector4Length() const;
+
+		void Vector2Normalize();
+		void Vector3Normalize();
+		void Vector4Normalize();
+
+		Vector GetVector2Normalized() const;
+		Vector GetVector3Normalized() const;
+		Vector GetVector4Normalized() const;
+
 		//各種演算
 		// 比較演算子
 		bool operator==(const Vector& other) const;
@@ -90,6 +99,7 @@ namespace MathUtil
 		const Vector operator+(const Vector& other) const;
 		// 差
 		const Vector operator-(const Vector& other) const;
+		const Vector operator-()const;
 		// スカラ積
 		const Vector operator*(const float other) const;
 		// ドット積
@@ -105,15 +115,93 @@ namespace MathUtil
 		// 2次元ベクトルが入力された場合は　(x, y, 0.f)として扱う//
 		const Vector Cross3(const Vector& other) const;
 
+		const float AngleBetWeenVector2(const Vector& other) const;
+		const float AngleBetWeenVector3(const Vector& other) const;
 
-		static Vector GenerateRotationQuaternionFromEuler(float x, float y, float z);
+
+		// { 0.f, 0.f, 0.f, 0.f }
+		static const Vector zero;
+		// { 1.f, 0.f, 0.f, 0.f }
+		static const Vector basicX;
+		// { 0.f, 1.f, 0.f, 0.f }
+		static const Vector basicY;
+		// { 0.f, 0.f, 1.f, 0.f }
+		static const Vector basicZ;
+		// { 0.f, 0.f, 0.f, 1.f }
+		static const Vector basicW;
+
+		static Vector GenerateVectorNormalized(const float2& rawVec);
+		static Vector GenerateVectorNormalized(const float3& rawVec);
+		static Vector GenerateVectorNormalized(const float4& rawVec);
+
+		static Vector GenerateVector3Transform(const Matrix& matrix, const Vector& vector);
+
+		static Vector GenerateVectorLerp(const Vector a, const Vector b, const float t);
+
+		static Vector GenerateRotationQuaternionSlerp(const Vector a, const Vector b, const float t);
+		static Vector GenerateRotationQuaternionFromEuler(const float x, const float y, const float z);
 
 	private:
-		// 数学ライブラリでnewをあまりしたくないのでpImplの採用は保留
 		DirectX::XMVECTOR mData;
 	};
 
-	//雑な少数比較関数　テスト記述用
+
+	class Matrix
+	{
+		friend Vector;
+	public:
+		Matrix(); ~Matrix();
+		Matrix(const Matrix& mat);
+		Matrix(const DirectX::XMMATRIX& mat);
+		Matrix(const Vector vectors[4]);
+
+		const Matrix operator+(const Matrix& other) const;
+
+		const Matrix operator*(const float other) const;
+		const Matrix operator*(const Matrix& other) const;
+		void operator*=(const Matrix& other);
+
+
+		static Matrix GenerateMatrixIdentity();
+
+		static Matrix GenerateMatrixInverse(const Matrix& matrix);
+
+		static Matrix GenerateMatrixTranspose(const Matrix& matrix);
+
+		static Matrix GenerateMatrixLookToLH
+		(
+			const Vector& eye,
+			const Vector& eyeDir,
+			const Vector& up
+		);
+
+		static Matrix GenerateMatrixLookAtLH
+		(
+			const Vector& eye,
+			const Vector& target,
+			const Vector& up
+		);
+
+		static Matrix GenerateMatrixPerspectiveFovLH
+		(
+			const float FovAngleY,
+			const float AspectRatio,
+			const float NearZ,
+			const float FarZ
+		);
+
+		static Matrix GenerateMatrixTranslation(const Vector& position);
+
+		static Matrix GenerateMatrixRotationX(const float angle);
+		static Matrix GenerateMatrixRotationY(const float angle);
+		static Matrix GenerateMatrixRotationZ(const float angle);
+		static Matrix GenerateMatrixRotationQ(const Vector& q);
+		static Matrix GenerateMatrixRotationAxis(const Vector& axis, float angle);
+	private:
+		DirectX::XMMATRIX mData;
+	};
+
+	//雑な少数比較関数　
 	bool FloatEqual(const float a, const float b);
 
 	float RadianToDegree(float radian);

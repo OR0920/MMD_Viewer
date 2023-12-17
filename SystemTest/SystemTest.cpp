@@ -31,16 +31,60 @@ namespace SystemTest
 			const char* filepath = "TestRoot/TestDir/TestFilePath.file";
 			char* dirpath = nullptr;
 
-			NewArrayAndCopyDirPathFromFilePath(&dirpath, filepath);
+			newArray_CopyDirPathFromFilePath(&dirpath, filepath);
 
 			Assert::IsTrue(StringEqual(dirpath, "TestRoot/TestDir/"));
 			char* assetPath = nullptr;
 
-			NewArrayAndCopyAssetPath(&assetPath, dirpath, "AnotherTestFilePath.file");
+			newArray_CopyAssetPath(&assetPath, dirpath, "AnotherTestFilePath.file");
 			Assert::IsTrue(StringEqual(assetPath, "TestRoot/TestDir/AnotherTestFilePath.file"));
 
 			SafeDeleteArray(&assetPath);
 			SafeDeleteArray(&dirpath);
+		}
+
+		const char* const cText = "some text with “ú–{Œê";
+		const wchar_t* const wText = L"some text with “ú–{Œê";
+		const char16_t* const u16Text = u"some text with “ú–{Œê";
+
+		TEST_METHOD(wideTextTo_cTextTest)
+		{
+			char* cTextBuff = nullptr;
+
+			newArray_CreateMultiByteStrFromWideCharStr(&cTextBuff, u16Text);
+			Assert::IsTrue(StringEqual(cText, cTextBuff));
+
+			SafeDeleteArray(&cTextBuff);
+		}
+
+		TEST_METHOD(cTextTo_wideTextTest)
+		{
+			wchar_t* wideTextBuff = nullptr;
+
+			newArray_CreateWideCharStrFromMultiByteStr(&wideTextBuff, cText);
+			Assert::IsTrue(StringEqual(wText, wideTextBuff));
+
+			SafeDeleteArray(&wideTextBuff);
+		}
+
+		TEST_METHOD(utf16TextTo_cTextTest)
+		{
+			char* cTextBuff = nullptr;
+			
+			newArray_CreateMultiByteStrFromWideCharStr(&cTextBuff, wText);
+			Assert::IsTrue(StringEqual(cText, cTextBuff));
+
+			SafeDeleteArray(&cTextBuff);
+		}
+
+		TEST_METHOD(cTextTo_utf16Test)
+		{
+			char16_t* u16TextBuff = nullptr;
+
+			newArray_CreateWideCharStrFromMultiByteStr(&u16TextBuff, cText);
+			Assert::IsTrue(StringEqual(u16Text, u16TextBuff));
+
+			SafeDeleteArray(&u16TextBuff);
 		}
 	};
 

@@ -30,13 +30,13 @@ namespace MathUtilTest
 
 			float3 initValueA = { 3.f, 4.f, 5.f };
 			Vector vecA(initValueA);
-			
+
 			Assert::IsTrue(vecA.GetFloat3().x == 3.f);
 			Assert::IsTrue(vecA.GetFloat3().y == 4.f);
 			Assert::IsTrue(vecA.GetFloat3().z == 5.f);
 			Assert::IsTrue(vecA.GetFloat4().w == 0.f);
 
-			float3 initValueB = {5.f, 10.f, 300.f };
+			float3 initValueB = { 5.f, 10.f, 300.f };
 			Vector vecB(initValueB);
 
 			Assert::IsTrue(vecB.GetFloat3().x == 5.f);
@@ -45,11 +45,11 @@ namespace MathUtilTest
 
 			float2 initValueC = { 1.f, 5.f };
 			Vector vecC(initValueC);
-			
+
 			Assert::IsTrue(vecC.GetFloat2().x == 1.f);
 			Assert::IsTrue(vecC.GetFloat2().y == 5.f);
 
-			float2 initValueD  = { 3.f, 45.f };
+			float2 initValueD = { 3.f, 45.f };
 			Vector vecD(initValueD);
 
 			Assert::IsTrue(vecD.GetFloat2().x == 3.f);
@@ -93,6 +93,25 @@ namespace MathUtilTest
 
 		}
 
+		TEST_METHOD(Length)
+		{
+			Vector v2 = { 3.f, 4.f };
+			Assert::IsTrue(FloatEqual(v2.Vector2Length(), 5.f));
+			Assert::IsTrue(FloatEqual(v2.Vector3Length(), 5.f));
+			Assert::IsTrue(FloatEqual(v2.Vector4Length(), 5.f));
+
+			Vector v3 = { 3.f, 4.f, 5.f };
+			Assert::IsTrue(FloatEqual(v3.Vector2Length(), 5.f));
+			Assert::IsTrue(FloatEqual(v3.Vector3Length(), 7.0710678f));
+			Assert::IsTrue(FloatEqual(v3.Vector4Length(), 7.0710678f));
+
+			Vector v4 = { 3.f, 4.f, 5.f, 6.f };
+			Assert::IsTrue(FloatEqual(v4.Vector2Length(), 5.f));
+			Assert::IsTrue(FloatEqual(v4.Vector3Length(), 7.0710678f));
+			Assert::IsTrue(FloatEqual(v4.Vector4Length(), 9.2736184f));
+		}
+
+
 		TEST_METHOD(Equal)
 		{
 			Vector a(3.f, 4.f, 5.f);
@@ -102,7 +121,7 @@ namespace MathUtilTest
 			Assert::IsTrue(a == b);
 
 			Vector c(4.f, 5.f, 2.f);
-			
+
 			Assert::IsFalse(a == c);
 		}
 
@@ -120,7 +139,7 @@ namespace MathUtilTest
 			//aが変更されてもbが変更されていない
 			//参照がコピーされていないことの保証
 			Assert::IsFalse(b == a);
-			
+
 			Vector d = c;
 
 			Assert::IsTrue(d == c);
@@ -260,7 +279,7 @@ namespace MathUtilTest
 			float aDotb = a.Dot3(b);
 			float ans = 37.f;
 			Assert::IsTrue(aDotb == ans);
-			
+
 			float bDota = b.Dot3(a);
 			Assert::IsTrue(aDotb == bDota);
 
@@ -283,7 +302,7 @@ namespace MathUtilTest
 
 			Vector c(3.f, 1.f, 2.f, 5.f);
 			float aDotc = a.Dot4(c);
-			float ans2 =  60.f;
+			float ans2 = 60.f;
 			Assert::IsTrue(aDotc == ans2);
 
 			float aDotb_3d = a.Dot3(b);
@@ -291,7 +310,7 @@ namespace MathUtilTest
 			Assert::IsTrue(aDotb_3d == ans3);
 		}
 
-		TEST_METHOD(Cross2) 
+		TEST_METHOD(Cross2)
 		{
 			Vector a(2.f, 3.f), b(3.f, 9.f);
 			auto aCrossB = a.Cross2(b);
@@ -301,8 +320,8 @@ namespace MathUtilTest
 			auto ans2 = -9.f;
 			Assert::IsTrue(bCrossA == ans2);
 		}
-		
-		TEST_METHOD(Cross3) 
+
+		TEST_METHOD(Cross3)
 		{
 			Vector a(3.f, 6.f, 1.f);
 			Vector b(3.f, 5.f, 4.f);
@@ -325,6 +344,87 @@ namespace MathUtilTest
 			Assert::IsTrue(aCrossB4.w() == 0.f);
 
 		}
+
+		TEST_METHOD(AngleBetween)
+		{
+			Vector a = { 1.f, 0.f, 0.f };
+			Vector b = { 0.f, 1.f, 0.f };
+			Assert::IsTrue(FloatEqual(a.AngleBetWeenVector2(b), DegreeToRadian(90.f)));
+			Assert::IsTrue(FloatEqual(a.AngleBetWeenVector3(b), DegreeToRadian(90.f)));
+			Vector c = { 0.f, 0.f, 1.f };
+			Assert::IsTrue(FloatEqual(a.AngleBetWeenVector3(c), DegreeToRadian(90.f)));
+		}
+
+		TEST_METHOD(_Normalize2)
+		{
+			float2 f = { 3.f, 4.f }, xf{};
+			auto v = Vector::GenerateVectorNormalized(f);
+
+			auto xv = DirectX::XMVector2Normalize(DirectX::XMVectorSet(3.f, 4.f, 0.f, 0.f));
+			DirectX::XMStoreFloat2(&xf, xv);
+
+			Assert::IsTrue(v == xf);
+
+			Vector v2 = f;
+			v2.Vector2Normalize();
+
+			Assert::IsTrue(v2 == xf);
+
+			Vector v3 = f;
+
+			Assert::IsTrue(v3 == f);
+
+			auto v4 = v3.GetVector2Normalized();
+			Assert::IsTrue(v4 == xf);
+			Assert::IsTrue(v3 == f);
+		}
+
+		TEST_METHOD(_Normalize3)
+		{
+			float3 f = { 3.f, 4.f, 5.f }, xf{};
+			auto v = Vector::GenerateVectorNormalized(f);
+
+			auto xv = DirectX::XMVector3Normalize(DirectX::XMVectorSet(3.f, 4.f, 5.f, 0.f));
+			DirectX::XMStoreFloat3(&xf, xv);
+
+			Assert::IsTrue(v == xf);
+
+			Vector v2 = f;
+			v2.Vector3Normalize();
+
+			Assert::IsTrue(v2 == xf);
+
+			Vector v3 = f;
+
+			Assert::IsTrue(v3 == f);
+
+			auto v4 = v3.GetVector3Normalized();
+			Assert::IsTrue(v4 == xf);
+			Assert::IsTrue(v3 == f);
+		}
+
+		TEST_METHOD(_Normalize4)
+		{
+			float4 f = { 3.f, 4.f, 5.f , 6.f }, xf{};
+			auto v = Vector::GenerateVectorNormalized(f);
+
+			auto xv = DirectX::XMVector4Normalize(DirectX::XMVectorSet(3.f, 4.f, 5.f, 6.f));
+			DirectX::XMStoreFloat4(&xf, xv);
+
+			Assert::IsTrue(v == xf);
+
+			Vector v2 = f;
+			v2.Vector4Normalize();
+
+			Assert::IsTrue(v2 == xf);
+
+			Vector v3 = f;
+
+			auto v4 = v3.GetVector4Normalized();
+			Assert::IsTrue(v4 == xf);
+			Assert::IsTrue(v3 == f);
+		}
+
 	};
 
 }

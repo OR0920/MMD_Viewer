@@ -36,32 +36,22 @@ void LoadAndCout(const char* filepath)
 	MMDsdk::PmdFile model(filepath);
 }
 
+using namespace MathUtil;
 
 int main()
 {
 	SET_JAPANESE_ENABLE;
-	//MMDsdk::PmdFile model(testModelFilePath[0]);
 
-	auto filepathCount = sizeof(testModelFilePath) / sizeof(testModelFilePath[0]);
-	for (int i = 0; i < filepathCount; ++i)
-	{
-		LoadAndCout(testModelFilePath[i]);
-	}
+	float2 f = { 3.f, 4.f }, xf{};
+	auto v = Vector::GenerateVectorNormalized(f);
 
-	MMDsdk::PmxFile kaban(kabanPath);
+	auto xv = DirectX::XMVector2Normalize(DirectX::XMVectorSet(3.f, 4.f, 0.f, 0.f));
+	DirectX::XMStoreFloat2(&xf, xv);
 
-	for (int i = 0; i < kaban.GetTextureCount(); ++i)
-	{
-		char* assetpath = nullptr;
-		NewArrayAndCopyAssetPath(&assetpath, kaban.GetDirectoryPathStart(), GetTextMacro(kaban.GetTexturePath(i)));
 
-		DebugMessage(assetpath);
-		FileReadBin tex(assetpath);
-		tex.Close();
+	Vector v2 = f;
+	v2.Vector2Normalize();
 
-		SafeDeleteArray(&assetpath);
-	}
-	const char* filepath = "Test/Motion/シンプルウォーク.vmd";
-
-	MMDsdk::VmdFile walk(filepath);
+	DebugOutVector(v2);
+	DebugOutFloat2(xf);
 }
