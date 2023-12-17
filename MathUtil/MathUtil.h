@@ -82,6 +82,14 @@ namespace MathUtil
 		const float Vector3Length() const;
 		const float Vector4Length() const;
 
+		void Vector2Normalize();
+		void Vector3Normalize();
+		void Vector4Normalize();
+
+		Vector GetVector2Normalized() const;
+		Vector GetVector3Normalized() const;
+		Vector GetVector4Normalized() const;
+
 		//ŠeŽí‰‰ŽZ
 		// ”äŠr‰‰ŽZŽq
 		bool operator==(const Vector& other) const;

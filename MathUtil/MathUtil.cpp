@@ -67,6 +67,36 @@ const float Vector::Vector2Length() const { return XMVectorGetX(XMVector2Length(
 const float Vector::Vector3Length() const { return XMVectorGetX(XMVector3Length(mData)); }
 const float Vector::Vector4Length() const { return XMVectorGetX(XMVector4Length(mData)); }
 
+void Vector::Vector2Normalize()
+{
+	mData = XMVector2Normalize(mData);
+}
+
+void Vector::Vector3Normalize()
+{
+	mData = XMVector3Normalize(mData);
+}
+
+void Vector::Vector4Normalize()
+{
+	mData = XMVector4Normalize(mData);
+}
+
+Vector Vector::GetVector2Normalized() const
+{
+	return XMVector2Normalize(mData);
+}
+
+Vector Vector::GetVector3Normalized() const
+{
+	return XMVector3Normalize(mData);
+}
+
+Vector Vector::GetVector4Normalized() const
+{
+	return XMVector4Normalize(mData);
+}
+
 // ‰‰ŽZ
 bool Vector::operator==(const Vector& other) const
 {

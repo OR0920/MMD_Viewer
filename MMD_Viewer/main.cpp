@@ -36,28 +36,22 @@ void LoadAndCout(const char* filepath)
 	MMDsdk::PmdFile model(filepath);
 }
 
+using namespace MathUtil;
 
 int main()
 {
 	SET_JAPANESE_ENABLE;
 
-	//MMDsdk::PmdFile model(testModelFilePath[0]);
+	float2 f = { 3.f, 4.f }, xf{};
+	auto v = Vector::GenerateVectorNormalized(f);
 
-	auto filepathCount = sizeof(testModelFilePath) / sizeof(testModelFilePath[0]);
-	for (int i = 0; i < filepathCount; ++i)
-	{
-		LoadAndCout(testModelFilePath[i]);
-	}
+	auto xv = DirectX::XMVector2Normalize(DirectX::XMVectorSet(3.f, 4.f, 0.f, 0.f));
+	DirectX::XMStoreFloat2(&xf, xv);
 
-	MMDsdk::PmxFile kaban(kabanPath);
-	
-	char16_t* text = nullptr;
-	newArray_CreateWideCharStrFromMultiByteStr(&text, "“ú–{Œê‚Å‚·‚æ, I'm English");
-	DebugMessageWide(text);
-	SafeDeleteArray(&text);
 
-	wchar_t* wText = nullptr;
-	newArray_CreateWideCharStrFromMultiByteStr(reinterpret_cast<char16_t**>(&wText), "“ú–{Œê‚Å‚·‚æ, I'm English");
-	DebugMessageWide(wText);
-	SafeDeleteArray(&wText);
+	Vector v2 = f;
+	v2.Vector2Normalize();
+
+	DebugOutVector(v2);
+	DebugOutFloat2(xf);
 }
