@@ -436,4 +436,12 @@ namespace SystemTest
 		// 配列　サイズ指定　ポインタで受け取り
 		// //
 	};
+
+	TEST_CLASS(GUI)
+	{
+		TEST_METHOD(GUI_Test)
+		{
+			Assert::IsTrue(System::MainWindow::Instance().Create(1280, 720) == System::Result::SUCCESS);
+		}
+	};
 }

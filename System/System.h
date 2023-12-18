@@ -8,8 +8,9 @@
 
 #include"File.h"
 #include"DebugMessage.h"
+#include"GUI_Util.h"
 
-
+#include"Error.h"
 
 namespace System
 {

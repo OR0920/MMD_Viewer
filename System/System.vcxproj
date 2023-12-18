@@ -134,11 +134,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="DebugMessage.h" />
+    <ClInclude Include="Error.h" />
     <ClInclude Include="File.h" />
+    <ClInclude Include="GUI_Util.h" />
     <ClInclude Include="System.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="File.cpp" />
+    <ClCompile Include="GUI_Util.cpp" />
     <ClCompile Include="System.cpp" />
   </ItemGroup>
   <ItemGroup>
