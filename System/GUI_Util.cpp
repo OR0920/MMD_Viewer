@@ -17,11 +17,20 @@ using namespace System;
 // MainWindow
 LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
+	PAINTSTRUCT ps;
+	HDC hdc;
 	switch (msg)
 	{
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+	case WM_PAINT:
+	{
+		hdc = BeginPaint(hwnd, &ps);
+		FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+		EndPaint(hwnd, &ps);
+		break;
+	}
 	default:
 		break;
 	}
@@ -36,17 +45,20 @@ MainWindow& MainWindow::Instance()
 }
 
 static HWND MainWindowHandle = NULL;
+static WNDCLASSEX MainWindowClass = {};
 
 Result MainWindow::Create(int width, int height)
 {
 	SET_JAPANESE_ENABLE;
 
-	WNDCLASSEX wc = {};
+	auto& wc = MainWindowClass;
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.lpfnWndProc = MainWindowProc;
 	wc.hInstance = GetModuleHandle(NULL);
 	wc.lpszClassName = _T(ToString(MainWindow));
 	wc.style = CS_HREDRAW | CS_VREDRAW;
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 
 	if (RegisterClassEx(&wc) == 0)
 	{
@@ -71,6 +83,7 @@ Result MainWindow::Create(int width, int height)
 
 		return Result::FAIL;
 	}
+
 
 	MainWindowHandle = CreateWindowEx
 	(
@@ -99,7 +112,7 @@ Result MainWindow::Create(int width, int height)
 	return Result::SUCCESS;
 }
 
-bool MainWindow::IsClose() 
+bool MainWindow::IsClose()
 {
 	MSG msg = {};
 
@@ -126,48 +139,5 @@ MainWindow::MainWindow()
 
 MainWindow::~MainWindow()
 {
-
-}
-
-// FileCatcherWindow
-LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
-{
-	switch (msg)
-	{
-	case WM_CREATE:
-	{
-		DragAcceptFiles(hwnd, true);
-		break;
-	}
-	case WM_DROPFILES:
-	{
-		break;
-	}
-	default:
-		break;
-	}
-
-
-	return DefWindowProc(hwnd, msg, wp, lp);
-}
-
-FileCatcherWindow::FileCatcherWindow()
-{
-
-}
-
-FileCatcherWindow::~FileCatcherWindow()
-{
-
-}
-
-Result FileCatcherWindow::Create()
-{
-	WNDCLASS wc = {};
-	wc.lpfnWndProc = FileCatcherProc;
-	wc.hInstance = GetModuleHandle(NULL);
-	wc.lpszClassName = _T(ToString(FileCatcherWindow));
-	
-
-	return SUCCESS;
+	UnregisterClass(MainWindowClass.lpszClassName, MainWindowClass.hInstance);
 }

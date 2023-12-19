@@ -18,17 +18,6 @@ namespace System
 		~MainWindow();
 	};
 
-	class FileCatcherWindow
-	{
-	public:
-		FileCatcherWindow();
-		~FileCatcherWindow();
-
-		Result Create();
-	private:
-		FileCatcherWindow(const FileCatcherWindow&);
-		const FileCatcherWindow& operator=(const FileCatcherWindow&);
-	};
 }
 
 #endif // !_GUI_UTIL_H_

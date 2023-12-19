@@ -49,12 +49,6 @@ int main()
 		return -1;
 	}
 
-	FileCatcherWindow fileChatcher;
-	if (fileChatcher.Create() == Result::FAIL)
-	{
-		return -1;
-	}
-
 	while (MainWindow::Instance().IsClose() == false)
 	{
 
