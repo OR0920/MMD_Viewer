@@ -42,16 +42,21 @@ int main()
 {
 	SET_JAPANESE_ENABLE;
 
-	float2 f = { 3.f, 4.f }, xf{};
-	auto v = Vector::GenerateVectorNormalized(f);
+	CheckMemoryLeak();
 
-	auto xv = DirectX::XMVector2Normalize(DirectX::XMVectorSet(3.f, 4.f, 0.f, 0.f));
-	DirectX::XMStoreFloat2(&xf, xv);
+	if (MainWindow::Instance().Create(1280, 720) == Result::FAIL)
+	{
+		return -1;
+	}
 
+	FileCatcherWindow fileChatcher;
+	if (fileChatcher.Create() == Result::FAIL)
+	{
+		return -1;
+	}
 
-	Vector v2 = f;
-	v2.Vector2Normalize();
+	while (MainWindow::Instance().IsClose() == false)
+	{
 
-	DebugOutVector(v2);
-	DebugOutFloat2(xf);
+	}
 }

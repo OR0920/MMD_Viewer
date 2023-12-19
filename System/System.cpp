@@ -1,6 +1,10 @@
+// header
 #include"System.h"
+
+// std
 #include<string>
 
+// winapi
 #include<Windows.h>
 
 #define IS_USED_PTR(ptr)\
@@ -8,6 +12,11 @@ if(ptr != nullptr)\
 {\
 	DebugMessage("The " << ToString(ptr) << " is already Used");\
 	return;\
+}
+
+void System::CheckMemoryLeak()
+{
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 }
 
 bool System::StringEqual(const void* const _str1, const void* const _str2)

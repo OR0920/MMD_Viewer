@@ -6,6 +6,8 @@
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace System;
 
+#include<windows.h>
+
 namespace SystemTest
 {
 	TEST_CLASS(SystemTest)
@@ -437,11 +439,14 @@ namespace SystemTest
 		// //
 	};
 
+	
+
 	TEST_CLASS(GUI)
 	{
 		TEST_METHOD(GUI_Test)
 		{
 			Assert::IsTrue(System::MainWindow::Instance().Create(1280, 720) == System::Result::SUCCESS);
+
 		}
 	};
 }

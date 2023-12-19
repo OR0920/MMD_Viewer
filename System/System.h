@@ -34,6 +34,8 @@ namespace System
 		}
 	}
 
+	void CheckMemoryLeak();
+
 	// •¶Žš—ñ”äŠr
 	bool StringEqual(const void* const _str1, const void* const _str2);
 
