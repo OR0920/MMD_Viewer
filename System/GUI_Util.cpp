@@ -15,8 +15,8 @@
 using namespace System;
 
 // MainWindow
-static HWND MainWindowHandle = NULL;
-static WNDCLASSEX MainWindowClass = {};
+static HWND gMainWindowHandle = NULL;
+static WNDCLASSEX gMainWindowClass = {};
 
 BOOL CALLBACK ParentResize(HWND hwnd, LPARAM lparam)
 {
@@ -71,7 +71,7 @@ Result MainWindow::Create(int width, int height)
 {
 	SET_JAPANESE_ENABLE;
 
-	auto& wc = MainWindowClass;
+	auto& wc = gMainWindowClass;
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	wc.lpfnWndProc = MainWindowProc;
@@ -109,7 +109,7 @@ Result MainWindow::Create(int width, int height)
 	}
 
 
-	MainWindowHandle = CreateWindowEx
+	gMainWindowHandle = CreateWindowEx
 	(
 		NULL,
 		wc.lpszClassName,
@@ -125,7 +125,7 @@ Result MainWindow::Create(int width, int height)
 		NULL
 	);
 
-	if (MainWindowHandle == NULL)
+	if (gMainWindowHandle == NULL)
 	{
 		DebugMessageFunctionError(CreateWindowEx(), MainWindow::Create());
 
@@ -163,7 +163,7 @@ MainWindow::MainWindow()
 
 MainWindow::~MainWindow()
 {
-	UnregisterClass(MainWindowClass.lpszClassName, MainWindowClass.hInstance);
+	UnregisterClass(gMainWindowClass.lpszClassName, gMainWindowClass.hInstance);
 }
 
 
@@ -191,7 +191,7 @@ LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	case WM_SIZE:
 	{
 		RECT parentClientRect{};
-		GetClientRect(MainWindowHandle, &parentClientRect);
+		GetClientRect(gMainWindowHandle, &parentClientRect);
 		MoveWindow(hwnd, 0, 0, parentClientRect.right, parentClientRect.bottom, true);
 	}
 	default:
@@ -228,7 +228,7 @@ Result FileCatcher::Create()
 	}
 
 	RECT parent = {};
-	GetClientRect(MainWindowHandle, &parent);
+	GetClientRect(gMainWindowHandle, &parent);
 
 	auto hwnd = CreateWindowEx
 	(
@@ -240,7 +240,7 @@ Result FileCatcher::Create()
 		0,
 		parent.right - parent.left,
 		parent.bottom - parent.top,
-		MainWindowHandle,
+		gMainWindowHandle,
 		NULL,
 		wc.hInstance,
 		NULL
