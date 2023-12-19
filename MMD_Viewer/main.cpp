@@ -50,7 +50,7 @@ int main()
 	}
 
 	FileCatcher fileCatcher;
-	if (fileCatcher.Create() == Result::FAIL)
+	if (fileCatcher.Create(MainWindow::Instance()) == Result::FAIL)
 	{
 		return -1;
 	}

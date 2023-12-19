@@ -14,9 +14,16 @@
 
 using namespace System;
 
-// MainWindow
-static HWND gMainWindowHandle = NULL;
-static WNDCLASSEX gMainWindowClass = {};
+// Window
+
+Window::~Window()
+{
+
+}
+
+//// MainWindow
+//static HWND gMainWindowHandle = NULL;
+//static WNDCLASSEX gMainWindowClass = {};
 
 BOOL CALLBACK ParentResize(HWND hwnd, LPARAM lparam)
 {
@@ -60,18 +67,13 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	return DefWindowProc(hwnd, msg, wp, lp);
 }
 
-MainWindow& MainWindow::Instance()
-{
-	static MainWindow inst;
-	return inst;
-}
 
 
 Result MainWindow::Create(int width, int height)
 {
 	SET_JAPANESE_ENABLE;
 
-	auto& wc = gMainWindowClass;
+	auto& wc = mWindowClass;
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	wc.lpfnWndProc = MainWindowProc;
@@ -109,7 +111,7 @@ Result MainWindow::Create(int width, int height)
 	}
 
 
-	gMainWindowHandle = CreateWindowEx
+	mWindowHandle = CreateWindowEx
 	(
 		NULL,
 		wc.lpszClassName,
@@ -125,7 +127,7 @@ Result MainWindow::Create(int width, int height)
 		NULL
 	);
 
-	if (gMainWindowHandle == NULL)
+	if (mWindowHandle== NULL)
 	{
 		DebugMessageFunctionError(CreateWindowEx(), MainWindow::Create());
 
@@ -154,8 +156,21 @@ bool MainWindow::IsClose()
 	return isClose;
 }
 
+const HWND MainWindow::GetHandle() const
+{
+	return mWindowHandle;
+}
+
+MainWindow& MainWindow::Instance()
+{
+	static MainWindow inst;
+	return inst;
+}
+
 MainWindow::MainWindow()
 	:
+	mWindowHandle(NULL),
+	mWindowClass({}),
 	isClose(false)
 {
 
@@ -163,11 +178,14 @@ MainWindow::MainWindow()
 
 MainWindow::~MainWindow()
 {
-	UnregisterClass(gMainWindowClass.lpszClassName, gMainWindowClass.hInstance);
+	UnregisterClass(mWindowClass.lpszClassName, mWindowClass.hInstance);
 }
 
 
 // FileCatcher
+
+// プロシージャー
+// メンバ関数にするメリットがないので独立させる //
 LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
 	switch (msg)
@@ -190,9 +208,12 @@ LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	}
 	case WM_SIZE:
 	{
+		auto parentHwnd = GetParent(hwnd);
+
 		RECT parentClientRect{};
-		GetClientRect(gMainWindowHandle, &parentClientRect);
+		GetClientRect(parentHwnd, &parentClientRect);
 		MoveWindow(hwnd, 0, 0, parentClientRect.right, parentClientRect.bottom, true);
+		break;
 	}
 	default:
 		break;
@@ -205,8 +226,10 @@ FileCatcher::FileCatcher() {}
 
 FileCatcher::~FileCatcher() {}
 
-Result FileCatcher::Create()
+Result FileCatcher::Create(const Window& parent)
 {
+	auto parentHwnd = parent.GetHandle();
+
 	WNDCLASSEX wc = {};
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = CS_VREDRAW | CS_HREDRAW;
@@ -227,8 +250,8 @@ Result FileCatcher::Create()
 		return FAIL;
 	}
 
-	RECT parent = {};
-	GetClientRect(gMainWindowHandle, &parent);
+	RECT parentRect = {};
+	GetClientRect(parentHwnd, &parentRect);
 
 	auto hwnd = CreateWindowEx
 	(
@@ -238,9 +261,9 @@ Result FileCatcher::Create()
 		WS_CHILD | WS_VISIBLE | WS_BORDER,
 		0,
 		0,
-		parent.right - parent.left,
-		parent.bottom - parent.top,
-		gMainWindowHandle,
+		parentRect.right - parentRect.left,
+		parentRect.bottom - parentRect.top,
+		parentHwnd,
 		NULL,
 		wc.hInstance,
 		NULL
