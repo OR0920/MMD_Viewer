@@ -17,7 +17,15 @@ namespace System
 		MainWindow();
 		~MainWindow();
 	};
+	
+	class FileCatcher
+	{
+	public:
+		FileCatcher(); ~FileCatcher();
 
+		Result Create();
+	private:
+	};
 }
 
 #endif // !_GUI_UTIL_H_

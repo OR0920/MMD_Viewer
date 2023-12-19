@@ -49,6 +49,12 @@ int main()
 		return -1;
 	}
 
+	FileCatcher fileCatcher;
+	if (fileCatcher.Create() == Result::FAIL)
+	{
+		return -1;
+	}
+
 	while (MainWindow::Instance().IsClose() == false)
 	{
 
