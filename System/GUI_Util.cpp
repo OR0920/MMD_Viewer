@@ -16,7 +16,7 @@ using namespace System;
 
 // Window
 
-Window::~Window()
+ParentWindow::~ParentWindow()
 {
 
 }
@@ -226,7 +226,7 @@ FileCatcher::FileCatcher() {}
 
 FileCatcher::~FileCatcher() {}
 
-Result FileCatcher::Create(const Window& parent)
+Result FileCatcher::Create(const ParentWindow& parent)
 {
 	auto parentHwnd = parent.GetHandle();
 

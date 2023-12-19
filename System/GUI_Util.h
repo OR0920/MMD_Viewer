@@ -10,15 +10,15 @@ namespace System
 	// 子ウィンドウを持てるウィンドウのインターフェイス
 	// このインターフェイスで宣言されているメソッドは、
 	// ユーザー側からは呼び出さない
-	class Window
+	class ParentWindow
 	{
 	public:
-		virtual ~Window();
+		virtual ~ParentWindow();
 		virtual const HWND GetHandle() const = 0;
 	protected:
 	};
 
-	class MainWindow : public Window 
+	class MainWindow : public ParentWindow 
 	{
 	public:
 		// サイズを指定し生成
@@ -51,7 +51,7 @@ namespace System
 		// 親を指定し生成
 		// 親のクライアント領域いっぱいにサイズが指定される
 		// 親のサイズ変更に合わせて自動で調整される
-		Result Create(const Window& parent);
+		Result Create(const ParentWindow& parent);
 	private:
 	};
 }
