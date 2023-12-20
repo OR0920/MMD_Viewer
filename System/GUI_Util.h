@@ -1,7 +1,10 @@
 #ifndef _GUI_UTIL_H_
 #define _GUI_UTIL_H_
 
+#include<string>
+
 #include<windows.h>
+#include<tchar.h>
 
 namespace System
 {
@@ -49,8 +52,6 @@ namespace System
 		class FileCatcher
 		{
 		public:
-			FileCatcher(); ~FileCatcher();
-
 			// 親を指定し生成
 			// 親のクライアント領域いっぱいにサイズが指定される
 			// 親のサイズ変更に合わせて自動で調整される
@@ -59,9 +60,17 @@ namespace System
 			bool Update();
 
 			int GetLength() const;
-			void GetPath(const char** str) const;
-		private:
+			const char* const GetPath() const;
 
+			static FileCatcher& Instance();
+			static LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
+
+		private:
+			FileCatcher(); ~FileCatcher();
+			std::string mFilePath;
+
+			static bool sIsUpdated;
+			static TCHAR sFilePath[MAX_PATH];
 		};
 	}
 }

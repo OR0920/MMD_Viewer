@@ -49,21 +49,18 @@ int main()
 		return -1;
 	}
 
-	System::GUI::FileCatcher fileCatcher;
-	if (fileCatcher.Create(System::GUI::MainWindow::Instance()) == System::Result::FAIL)
+	auto& fc = System::GUI::FileCatcher::Instance();
+	if (fc.Create(System::GUI::MainWindow::Instance()) == System::Result::FAIL)
 	{
 		return -1;
 	}
 
 	while (System::GUI::MainWindow::Instance().IsClose() == false)
 	{
-		if (fileCatcher.Update() == true)
+		if (fc.Update() == true)
 		{
-			//char* filePath = nullptr;
-			//filePath = new char[fileCatcher.GetLength()];
-			//fileCatcher.GetPath(&filePath);
-			//DebugOutString(filePath);
-			//System::SafeDeleteArray(&filePath);
+			DebugMessage("file catcher updated ! ");
+			DebugOutString(fc.GetPath());
 		}
 	}
 }

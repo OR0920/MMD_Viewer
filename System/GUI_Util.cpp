@@ -1,7 +1,8 @@
 // header
-#include "GUI_Util.h"
+//#include "GUI_Util.h"
 #include "Error.h"
 #include "DebugMessage.h"
+#include "System.h"
 
 
 // std
@@ -142,7 +143,7 @@ Result MainWindow::Create(int width, int height)
 bool MainWindow::IsClose()
 {
 	MSG msg = {};
-
+	
 	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 	{
 		TranslateMessage(&msg);
@@ -185,9 +186,11 @@ MainWindow::~MainWindow()
 
 // FileCatcher
 
+bool FileCatcher::sIsUpdated = false;
+TCHAR FileCatcher::sFilePath[MAX_PATH] = {};
+
 // プロシージャー
-// メンバ関数にするメリットがないので独立させる //
-LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
+LRESULT CALLBACK FileCatcher::FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
 	switch (msg)
 	{
@@ -199,7 +202,9 @@ LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	}
 	case WM_DROPFILES:
 	{
-		DebugMessage("File Dropeed");
+		DragQueryFile((HDROP)wp, 0, sFilePath, MAX_PATH);
+		DragFinish((HDROP)wp);
+		sIsUpdated = true;
 		break;
 	}
 	case WM_LBUTTONDOWN:
@@ -223,7 +228,10 @@ LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	return DefWindowProc(hwnd, msg, wp, lp);
 }
 
-FileCatcher::FileCatcher() {}
+FileCatcher::FileCatcher() 
+{
+
+}
 
 FileCatcher::~FileCatcher() {}
 
@@ -285,15 +293,35 @@ Result FileCatcher::Create(const ParentWindow& parent)
 
 bool FileCatcher::Update()
 {
-	return false;
+	if (sIsUpdated == false)
+	{
+		return false;
+	}
+
+	char* filePath = nullptr;
+	newArray_CreateMultiByteStrFromWideCharStr(&filePath, sFilePath);
+
+	mFilePath = filePath;
+	
+
+	SafeDeleteArray(&filePath);
+
+	sIsUpdated = false;
+	return true;
 }
 
 int FileCatcher::GetLength() const
 {
-	return 0;
+	return mFilePath.size();
 }
 
-void FileCatcher::GetPath(const char** str) const
+const char* const FileCatcher::GetPath() const
 {
+	return mFilePath.c_str();
+}
 
+FileCatcher& FileCatcher::Instance()
+{
+	static FileCatcher inst;
+	return inst;
 }
