@@ -44,18 +44,30 @@ int main()
 
 	System::CheckMemoryLeak();
 
-	if (System::GUI::MainWindow::Instance().Create(1280, 720) == System::Result::FAIL)
+
+	auto& mainWindow = System::GUI::MainWindow::Instance();
+
+	if (mainWindow.Create(1280, 720) == System::Result::FAIL)
 	{
 		return -1;
 	}
 
 	auto& fc = System::GUI::FileCatcher::Instance();
-	if (fc.Create(System::GUI::MainWindow::Instance()) == System::Result::FAIL)
+
+
+	if (fc.Create(mainWindow) == System::Result::FAIL)
 	{
 		return -1;
 	}
 
-	while (System::GUI::MainWindow::Instance().IsClose() == false)
+	System::GUI::GraphicsEngine engine;
+
+	if (engine.Init(mainWindow) == System::Result::FAIL)
+	{
+		return -1;
+	};
+	
+	while (mainWindow.IsClose() == false)
 	{
 		if (fc.Update() == true)
 		{
@@ -63,5 +75,7 @@ int main()
 			DebugOutParam(fc.GetDropPos().x);
 			DebugOutParam(fc.GetDropPos().y);
 		}
+
+		engine.Draw();
 	}
 }

@@ -1,10 +1,15 @@
 #ifndef _GUI_UTIL_H_
 #define _GUI_UTIL_H_
 
+// std
 #include<string>
 
+// windows
 #include<windows.h>
 #include<tchar.h>
+#include<dxgi1_6.h>
+#include<d3d12.h>
+#include<wrl.h>
 
 namespace System
 {
@@ -74,11 +79,36 @@ namespace System
 
 		private:
 			FileCatcher(); ~FileCatcher();
+
+			WNDCLASSEX mWindowClass;
+
 			std::string mFilePath;
 
 			static bool sIsUpdated;
 			static TCHAR sFilePath[MAX_PATH];
 			static DropPos sDropPos;
+		};
+
+
+		// parent で指定したウィンドウにDirect3Dでの描画を有効にする
+		class GraphicsEngine
+		{
+		public:
+			GraphicsEngine(); ~GraphicsEngine();
+
+			Result Init(const ParentWindow& parent);
+
+			void Draw
+			(
+				const float clearR = 0.5f,
+				const float clearG = 0.5f, 
+				const float clearB = 0.5f, 
+				const float clearA = 1.f
+			);
+		private:
+			Microsoft::WRL::ComPtr<ID3D12Device> mDevice;
+			Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
+
 		};
 	}
 }

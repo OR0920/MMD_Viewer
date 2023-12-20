@@ -237,11 +237,17 @@ LRESULT CALLBACK FileCatcher::FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LP
 }
 
 FileCatcher::FileCatcher()
+	:
+	mWindowClass({}),
+	mFilePath()
 {
 
 }
 
-FileCatcher::~FileCatcher() {}
+FileCatcher::~FileCatcher() 
+{
+	UnregisterClass(mWindowClass.lpszClassName, mWindowClass.hInstance);
+}
 
 Result FileCatcher::Create(const ParentWindow& parent)
 {
@@ -338,3 +344,4 @@ FileCatcher& FileCatcher::Instance()
 	static FileCatcher inst;
 	return inst;
 }
+
