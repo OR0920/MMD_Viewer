@@ -129,7 +129,7 @@ Result MainWindow::Create(int width, int height)
 		NULL
 	);
 
-	if (mWindowHandle== NULL)
+	if (mWindowHandle == NULL)
 	{
 		DebugMessageFunctionError(CreateWindowEx(), MainWindow::Create());
 
@@ -143,7 +143,7 @@ Result MainWindow::Create(int width, int height)
 bool MainWindow::IsClose()
 {
 	MSG msg = {};
-	
+
 	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 	{
 		TranslateMessage(&msg);
@@ -188,6 +188,7 @@ MainWindow::~MainWindow()
 
 bool FileCatcher::sIsUpdated = false;
 TCHAR FileCatcher::sFilePath[MAX_PATH] = {};
+FileCatcher::DropPos FileCatcher::sDropPos = {};
 
 // プロシージャー
 LRESULT CALLBACK FileCatcher::FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
@@ -202,6 +203,13 @@ LRESULT CALLBACK FileCatcher::FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LP
 	}
 	case WM_DROPFILES:
 	{
+		RECT rect = {};
+		GetWindowRect(hwnd, &rect);
+		GetCursorPos(reinterpret_cast<LPPOINT>(&sDropPos));
+		sDropPos.x -= rect.left;
+		sDropPos.y -= rect.top;
+
+
 		DragQueryFile((HDROP)wp, 0, sFilePath, MAX_PATH);
 		DragFinish((HDROP)wp);
 		sIsUpdated = true;
@@ -228,7 +236,7 @@ LRESULT CALLBACK FileCatcher::FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LP
 	return DefWindowProc(hwnd, msg, wp, lp);
 }
 
-FileCatcher::FileCatcher() 
+FileCatcher::FileCatcher()
 {
 
 }
@@ -302,7 +310,7 @@ bool FileCatcher::Update()
 	newArray_CreateMultiByteStrFromWideCharStr(&filePath, sFilePath);
 
 	mFilePath = filePath;
-	
+
 
 	SafeDeleteArray(&filePath);
 
@@ -318,6 +326,11 @@ int FileCatcher::GetLength() const
 const char* const FileCatcher::GetPath() const
 {
 	return mFilePath.c_str();
+}
+
+const FileCatcher::DropPos& FileCatcher::GetDropPos() const
+{
+	return sDropPos;
 }
 
 FileCatcher& FileCatcher::Instance()

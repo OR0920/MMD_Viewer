@@ -59,8 +59,9 @@ int main()
 	{
 		if (fc.Update() == true)
 		{
-			DebugMessage("file catcher updated ! ");
 			DebugOutString(fc.GetPath());
+			DebugOutParam(fc.GetDropPos().x);
+			DebugOutParam(fc.GetDropPos().y);
 		}
 	}
 }

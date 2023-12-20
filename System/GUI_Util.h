@@ -52,6 +52,12 @@ namespace System
 		class FileCatcher
 		{
 		public:
+			struct DropPos
+			{
+				long x;
+				long y;
+			};
+
 			// 親を指定し生成
 			// 親のクライアント領域いっぱいにサイズが指定される
 			// 親のサイズ変更に合わせて自動で調整される
@@ -61,6 +67,7 @@ namespace System
 
 			int GetLength() const;
 			const char* const GetPath() const;
+			const DropPos& GetDropPos() const;
 
 			static FileCatcher& Instance();
 			static LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
@@ -71,6 +78,7 @@ namespace System
 
 			static bool sIsUpdated;
 			static TCHAR sFilePath[MAX_PATH];
+			static DropPos sDropPos;
 		};
 	}
 }
