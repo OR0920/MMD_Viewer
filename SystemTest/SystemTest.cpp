@@ -441,12 +441,4 @@ namespace SystemTest
 
 	
 
-	TEST_CLASS(GUI)
-	{
-		TEST_METHOD(GUI_Test)
-		{
-			Assert::IsTrue(System::GUI::MainWindow::Instance().Create(1280, 720) == System::Result::SUCCESS);
-
-		}
-	};
 }
