@@ -9,7 +9,7 @@
 #include"MMDsdk.h"
 using namespace std;
 
-using namespace System;
+//using namespace System;
 
 
 const char* testModelFilePath[] =
@@ -42,21 +42,28 @@ int main()
 {
 	SET_JAPANESE_ENABLE;
 
-	CheckMemoryLeak();
+	System::CheckMemoryLeak();
 
-	if (MainWindow::Instance().Create(1280, 720) == Result::FAIL)
+	if (System::GUI::MainWindow::Instance().Create(1280, 720) == System::Result::FAIL)
 	{
 		return -1;
 	}
 
-	FileCatcher fileCatcher;
-	if (fileCatcher.Create(MainWindow::Instance()) == Result::FAIL)
+	System::GUI::FileCatcher fileCatcher;
+	if (fileCatcher.Create(System::GUI::MainWindow::Instance()) == System::Result::FAIL)
 	{
 		return -1;
 	}
 
-	while (MainWindow::Instance().IsClose() == false)
+	while (System::GUI::MainWindow::Instance().IsClose() == false)
 	{
-
+		if (fileCatcher.Update() == true)
+		{
+			//char* filePath = nullptr;
+			//filePath = new char[fileCatcher.GetLength()];
+			//fileCatcher.GetPath(&filePath);
+			//DebugOutString(filePath);
+			//System::SafeDeleteArray(&filePath);
+		}
 	}
 }

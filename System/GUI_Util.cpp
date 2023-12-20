@@ -13,6 +13,7 @@
 // my lib
 
 using namespace System;
+using namespace System::GUI;
 
 // Window
 
@@ -280,4 +281,19 @@ Result FileCatcher::Create(const ParentWindow& parent)
 	}
 
 	return SUCCESS;
+}
+
+bool FileCatcher::Update()
+{
+	return false;
+}
+
+int FileCatcher::GetLength() const
+{
+	return 0;
+}
+
+void FileCatcher::GetPath(const char** str) const
+{
+
 }

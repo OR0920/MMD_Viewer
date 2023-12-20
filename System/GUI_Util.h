@@ -7,53 +7,63 @@ namespace System
 {
 	enum Result;
 
-	// 子ウィンドウを持てるウィンドウのインターフェイス
-	// このインターフェイスで宣言されているメソッドは、
-	// ユーザー側からは呼び出さない
-	class ParentWindow
+	namespace GUI
 	{
-	public:
-		virtual ~ParentWindow();
-		virtual const HWND GetHandle() const = 0;
-	protected:
-	};
 
-	class MainWindow : public ParentWindow 
-	{
-	public:
-		// サイズを指定し生成
-		Result Create(int width, int height);
-		// 閉じるボタンが押されるとtrueを返す
-		bool IsClose();
+		// 子ウィンドウを持てるウィンドウのインターフェイス
+		// このインターフェイスで宣言されているメソッドは、
+		// ユーザー側からは呼び出さない
+		class ParentWindow
+		{
+		public:
+			virtual ~ParentWindow();
+			virtual const HWND GetHandle() const = 0;
+		protected:
+		};
 
-		// メインウィンドウは一つだけを想定しシングルトン
-		static MainWindow& Instance();
+		class MainWindow : public ParentWindow
+		{
+		public:
+			// サイズを指定し生成
+			Result Create(int width, int height);
+			// 閉じるボタンが押されるとtrueを返す
+			bool IsClose();
 
-
-		// ライブラリ側から呼び出す関数
-		const HWND GetHandle() const final;
-	private:
-		bool isClose;
-		MainWindow();
-		~MainWindow() final;
-
-		HWND mWindowHandle;
-		WNDCLASSEX mWindowClass;
-	};
+			// メインウィンドウは一つだけを想定しシングルトン
+			static MainWindow& Instance();
 
 
-	// 領域内にドロップされたウィンドウを認識するウィンドウ
-	class FileCatcher
-	{
-	public:
-		FileCatcher(); ~FileCatcher();
+			// ライブラリ側から呼び出す関数
+			const HWND GetHandle() const final;
+		private:
+			bool isClose;
+			MainWindow();
+			~MainWindow() final;
 
-		// 親を指定し生成
-		// 親のクライアント領域いっぱいにサイズが指定される
-		// 親のサイズ変更に合わせて自動で調整される
-		Result Create(const ParentWindow& parent);
-	private:
-	};
+			HWND mWindowHandle;
+			WNDCLASSEX mWindowClass;
+		};
+
+
+		// 領域内にドロップされたウィンドウを認識するウィンドウ
+		class FileCatcher
+		{
+		public:
+			FileCatcher(); ~FileCatcher();
+
+			// 親を指定し生成
+			// 親のクライアント領域いっぱいにサイズが指定される
+			// 親のサイズ変更に合わせて自動で調整される
+			Result Create(const ParentWindow& parent);
+
+			bool Update();
+
+			int GetLength() const;
+			void GetPath(const char** str) const;
+		private:
+
+		};
+	}
 }
 
 #endif // !_GUI_UTIL_H_
