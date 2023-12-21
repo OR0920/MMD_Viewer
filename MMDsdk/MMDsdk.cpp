@@ -1523,6 +1523,16 @@ const PmxFile::Header& PmxFile::GetHeader() const
 	return mHeader;
 }
 
+void PmxFile::DebugOutHeader() const
+{
+#ifdef _DEBUG
+	if (IsSuccessLoad() == true)
+	{
+		mHeader.DebugOut();
+	}
+#endif // _DEBUG
+}
+
 const int32_t& PmxFile::GetVertexCount() const
 {
 	return mVertexCount;

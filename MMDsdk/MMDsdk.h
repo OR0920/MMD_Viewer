@@ -645,6 +645,7 @@ namespace MMDsdk
 			const Header& operator=(const Header&) const;
 		};
 		const Header& GetHeader() const;
+		void DebugOutHeader() const;
 
 		// ’¸“_î•ñ
 		const int32_t& GetVertexCount() const;

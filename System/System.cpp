@@ -39,7 +39,7 @@ void System::newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const
 
 	for (int i = pathLastID; i >= 0; --i)
 	{
-		if (filepath[i] == '/')
+		if (filepath[i] == '/' || filepath[i] == '\\')
 		{
 			// ファイル名の最後のディレクトリ名までの文字数
 			// 最後の'/'までの文字数 + NULL文字分　//
@@ -55,6 +55,7 @@ void System::newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const
 			break;
 		}
 	}
+
 }
 
 // NULL文字を含む文字列の長さを返す	
