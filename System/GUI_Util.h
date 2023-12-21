@@ -48,11 +48,11 @@ namespace System
 			static MainWindow& Instance();
 
 			// ÉâÉCÉuÉâÉäë§Ç©ÇÁåƒÇ—èoÇ∑ä÷êî
-			const HWND GetHandle() const ;
+			const HWND GetHandle() const;
 		private:
 			bool isClose;
 			MainWindow();
-			~MainWindow() ;
+			~MainWindow();
 
 			int mWidth;
 			int mHeight;
@@ -116,13 +116,43 @@ namespace System
 
 			Result Init(const ParentWindow& parent);
 
-			void Draw
-			(
-				const float clearR = 0.5f,
-				const float clearG = 0.5f, 
-				const float clearB = 0.5f, 
-				const float clearA = 1.f
-			);
+			struct Color
+			{
+				float r = 0.f;
+				float g = 0.f;
+				float b = 0.f;
+				float a = 1.f;
+
+				Color
+				(
+					float _r, 
+					float _g, 
+					float _b, 
+					float _a
+				);
+
+				Color();
+			};
+
+			void Draw(const Color clearColor);
+
+			class Scene
+			{
+			public:
+				Scene(); ~Scene();
+
+				void SetBackGroundColor
+				(
+					const Color clearColor
+				);
+
+				const Color& GetBackGroundColor() const;
+			private:
+				Color mClearColor;
+			};
+
+			void Draw(const Scene& scene);
+
 		private:
 			int mParentWidth;
 			int mParentHeight;
@@ -132,15 +162,17 @@ namespace System
 			ComPtr<ID3D12CommandAllocator> mCommandAllocator;
 			ComPtr<ID3D12GraphicsCommandList> mCommandList;
 			ComPtr<IDXGISwapChain3> mSwapChain;
-			
+
 			ComPtr<ID3D12DescriptorHeap> mRTV_Heap;
 			ComPtr<ID3D12Resource> mRenderTargets[gFrameCount];
 			ComPtr<ID3D12DescriptorHeap> mDSV_Heap;
 			ComPtr<ID3D12Resource> mDepthBuffer;
 
 			ComPtr<ID3D12Fence> mFence;
-			
+
 			uint64_t mFenceValue;
+
+			UINT backBufferIndex;
 		};
 	}
 }

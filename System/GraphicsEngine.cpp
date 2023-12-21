@@ -289,12 +289,18 @@ Result GraphicsEngine::Init(const ParentWindow& parent)
 	return Result::SUCCESS;
 }
 
+GraphicsEngine::Color::Color(float _r, float _g, float _b, float _a)
+	:
+	r(_r), g(_g), b(_b), a(_a)
+{
+
+}
+
+GraphicsEngine::Color::Color() {}
+
 void GraphicsEngine::Draw
 (
-	const float clearR,
-	const float clearG,
-	const float clearB,
-	const float clearA
+	const Color clearCol
 )
 {
 	// Direct3D12 必携から借用
@@ -352,7 +358,7 @@ void GraphicsEngine::Draw
 	mCommandList->RSSetScissorRects(1, &scissorRect);
 
 	//画面クリア
-	const float clearColor[] = { clearR, clearG, clearB, clearA };
+	const float clearColor[] = { clearCol.r, clearCol.g, clearCol.b, clearCol.a };
 	mCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, NULL);
 
 	//バックバッファのトランジションをPresentモードにする
@@ -391,3 +397,131 @@ void GraphicsEngine::Draw
 	//ここでフェンス値を更新する 前回より大きな値であればどんな値でもいいわけだが、1足すのが簡単なので1を足す
 	mFenceValue++;
 }
+
+
+GraphicsEngine::Scene::Scene()
+	:
+	mClearColor()
+{
+
+}
+
+GraphicsEngine::Scene::~Scene()
+{
+
+}
+
+void GraphicsEngine::Scene::SetBackGroundColor
+(
+	const Color clearColor
+)
+{
+	mClearColor = clearColor;
+}
+
+const GraphicsEngine::Color& GraphicsEngine::Scene::GetBackGroundColor() const
+{
+	return mClearColor;
+}
+
+
+void GraphicsEngine::Draw(const Scene& scene)
+{
+	// Direct3D12 必携から借用
+
+	//バックバッファが現在何枚目かを取得
+	
+	UINT backBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
+
+	//コマンドリストに書き込む前にはコマンドアロケーターをリセットする
+	mCommandAllocator->Reset();
+	//コマンドリストをリセットする
+	mCommandList->Reset(mCommandAllocator.Get(), 0);
+
+	//ここからコマンドリストにコマンドを書き込んでいく
+
+	//バックバッファのトランジションをレンダーターゲットモードにする
+	auto resBarrier = CD3DX12_RESOURCE_BARRIER::Transition
+	(
+		mRenderTargets[backBufferIndex].Get(),
+		D3D12_RESOURCE_STATE_PRESENT,
+		D3D12_RESOURCE_STATE_RENDER_TARGET
+	);
+	mCommandList->ResourceBarrier
+	(
+		1,
+		&resBarrier
+	);
+
+	//バックバッファをレンダーターゲットにセット
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle
+	(
+		mRTV_Heap->GetCPUDescriptorHandleForHeapStart(),
+		backBufferIndex,
+		mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV)
+	);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle
+		= mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
+
+	mCommandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+
+
+	//ビューポートをセット
+	auto viewport = CD3DX12_VIEWPORT
+	(
+		0.0f, 0.0f,
+		(float)mParentWidth,
+		(float)mParentHeight
+	);
+	auto scissorRect = CD3DX12_RECT
+	(
+		0, 0,
+		mParentWidth,
+		mParentHeight
+	);
+	mCommandList->RSSetViewports(1, &viewport);
+	mCommandList->RSSetScissorRects(1, &scissorRect);
+
+	//画面クリア
+	auto clearCol = scene.GetBackGroundColor();
+	const float clearColor[] = { clearCol.r, clearCol.g, clearCol.b, clearCol.a };
+	mCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, NULL);
+
+	//バックバッファのトランジションをPresentモードにする
+	resBarrier = CD3DX12_RESOURCE_BARRIER::Transition
+	(
+		mRenderTargets[backBufferIndex].Get(),
+		D3D12_RESOURCE_STATE_RENDER_TARGET,
+		D3D12_RESOURCE_STATE_PRESENT
+	);
+	mCommandList->ResourceBarrier
+	(
+		1,
+		&resBarrier
+	);
+
+	//コマンドの書き込みはここで終わり、Closeする
+	mCommandList->Close();
+
+	//コマンドリストの実行
+	ID3D12CommandList* ppCommandLists[] = { mCommandList.Get() };
+	mCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+	//バックバッファをフロントバッファに切り替えてシーンをモニターに表示
+	mSwapChain->Present(1, 0);
+
+	//GPUサイドが全て完了したときにGPUサイドから返ってくる値（フェンス値）をセット
+	mCommandQueue->Signal(mFence.Get(), mFenceValue);
+
+	//上でセットしたシグナルがGPUから帰ってくるまでストール（この行で待機）
+	do
+	{
+		//GPUの完了を待つ間、ここで何か有意義な事（CPU作業）をやるほど効率が上がる
+
+	} while (mFence->GetCompletedValue() < mFenceValue);
+
+	//ここでフェンス値を更新する 前回より大きな値であればどんな値でもいいわけだが、1足すのが簡単なので1を足す
+	mFenceValue++;
+}
+

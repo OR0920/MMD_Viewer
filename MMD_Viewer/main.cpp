@@ -66,7 +66,15 @@ int main()
 	{
 		return -1;
 	};
-	
+
+	System::GUI::GraphicsEngine::Scene scene;
+
+	using Color = System::GUI::GraphicsEngine::Color;
+
+	scene.SetBackGroundColor(Color(0.5f, 0.5f, 0.5f, 1.f));
+
+
+
 	while (mainWindow.IsClose() == false)
 	{
 		if (fc.Update() == true)
@@ -74,11 +82,8 @@ int main()
 			DebugOutString(fc.GetPath());
 			DebugOutParam(fc.GetDropPos().x);
 			DebugOutParam(fc.GetDropPos().y);
-			MMDsdk::PmxFile file(fc.GetPath());
-			file.DebugOutHeader();
-			DebugOutString(file.GetDirectoryPath());
 		}
 
-		engine.Draw();
+		engine.Draw(scene);
 	}
 }
