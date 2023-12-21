@@ -32,6 +32,9 @@ GraphicsEngine::~GraphicsEngine() {}
 
 Result GraphicsEngine::Init(const ParentWindow& parent)
 {
+	mParentWidth = parent.GetWindowWidth();
+	mParentHeight = parent.GetWindowHeight();
+
 	// Direct3D12 必携　より借用 
 	//DX12デバイス作成
 	{
@@ -107,8 +110,8 @@ Result GraphicsEngine::Init(const ParentWindow& parent)
 
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		swapChainDesc.BufferCount = gFrameCount;
-		swapChainDesc.Width = parent.GetWindowWidth();
-		swapChainDesc.Height = parent.GetWindowHeight();
+		swapChainDesc.Width = mParentWidth;
+		swapChainDesc.Height = mParentHeight;
 		swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
@@ -132,7 +135,7 @@ Result GraphicsEngine::Init(const ParentWindow& parent)
 		(
 			swapchain1->QueryInterface<IDXGISwapChain3>
 			(
-				m_swapChain.ReleaseAndGetAddressOf()
+				mSwapChain.ReleaseAndGetAddressOf()
 			),
 			GraphicsEngine::Init()
 		);
@@ -160,7 +163,7 @@ Result GraphicsEngine::Init(const ParentWindow& parent)
 		for (UINT n = 0; n < gFrameCount; n++)
 		{
 			ReturnIfFailed(
-				m_swapChain->GetBuffer
+				mSwapChain->GetBuffer
 				(
 					n,
 					IID_PPV_ARGS
@@ -201,8 +204,8 @@ Result GraphicsEngine::Init(const ParentWindow& parent)
 		ZeroMemory(&dsResDesc, sizeof(D3D12_RESOURCE_DESC));
 		dsResDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 		dsResDesc.Alignment = 0;
-		dsResDesc.Width = parent.GetWindowWidth();
-		dsResDesc.Height = parent.GetWindowHeight();
+		dsResDesc.Width = mParentWidth;
+		dsResDesc.Height = mParentHeight;
 		dsResDesc.DepthOrArraySize = 1;
 		dsResDesc.MipLevels = 1;
 		dsResDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -294,5 +297,97 @@ void GraphicsEngine::Draw
 	const float clearA
 )
 {
+	// Direct3D12 必携から借用
 
+	//バックバッファが現在何枚目かを取得
+	UINT backBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
+
+	//コマンドリストに書き込む前にはコマンドアロケーターをリセットする
+	mCommandAllocator->Reset();
+	//コマンドリストをリセットする
+	mCommandList->Reset(mCommandAllocator.Get(), 0);
+
+	//ここからコマンドリストにコマンドを書き込んでいく
+
+	//バックバッファのトランジションをレンダーターゲットモードにする
+	auto resBarrier = CD3DX12_RESOURCE_BARRIER::Transition
+	(
+		mRenderTargets[backBufferIndex].Get(),
+		D3D12_RESOURCE_STATE_PRESENT,
+		D3D12_RESOURCE_STATE_RENDER_TARGET
+	);
+	mCommandList->ResourceBarrier
+	(
+		1,
+		&resBarrier
+	);
+
+	//バックバッファをレンダーターゲットにセット
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle
+	(
+		mRTV_Heap->GetCPUDescriptorHandleForHeapStart(),
+		backBufferIndex,
+		mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV)
+	);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle
+		= mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
+
+	mCommandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+
+	//ビューポートをセット
+	auto viewport = CD3DX12_VIEWPORT
+	(
+		0.0f, 0.0f,
+		(float)mParentWidth,
+		(float)mParentHeight
+	);
+	auto scissorRect = CD3DX12_RECT
+	(
+		0, 0,
+		mParentWidth,
+		mParentHeight
+	);
+	mCommandList->RSSetViewports(1, &viewport);
+	mCommandList->RSSetScissorRects(1, &scissorRect);
+
+	//画面クリア
+	const float clearColor[] = { clearR, clearG, clearB, clearA };
+	mCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, NULL);
+
+	//バックバッファのトランジションをPresentモードにする
+	resBarrier = CD3DX12_RESOURCE_BARRIER::Transition
+	(
+		mRenderTargets[backBufferIndex].Get(),
+		D3D12_RESOURCE_STATE_RENDER_TARGET,
+		D3D12_RESOURCE_STATE_PRESENT
+	);
+	mCommandList->ResourceBarrier
+	(
+		1,
+		&resBarrier
+	);
+
+	//コマンドの書き込みはここで終わり、Closeする
+	mCommandList->Close();
+
+	//コマンドリストの実行
+	ID3D12CommandList* ppCommandLists[] = { mCommandList.Get() };
+	mCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+	//バックバッファをフロントバッファに切り替えてシーンをモニターに表示
+	mSwapChain->Present(1, 0);
+
+	//GPUサイドが全て完了したときにGPUサイドから返ってくる値（フェンス値）をセット
+	mCommandQueue->Signal(mFence.Get(), mFenceValue);
+
+	//上でセットしたシグナルがGPUから帰ってくるまでストール（この行で待機）
+	do
+	{
+		//GPUの完了を待つ間、ここで何か有意義な事（CPU作業）をやるほど効率が上がる
+
+	} while (mFence->GetCompletedValue() < mFenceValue);
+
+	//ここでフェンス値を更新する 前回より大きな値であればどんな値でもいいわけだが、1足すのが簡単なので1を足す
+	mFenceValue++;
 }

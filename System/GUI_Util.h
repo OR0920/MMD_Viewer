@@ -124,11 +124,14 @@ namespace System
 				const float clearA = 1.f
 			);
 		private:
+			int mParentWidth;
+			int mParentHeight;
+
 			ComPtr<ID3D12Device> mDevice;
 			ComPtr<ID3D12CommandQueue> mCommandQueue;
 			ComPtr<ID3D12CommandAllocator> mCommandAllocator;
 			ComPtr<ID3D12GraphicsCommandList> mCommandList;
-			ComPtr<IDXGISwapChain3> m_swapChain;
+			ComPtr<IDXGISwapChain3> mSwapChain;
 			
 			ComPtr<ID3D12DescriptorHeap> mRTV_Heap;
 			ComPtr<ID3D12Resource> mRenderTargets[gFrameCount];
