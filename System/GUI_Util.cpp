@@ -73,6 +73,12 @@ Result MainWindow::Create(int width, int height)
 {
 	SET_JAPANESE_ENABLE;
 
+	if (mWindowClass.lpszClassName != nullptr)
+	{
+		DebugMessage("Error at " << ToString(MainWindow::Create()) " : The " << ToString(MainWindow) << " is already Created !");
+		return FAIL;
+	}
+
 	mWidth = width;
 	mHeight = height;
 
@@ -256,16 +262,21 @@ FileCatcher::FileCatcher()
 
 }
 
-FileCatcher::~FileCatcher() 
+FileCatcher::~FileCatcher()
 {
 	UnregisterClass(mWindowClass.lpszClassName, mWindowClass.hInstance);
 }
 
 Result FileCatcher::Create(const ParentWindow& parent)
 {
+	if (mWindowClass.lpszClassName != nullptr)
+	{
+		DebugMessage("Error at " << ToString(FileCatcher::Create()) " : The "<< ToString(FileCatcher) << " is already Created !");
+		return FAIL;
+	}
 	auto parentHwnd = parent.GetHandle();
 
-	WNDCLASSEX wc = {};
+	auto& wc = mWindowClass;
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = CS_VREDRAW | CS_HREDRAW;
 	wc.lpfnWndProc = FileCatcherProc;

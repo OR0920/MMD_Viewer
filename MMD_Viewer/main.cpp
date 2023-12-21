@@ -55,6 +55,7 @@ int main()
 	auto& fc = System::GUI::FileCatcher::Instance();
 
 
+
 	if (fc.Create(mainWindow) == System::Result::FAIL)
 	{
 		return -1;
@@ -68,9 +69,7 @@ int main()
 	};
 
 	System::GUI::GraphicsEngine::Scene scene;
-
 	using Color = System::GUI::GraphicsEngine::Color;
-
 	scene.SetBackGroundColor(Color::Gray);
 
 	while (mainWindow.IsClose() == false)
