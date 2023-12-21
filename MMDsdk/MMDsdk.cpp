@@ -434,7 +434,9 @@ const PmdFile::Header& PmdFile::GetHeader() const
 
 void PmdFile::DebugOutHeader() const
 {
-	mHeader.DebugOut();
+#ifdef _DEBUG
+	if(IsSuccessLoad() == true)	mHeader.DebugOut();
+#endif // _DEBUG
 }
 
 const uint32_t& PmdFile::GetVertexCount() const
@@ -1201,14 +1203,6 @@ PmxFile::PmxFile(const char* const filepath)
 
 	if (format[0] == 'P' && format[1] == 'm' && format[2] == 'x' && format[3] == ' ') {}
 	else if (format[0] == 'P' && format[1] == 'M' && format[2] == 'X' && format[3] == ' ') {}
-	else if (format[0] == 'P' && format[1] == 'm' && format[2] == 'd')
-	{
-		DebugMessage("PMD File");
-		file.Close();
-		PmdFile pmd(filepath);
-		// todo pmdファイルをPMXとして読み込む処理
-		return;
-	}
 	else
 	{
 		// 間違ったファイル

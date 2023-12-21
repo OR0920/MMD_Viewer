@@ -74,9 +74,9 @@ int main()
 			DebugOutString(fc.GetPath());
 			DebugOutParam(fc.GetDropPos().x);
 			DebugOutParam(fc.GetDropPos().y);
-			MMDsdk::PmdFile file(fc.GetPath());
+			MMDsdk::PmxFile file(fc.GetPath());
 			file.DebugOutHeader();
-			DebugMessage(file.GetDirectoryPath());
+			DebugOutString(file.GetDirectoryPath());
 		}
 
 		engine.Draw();

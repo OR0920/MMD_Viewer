@@ -222,7 +222,6 @@ LRESULT CALLBACK FileCatcher::FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LP
 		sDropPos.x -= rect.left;
 		sDropPos.y -= rect.top;
 
-
 		DragQueryFile((HDROP)wp, 0, sFilePath, MAX_PATH);
 		DragFinish((HDROP)wp);
 		sIsUpdated = true;
