@@ -127,13 +127,14 @@ namespace System
 				(
 					float _r, 
 					float _g, 
-					float _b, 
-					float _a
+					float _b,
+					float _a = 1.f
 				);
 
 				Color();
 			};
 
+			// •`‰æ‚Ì’PˆÊ
 			class Scene
 			{
 			public:

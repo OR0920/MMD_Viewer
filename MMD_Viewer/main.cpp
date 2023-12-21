@@ -71,9 +71,7 @@ int main()
 
 	using Color = System::GUI::GraphicsEngine::Color;
 
-	scene.SetBackGroundColor(Color(0.5f, 0.5f, 0.5f, 1.f));
-
-
+	scene.SetBackGroundColor(Color(0.5f, 0.5f, 0.5f));
 
 	while (mainWindow.IsClose() == false)
 	{
