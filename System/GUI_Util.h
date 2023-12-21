@@ -123,6 +123,10 @@ namespace System
 				float b = 0.f;
 				float a = 1.f;
 
+				static const Color Black;
+				static const Color Gray;
+				static const Color White;
+
 				Color
 				(
 					float _r, 

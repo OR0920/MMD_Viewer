@@ -289,6 +289,10 @@ Result GraphicsEngine::Init(const ParentWindow& parent)
 	return Result::SUCCESS;
 }
 
+const GraphicsEngine::Color GraphicsEngine::Color::Black = Color(0.f, 0.f, 0.f, 1.f);
+const GraphicsEngine::Color GraphicsEngine::Color::White= Color(1.f, 1.f, 1.f, 1.f);
+const GraphicsEngine::Color GraphicsEngine::Color::Gray = Color(0.5f, 0.5f, 0.5f, 1.f);
+	
 GraphicsEngine::Color::Color(float _r, float _g, float _b, float _a)
 	:
 	r(_r), g(_g), b(_b), a(_a)
