@@ -6,18 +6,18 @@
 
 // windows
 #include<windows.h>
-#include<tchar.h>
-#include<dxgi1_6.h>
-#include<d3d12.h>
 #include<wrl.h>
+#include<tchar.h>
+#include<d3d12.h>
+#include<dxgi1_4.h>
 
 namespace System
 {
 	enum Result;
 
+	// GUIを作成するクラスが属する
 	namespace GUI
 	{
-
 		// 子ウィンドウを持てるウィンドウのインターフェイス
 		// このインターフェイスで宣言されているメソッドは、
 		// ユーザー側からは呼び出さない
@@ -26,9 +26,12 @@ namespace System
 		public:
 			virtual ~ParentWindow();
 			virtual const HWND GetHandle() const = 0;
+			virtual const int GetWindowWidth() const = 0;
+			virtual const int GetWindowHeight() const = 0;
 		protected:
 		};
 
+		// メインウィンドウ　メニューは今のところ作っていない
 		class MainWindow : public ParentWindow
 		{
 		public:
@@ -37,16 +40,22 @@ namespace System
 			// 閉じるボタンが押されるとtrueを返す
 			bool IsClose();
 
+
+			const int GetWindowWidth() const;
+			const int GetWindowHeight() const;
+
 			// メインウィンドウは一つだけを想定しシングルトン
 			static MainWindow& Instance();
 
-
 			// ライブラリ側から呼び出す関数
-			const HWND GetHandle() const final;
+			const HWND GetHandle() const ;
 		private:
 			bool isClose;
 			MainWindow();
-			~MainWindow() final;
+			~MainWindow() ;
+
+			int mWidth;
+			int mHeight;
 
 			HWND mWindowHandle;
 			WNDCLASSEX mWindowClass;
@@ -70,14 +79,19 @@ namespace System
 
 			bool Update();
 
+			// パスの長さ、パス、ドロップされた位置を取得する
 			int GetLength() const;
 			const char* const GetPath() const;
 			const DropPos& GetDropPos() const;
 
+			// シングルトン用関数
 			static FileCatcher& Instance();
-			static LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
 
+			// コールバック関数。　ユーザーからは呼び出さない。
+			static LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
 		private:
+			// コールバック関数からパスを取得する都合上、
+			// 複数あると面倒なのでシングルトン
 			FileCatcher(); ~FileCatcher();
 
 			WNDCLASSEX mWindowClass;
@@ -90,7 +104,11 @@ namespace System
 		};
 
 
+		template<class T>
+		using ComPtr = Microsoft::WRL::ComPtr<T>;
+
 		// parent で指定したウィンドウにDirect3Dでの描画を有効にする
+		static const int gFrameCount = 2;
 		class GraphicsEngine
 		{
 		public:
@@ -106,9 +124,20 @@ namespace System
 				const float clearA = 1.f
 			);
 		private:
-			Microsoft::WRL::ComPtr<ID3D12Device> mDevice;
-			Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
+			ComPtr<ID3D12Device> mDevice;
+			ComPtr<ID3D12CommandQueue> mCommandQueue;
+			ComPtr<ID3D12CommandAllocator> mCommandAllocator;
+			ComPtr<ID3D12GraphicsCommandList> mCommandList;
+			ComPtr<IDXGISwapChain3> m_swapChain;
+			
+			ComPtr<ID3D12DescriptorHeap> mRTV_Heap;
+			ComPtr<ID3D12Resource> mRenderTargets[gFrameCount];
+			ComPtr<ID3D12DescriptorHeap> mDSV_Heap;
+			ComPtr<ID3D12Resource> mDepthBuffer;
 
+			ComPtr<ID3D12Fence> mFence;
+			
+			uint64_t mFenceValue;
 		};
 	}
 }

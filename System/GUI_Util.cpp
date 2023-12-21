@@ -69,11 +69,12 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	return DefWindowProc(hwnd, msg, wp, lp);
 }
 
-
-
 Result MainWindow::Create(int width, int height)
 {
 	SET_JAPANESE_ENABLE;
+
+	mWidth = width;
+	mHeight = height;
 
 	auto& wc = mWindowClass;
 	wc.cbSize = sizeof(WNDCLASSEX);
@@ -163,6 +164,16 @@ const HWND MainWindow::GetHandle() const
 	return mWindowHandle;
 }
 
+const int MainWindow::GetWindowWidth() const
+{
+	return mWidth;
+}
+
+const int MainWindow::GetWindowHeight() const
+{
+	return mHeight;
+}
+
 MainWindow& MainWindow::Instance()
 {
 	static MainWindow inst;
@@ -173,7 +184,9 @@ MainWindow::MainWindow()
 	:
 	mWindowHandle(NULL),
 	mWindowClass({}),
-	isClose(false)
+	isClose(false),
+	mWidth(0),
+	mHeight(0)
 {
 
 }
