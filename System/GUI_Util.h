@@ -134,8 +134,6 @@ namespace System
 				Color();
 			};
 
-			void Draw(const Color clearColor);
-
 			class Scene
 			{
 			public:
@@ -172,7 +170,6 @@ namespace System
 
 			uint64_t mFenceValue;
 
-			UINT backBufferIndex;
 		};
 	}
 }
