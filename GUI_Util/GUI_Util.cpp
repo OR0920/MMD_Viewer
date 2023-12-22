@@ -1,8 +1,5 @@
 // header
-//#include "GUI_Util.h"
-#include "Error.h"
-#include "DebugMessage.h"
-#include "System.h"
+#include "GUI_Util.h"
 
 
 // std
@@ -12,11 +9,11 @@
 #include<tchar.h>
 
 // my lib
-
-using namespace System;
-using namespace System::GUI;
+#include "DebugMessage.h"
+#include "System.h"
 
 // Window
+using namespace GUI;
 
 ParentWindow::~ParentWindow()
 {
@@ -29,6 +26,8 @@ ParentWindow::~ParentWindow()
 
 BOOL CALLBACK ParentResize(HWND hwnd, LPARAM lparam)
 {
+	// 子ウィンドウにサイズ変更を通知
+	// あとは子に任せる
 	SendMessage(hwnd, WM_SIZE, NULL, NULL);
 	return true;
 }
@@ -271,7 +270,7 @@ Result FileCatcher::Create(const ParentWindow& parent)
 {
 	if (mWindowClass.lpszClassName != nullptr)
 	{
-		DebugMessage("Error at " << ToString(FileCatcher::Create()) " : The "<< ToString(FileCatcher) << " is already Created !");
+		DebugMessage("Error at " << ToString(FileCatcher::Create()) " : The " << ToString(FileCatcher) << " is already Created !");
 		return FAIL;
 	}
 	auto parentHwnd = parent.GetHandle();
@@ -336,12 +335,12 @@ bool FileCatcher::Update()
 	}
 
 	char* filePath = nullptr;
-	newArray_CreateMultiByteStrFromWideCharStr(&filePath, sFilePath);
+	System::newArray_CreateMultiByteStrFromWideCharStr(&filePath, sFilePath);
 
 	mFilePath = filePath;
 
 
-	SafeDeleteArray(&filePath);
+	System::SafeDeleteArray(&filePath);
 
 	sIsUpdated = false;
 	return true;

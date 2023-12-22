@@ -11,9 +11,7 @@
 // my lib
 #include"System.h"
 
-using namespace System;
-using namespace System::GUI;
-
+using namespace GUI;
 
 GraphicsEngine::GraphicsEngine() {}
 GraphicsEngine::~GraphicsEngine() {}
@@ -290,9 +288,9 @@ Result GraphicsEngine::Init(const ParentWindow& parent)
 }
 
 const GraphicsEngine::Color GraphicsEngine::Color::Black = Color(0.f, 0.f, 0.f, 1.f);
-const GraphicsEngine::Color GraphicsEngine::Color::White= Color(1.f, 1.f, 1.f, 1.f);
+const GraphicsEngine::Color GraphicsEngine::Color::White = Color(1.f, 1.f, 1.f, 1.f);
 const GraphicsEngine::Color GraphicsEngine::Color::Gray = Color(0.5f, 0.5f, 0.5f, 1.f);
-	
+
 GraphicsEngine::Color::Color(float _r, float _g, float _b, float _a)
 	:
 	r(_r), g(_g), b(_b), a(_a)
@@ -333,7 +331,7 @@ void GraphicsEngine::Draw(const Scene& scene)
 	// Direct3D12 必携から借用
 
 	//バックバッファが現在何枚目かを取得
-	
+
 	UINT backBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
 
 	//コマンドリストに書き込む前にはコマンドアロケーターをリセットする

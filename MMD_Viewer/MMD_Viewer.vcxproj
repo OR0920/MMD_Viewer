@@ -76,12 +76,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(solutiondir)mmdsdk;$(solutiondir)mathutil;$(solutiondir)system;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(solutiondir)mmdsdk;$(solutiondir)mathutil;$(solutiondir)GUI_Util;$(solutiondir)system;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>GUI_Util.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -92,7 +93,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(solutiondir)mmdsdk;$(solutiondir)mathutil;$(solutiondir)system;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(solutiondir)mmdsdk;$(solutiondir)mathutil;$(solutiondir)GUI_Util;$(solutiondir)system;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -100,6 +101,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>GUI_Util.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -108,13 +110,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(solutiondir)mmdsdk;$(solutiondir)mathutil;$(solutiondir)system;D:\Projects\MMD_Viewer\System;D:\Projects\MMD_Viewer\MMDsdk;D:\Projects\MMD_Viewer\MathUtil;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(solutiondir)mmdsdk;$(solutiondir)mathutil;$(solutiondir)GUI_Util;$(solutiondir)system;D:\Projects\MMD_Viewer\System;D:\Projects\MMD_Viewer\MMDsdk;D:\Projects\MMD_Viewer\MathUtil;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>System.lib;MMDsdk.lib;MathUtil.lib;MathUtil.lib;MMDsdk.lib;System.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>GUI_Util.lib;System.lib;MMDsdk.lib;MathUtil.lib;MathUtil.lib;MMDsdk.lib;System.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -125,7 +127,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(solutiondir)mmdsdk;$(solutiondir)mathutil;$(solutiondir)system;D:\Projects\MMD_Viewer\System;D:\Projects\MMD_Viewer\MMDsdk;D:\Projects\MMD_Viewer\MathUtil;D:\Projects\MMD_Viewer\Math;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(solutiondir)mmdsdk;$(solutiondir)mathutil;$(solutiondir)GUI_Util;$(solutiondir)system;D:\Projects\MMD_Viewer\System;D:\Projects\MMD_Viewer\MMDsdk;D:\Projects\MMD_Viewer\MathUtil;D:\Projects\MMD_Viewer\Math;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,7 +135,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>System.lib;MMDsdk.lib;MathUtil.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>GUI_Util.lib;System.lib;MMDsdk.lib;MathUtil.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

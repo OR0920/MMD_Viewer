@@ -7,6 +7,7 @@
 #include"MathUtil.h"
 #include"System.h"
 #include"MMDsdk.h"
+#include"GUI_Util.h"
 using namespace std;
 
 //using namespace System;
@@ -45,31 +46,31 @@ int main()
 	System::CheckMemoryLeak();
 
 
-	auto& mainWindow = System::GUI::MainWindow::Instance();
+	auto& mainWindow = GUI::MainWindow::Instance();
 
-	if (mainWindow.Create(1280, 720) == System::Result::FAIL)
+	if (mainWindow.Create(1280, 720) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
 
-	auto& fc = System::GUI::FileCatcher::Instance();
+	auto& fc = GUI::FileCatcher::Instance();
 
 
 
-	if (fc.Create(mainWindow) == System::Result::FAIL)
+	if (fc.Create(mainWindow) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
 
-	System::GUI::GraphicsEngine engine;
+	GUI::GraphicsEngine engine;
 
-	if (engine.Init(mainWindow) == System::Result::FAIL)
+	if (engine.Init(mainWindow) == GUI::Result::FAIL)
 	{
 		return -1;
 	};
 
-	System::GUI::GraphicsEngine::Scene scene;
-	using Color = System::GUI::GraphicsEngine::Color;
+	GUI::GraphicsEngine::Scene scene;
+	using Color = GUI::GraphicsEngine::Color;
 	scene.SetBackGroundColor(Color::Gray);
 
 	while (mainWindow.IsClose() == false)

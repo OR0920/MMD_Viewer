@@ -38,6 +38,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ソリューション項目
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Direct3D12_Learning", "Direct3D12_Learning\Direct3D12_Learning.vcxproj", "{2409F80D-AE0C-40C1-80E2-5F9FBE4A53CD}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GUI_Util", "GUI_Util\GUI_Util.vcxproj", "{678B1C2B-8E09-4104-B8F9-35152B76D635}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -110,6 +112,14 @@ Global
 		{2409F80D-AE0C-40C1-80E2-5F9FBE4A53CD}.Release|x64.Build.0 = Release|x64
 		{2409F80D-AE0C-40C1-80E2-5F9FBE4A53CD}.Release|x86.ActiveCfg = Release|Win32
 		{2409F80D-AE0C-40C1-80E2-5F9FBE4A53CD}.Release|x86.Build.0 = Release|Win32
+		{678B1C2B-8E09-4104-B8F9-35152B76D635}.Debug|x64.ActiveCfg = Debug|x64
+		{678B1C2B-8E09-4104-B8F9-35152B76D635}.Debug|x64.Build.0 = Debug|x64
+		{678B1C2B-8E09-4104-B8F9-35152B76D635}.Debug|x86.ActiveCfg = Debug|Win32
+		{678B1C2B-8E09-4104-B8F9-35152B76D635}.Debug|x86.Build.0 = Debug|Win32
+		{678B1C2B-8E09-4104-B8F9-35152B76D635}.Release|x64.ActiveCfg = Release|x64
+		{678B1C2B-8E09-4104-B8F9-35152B76D635}.Release|x64.Build.0 = Release|x64
+		{678B1C2B-8E09-4104-B8F9-35152B76D635}.Release|x86.ActiveCfg = Release|Win32
+		{678B1C2B-8E09-4104-B8F9-35152B76D635}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
