@@ -10,6 +10,8 @@
 
 // my lib
 #include"System.h"
+#include"MMDsdk.h"
+#include"MathUtil.h"
 
 using namespace GUI;
 
@@ -299,6 +301,61 @@ GraphicsEngine::Color::Color(float _r, float _g, float _b, float _a)
 }
 
 GraphicsEngine::Color::Color() {}
+
+struct Vertex
+{
+	
+};
+
+GraphicsEngine::Model::Model() {}
+GraphicsEngine::Model::~Model() {}
+
+Result GraphicsEngine::Model::Load(const char* const filepath)
+{
+
+
+	if (LoadAsPMD(filepath) == SUCCESS)
+	{
+		return SUCCESS;
+	}
+	else if (LoadAsPMX(filepath) == SUCCESS)
+	{
+		return SUCCESS;
+	}
+	else
+	{
+		DebugMessage("The Filepath \"" << filepath << "\" is not Supported File !");
+		return FAIL;
+	}
+}
+
+Result GraphicsEngine::Model::LoadAsPMD(const char* const filepath)
+{
+	MMDsdk::PmdFile file(filepath);
+
+	if (file.IsSuccessLoad() == false)
+	{
+		return FAIL;
+	}
+	
+	file.DebugOutHeader();
+
+	return SUCCESS;
+}
+
+Result GraphicsEngine::Model::LoadAsPMX(const char* const filepath)
+{
+	MMDsdk::PmxFile file(filepath);
+
+	if (file.IsSuccessLoad() == false)
+	{
+		return FAIL;
+	}
+
+	file.DebugOutHeader();
+
+	return SUCCESS;
+}
 
 GraphicsEngine::Scene::Scene()
 	:

@@ -3,6 +3,7 @@
 
 // std
 #include<string>
+#include<vector>
 
 // windows
 #include<windows.h>
@@ -139,6 +140,18 @@ namespace GUI
 			);
 
 			Color();
+		};
+
+		class Model
+		{
+		public:
+			Model(); ~Model();
+
+			Result Load(const char* const filepath);
+
+		private:
+			Result LoadAsPMD(const char* const filepath);
+			Result LoadAsPMX(const char* const filepath);
 		};
 
 		// •`‰æ‚Ì’PˆÊ
