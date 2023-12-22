@@ -337,9 +337,23 @@ public:
 		boneID[0] = other.GetBoneID(0);
 		boneID[1] = other.GetBoneID(1);
 
-		weight[0] = static_cast<float>(other.weight)/100.f;
+		weight[0] = static_cast<float>(other.weight) / 100.f;
 		weight[1] = 1 - weight[0];
 	}
+
+	void LoadFromPMX(const MMDsdk::PmxFile::Vertex& other)
+	{
+		position = strong_cast<MathUtil::float3>(other.position);
+		normal = strong_cast<MathUtil::float3>(other.normal);
+		uv = strong_cast<MathUtil::float2>(other.uv);
+
+		for (int i = 0; i < gMaxBoneCount; ++i)
+		{
+			boneID[i] = other.GetBoneID(i);
+			weight[i] = other.GetWeight(i);
+		}
+	}
+
 
 };
 
@@ -385,6 +399,7 @@ Result GraphicsEngine::Model::LoadAsPMD(const char* const filepath)
 	}
 
 	DebugMessage(filepath << " is Loaded !");
+
 	return SUCCESS;
 }
 
@@ -398,6 +413,16 @@ Result GraphicsEngine::Model::LoadAsPMX(const char* const filepath)
 	}
 
 	file.DebugOutHeader();
+
+	std::vector<Vertex> vertices(file.GetVertexCount());
+
+	for (int i = 0; i < vertices.size(); ++i)
+	{
+		auto& v = vertices[i];
+		v.LoadFromPMX(file.GetVertex(i));
+	}
+
+	DebugMessage(filepath << " is Loaded !");
 
 	return SUCCESS;
 }
