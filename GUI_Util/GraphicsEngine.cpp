@@ -1,6 +1,9 @@
 // 実装が長くなりそうなので分離
 #include"GUI_Util.h"
 
+// std
+#include<vector>
+#include<cassert>
 
 // windows
 #include"d3dx12.h"
@@ -302,18 +305,50 @@ GraphicsEngine::Color::Color(float _r, float _g, float _b, float _a)
 
 GraphicsEngine::Color::Color() {}
 
+// ポインタによる強引なキャスト
+// ToとFromがメモリ上で同じ構造をしていることが
+// 確実な場合にのみ使用可能　
+// 他では絶対に使用しないこと
+template <class To, class From>
+To strong_cast(const From& from)
+{
+	assert(sizeof(To) == sizeof(From));
+	return *reinterpret_cast<const To*>(reinterpret_cast<const void*>(&from));
+}
+
+static const int gMaxBoneCount = 4;
+
 struct Vertex
 {
-	
+public:
+	MathUtil::float3 position = {};
+	MathUtil::float3 normal = {};
+	MathUtil::float2 uv = {};
+
+	int32_t boneID[gMaxBoneCount] = { -1 };
+	float weight[gMaxBoneCount] = { 0.f };
+
+	void LoadFromPMD(const MMDsdk::PmdFile::Vertex& other)
+	{
+		position = strong_cast<MathUtil::float3>(other.position);
+		normal = strong_cast<MathUtil::float3>(other.normal);
+		uv = strong_cast<MathUtil::float2>(other.uv);
+
+		boneID[0] = other.GetBoneID(0);
+		boneID[1] = other.GetBoneID(1);
+
+		weight[0] = static_cast<float>(other.weight)/100.f;
+		weight[1] = 1 - weight[0];
+	}
+
 };
+
 
 GraphicsEngine::Model::Model() {}
 GraphicsEngine::Model::~Model() {}
 
 Result GraphicsEngine::Model::Load(const char* const filepath)
 {
-
-
 	if (LoadAsPMD(filepath) == SUCCESS)
 	{
 		return SUCCESS;
@@ -337,9 +372,19 @@ Result GraphicsEngine::Model::LoadAsPMD(const char* const filepath)
 	{
 		return FAIL;
 	}
-	
+
 	file.DebugOutHeader();
 
+	std::vector<Vertex> vertices(file.GetVertexCount());
+
+	for (int i = 0; i < vertices.size(); ++i)
+	{
+		auto& v = vertices[i];
+
+		v.LoadFromPMD(file.GetVertex(i));
+	}
+
+	DebugMessage(filepath << " is Loaded !");
 	return SUCCESS;
 }
 
