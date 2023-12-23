@@ -8,6 +8,7 @@
 #include"System.h"
 #include"MMDsdk.h"
 #include"GUI_Util.h"
+#include"GraphicsEngine.h"
 using namespace std;
 
 
@@ -34,15 +35,15 @@ int main()
 		return -1;
 	}
 
-	GUI::GraphicsEngine engine;
+	GUI::Graphics::GraphicsEngine engine;
 
 	if (engine.Init(mainWindow) == GUI::Result::FAIL)
 	{
 		return -1;
 	};
 
-	GUI::GraphicsEngine::Scene scene;
-	using Color = GUI::GraphicsEngine::Color;
+	GUI::Graphics::Scene scene;
+	using Color = GUI::Graphics::Color;
 	scene.SetBackGroundColor(Color::Gray);
 
 
@@ -54,7 +55,7 @@ int main()
 			DebugOutParam(fc.GetDropPos().x);
 			DebugOutParam(fc.GetDropPos().y);
 
-			GUI::GraphicsEngine::Model model;
+			GUI::Graphics::Model model;
 			model.Load(fc.GetPath());
 		}
 

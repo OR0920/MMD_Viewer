@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="GraphicsEngine.h" />
     <ClInclude Include="GUI_Util.h" />
   </ItemGroup>
   <ItemGroup>

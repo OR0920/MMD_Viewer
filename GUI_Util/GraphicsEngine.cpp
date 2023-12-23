@@ -1,5 +1,5 @@
 // 実装が長くなりそうなので分離
-#include"GUI_Util.h"
+#include"GraphicsEngine.h"
 
 // std
 #include<vector>
@@ -16,11 +16,8 @@
 #include"MMDsdk.h"
 #include"MathUtil.h"
 
+using namespace GUI::Graphics;
 using namespace GUI;
-
-GraphicsEngine::GraphicsEngine() {}
-GraphicsEngine::~GraphicsEngine() {}
-
 
 #define ReturnIfFailed(func, at)\
 {\
@@ -32,6 +29,14 @@ GraphicsEngine::~GraphicsEngine() {}
 		return FAIL; \
 	}\
 }
+
+GraphicsEngine::GraphicsEngine() 
+	:
+	mParentWidth(0),
+	mParentHeight(0),
+	mFenceValue(0)
+{}
+GraphicsEngine::~GraphicsEngine() {}
 
 Result GraphicsEngine::Init(const ParentWindow& parent)
 {
@@ -292,18 +297,18 @@ Result GraphicsEngine::Init(const ParentWindow& parent)
 	return Result::SUCCESS;
 }
 
-const GraphicsEngine::Color GraphicsEngine::Color::Black = Color(0.f, 0.f, 0.f, 1.f);
-const GraphicsEngine::Color GraphicsEngine::Color::White = Color(1.f, 1.f, 1.f, 1.f);
-const GraphicsEngine::Color GraphicsEngine::Color::Gray = Color(0.5f, 0.5f, 0.5f, 1.f);
+const Color Color::Black = Color(0.f, 0.f, 0.f, 1.f);
+const Color Color::White = Color(1.f, 1.f, 1.f, 1.f);
+const Color Color::Gray = Color(0.5f, 0.5f, 0.5f, 1.f);
 
-GraphicsEngine::Color::Color(float _r, float _g, float _b, float _a)
+Color::Color(float _r, float _g, float _b, float _a)
 	:
 	r(_r), g(_g), b(_b), a(_a)
 {
 
 }
 
-GraphicsEngine::Color::Color() {}
+Color::Color() {}
 
 // ポインタによる強引なキャスト
 // ToとFromがメモリ上で同じ構造をしていることが
@@ -358,10 +363,10 @@ public:
 };
 
 
-GraphicsEngine::Model::Model() {}
-GraphicsEngine::Model::~Model() {}
+Model::Model() {}
+Model::~Model() {}
 
-Result GraphicsEngine::Model::Load(const char* const filepath)
+Result Model::Load(const char* const filepath)
 {
 	if (LoadAsPMD(filepath) == SUCCESS)
 	{
@@ -378,7 +383,7 @@ Result GraphicsEngine::Model::Load(const char* const filepath)
 	}
 }
 
-Result GraphicsEngine::Model::LoadAsPMD(const char* const filepath)
+Result Model::LoadAsPMD(const char* const filepath)
 {
 	MMDsdk::PmdFile file(filepath);
 
@@ -398,12 +403,13 @@ Result GraphicsEngine::Model::LoadAsPMD(const char* const filepath)
 		v.LoadFromPMD(file.GetVertex(i));
 	}
 
+
 	DebugMessage(filepath << " is Loaded !");
 
 	return SUCCESS;
 }
 
-Result GraphicsEngine::Model::LoadAsPMX(const char* const filepath)
+Result Model::LoadAsPMX(const char* const filepath)
 {
 	MMDsdk::PmxFile file(filepath);
 
@@ -415,7 +421,6 @@ Result GraphicsEngine::Model::LoadAsPMX(const char* const filepath)
 	file.DebugOutHeader();
 
 	std::vector<Vertex> vertices(file.GetVertexCount());
-
 	for (int i = 0; i < vertices.size(); ++i)
 	{
 		auto& v = vertices[i];
@@ -427,19 +432,19 @@ Result GraphicsEngine::Model::LoadAsPMX(const char* const filepath)
 	return SUCCESS;
 }
 
-GraphicsEngine::Scene::Scene()
+Scene::Scene()
 	:
 	mClearColor()
 {
 
 }
 
-GraphicsEngine::Scene::~Scene()
+Scene::~Scene()
 {
 
 }
 
-void GraphicsEngine::Scene::SetBackGroundColor
+void Scene::SetBackGroundColor
 (
 	const Color clearColor
 )
@@ -447,7 +452,7 @@ void GraphicsEngine::Scene::SetBackGroundColor
 	mClearColor = clearColor;
 }
 
-const GraphicsEngine::Color& GraphicsEngine::Scene::GetBackGroundColor() const
+const Color& Scene::GetBackGroundColor() const
 {
 	return mClearColor;
 }
