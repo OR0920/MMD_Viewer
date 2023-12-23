@@ -56,6 +56,7 @@ int MAIN()
 
 			GUI::Graphics::Model model;
 			model.Load(fc.GetPath());
+
 		}
 
 		engine.Draw(scene);
