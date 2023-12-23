@@ -9,4 +9,3 @@ struct VS_OutPut
     float3 ray : VECTOR;
 };
 
-
