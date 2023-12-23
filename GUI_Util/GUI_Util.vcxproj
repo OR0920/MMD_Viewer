@@ -84,7 +84,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration)\system\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
@@ -106,7 +106,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration)\system\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
@@ -124,7 +124,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration)\system\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
@@ -146,7 +146,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration)\system\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
