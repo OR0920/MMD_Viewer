@@ -12,8 +12,7 @@
 using namespace std;
 
 
-
-int main()
+int MAIN()
 {
 	SET_JAPANESE_ENABLE;
 

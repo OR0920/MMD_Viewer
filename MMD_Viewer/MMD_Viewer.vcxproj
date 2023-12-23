@@ -108,7 +108,7 @@
       <AdditionalIncludeDirectories>$(solutiondir)mmdsdk;$(solutiondir)mathutil;$(solutiondir)GUI_Util;$(solutiondir)system;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -142,7 +142,7 @@
       <AdditionalIncludeDirectories>$(solutiondir)mmdsdk;$(solutiondir)mathutil;$(solutiondir)GUI_Util;$(solutiondir)system;D:\Projects\MMD_Viewer\System;D:\Projects\MMD_Viewer\MMDsdk;D:\Projects\MMD_Viewer\MathUtil;D:\Projects\MMD_Viewer\Math;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>

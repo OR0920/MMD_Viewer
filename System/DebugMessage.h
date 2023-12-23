@@ -1,13 +1,13 @@
 #ifndef _DEBUG_MESSAGE_H_
 #define _DEBUG_MESSAGE_H_
 
+#include"ToString.h"
+
 #ifdef _DEBUG
 #include<iostream>
 #include<bitset>
 #include<cassert>
 #define SET_JAPANESE_ENABLE std::wcout.imbue(std::locale("Japanese", std::locale::ctype));
-//変数名を文字列に変換
-#define ToString(x) #x
 // コンソール出力マクロ
 // シンプルな一行出力
 #define DebugMessage(x) std::cout << x << std::endl;
@@ -44,19 +44,21 @@ if(id < 0 || static_cast<unsigned>(arrayCount) <= static_cast<unsigned>(id))\
 }
 #else
 #define SET_JAPANESE_ENABLE 
-#define ToString(x) 
 #define DebugMessage(x) 
+#define DebugMessageFunctionError(funcName, at) 
 #define DebugMessageWide(x) 
 #define DebugMessageNewLine() 
 #define DebugOutParamI(p) 
 #define DebugOutParam(p) 
 #define DebugOutParamBin(p, dig) 
+#define DebugOutParamHex(p) 
 #define DebugOutString(s) 
-#define DebugOutStringWide(w) 
+#define DebugOutStringWide(w)
 #define DebugOutArray(a, id) 
 #define DebugOutArrayI(a, id) 
 #define DebugOutArrayBin(a, id, dig) 
 #define IS_OUT_OF_RANGE(name, id, arrayCount)
-#endif // _DEBUG	
+
+#endif // _DEBUG
 
 #endif // !_DEBUG_MESSAGE_H_

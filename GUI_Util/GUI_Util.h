@@ -12,7 +12,14 @@
 #include<dxgi1_4.h>
 
 
-	// GUIを作成するクラスが属する
+#ifdef _DEBUG
+#define MAIN main 
+#else
+#define MAIN() WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+#endif // _DEBUG
+
+
+// GUIを作成するクラスが属する
 namespace GUI
 {
 	enum Result

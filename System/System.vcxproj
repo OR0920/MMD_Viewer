@@ -148,6 +148,7 @@
     <ClInclude Include="DebugMessage.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="System.h" />
+    <ClInclude Include="ToString.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="File.cpp" />
