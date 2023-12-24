@@ -8,7 +8,6 @@
 #include"System.h"
 #include"MMDsdk.h"
 #include"GUI_Util.h"
-#include"GraphicsEngine.h"
 using namespace std;
 
 
@@ -37,39 +36,13 @@ int MAIN()
 		return -1;
 	}
 
-	auto& engine = GUI::Graphics::GraphicsEngine::Instance();
-	if (engine.Init(mainWindow) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
-
-	// シーン作成
-	GUI::Graphics::Scene scene;
-
-	// 背景色を設定
-	scene.SetBackGroundColor(GUI::Graphics::Color::Gray);
-
-	// モデル用変数を作成
-	GUI::Graphics::Model model;
 
 	while (mainWindow.IsClose() == false)
 	{
 		if (fc.Update() == true)
 		{
 			DebugOutString(fc.GetPath());
-
-			// モデル読み込み
-			if (model.Load(fc.GetPath()) == GUI::Result::SUCCESS)
-			{
-				// シーンにモデルを登録
-				scene.PutModel(model);
-			} 
 		}
-
-		// マウスの入力をカメラに反映 Scene
-		
-		// シーンを描画
-		engine.Draw(scene); 
 	}
 	
 }
