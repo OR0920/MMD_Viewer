@@ -36,13 +36,25 @@ int MAIN()
 		return -1;
 	}
 
+	// 描画エンジン初期化
 
 	while (mainWindow.IsClose() == false)
 	{
 		if (fc.Update() == true)
 		{
 			DebugOutString(fc.GetPath());
+
+			// モデル削除
+			
+			// モデル読み込み
+
 		}
+		// 画面クリア
+
+		// カメラ更新
+
+		// モデル描画
+
 	}
 	
 }
