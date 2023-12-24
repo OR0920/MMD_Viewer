@@ -392,6 +392,8 @@ Result Model::LoadAsPMD(const char* const filepath)
 		return FAIL;
 	}
 
+	Reset();
+
 	file.DebugOutHeader();
 
 	std::vector<Vertex> vertices(file.GetVertexCount());
@@ -418,6 +420,8 @@ Result Model::LoadAsPMX(const char* const filepath)
 		return FAIL;
 	}
 
+	Reset();
+
 	file.DebugOutHeader();
 
 	std::vector<Vertex> vertices(file.GetVertexCount());
@@ -430,6 +434,11 @@ Result Model::LoadAsPMX(const char* const filepath)
 	DebugMessage(filepath << " is Loaded !");
 
 	return SUCCESS;
+}
+
+void Model::Reset()
+{
+	// モデルデータを消去する
 }
 
 Scene::Scene()

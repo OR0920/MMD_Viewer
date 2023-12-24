@@ -49,6 +49,9 @@ int MAIN()
 	// 背景色を設定
 	scene.SetBackGroundColor(GUI::Graphics::Color::Gray);
 
+	// モデル用変数を作成
+	GUI::Graphics::Model model;
+
 	while (mainWindow.IsClose() == false)
 	{
 		if (fc.Update() == true)
@@ -56,7 +59,7 @@ int MAIN()
 			DebugOutString(fc.GetPath());
 
 			// モデル読み込み
-			
+			model.Load(fc.GetPath());
 
 			// シーンにモデルを登録
 

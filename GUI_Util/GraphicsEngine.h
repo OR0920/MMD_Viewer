@@ -44,6 +44,8 @@ namespace GUI
 			Result LoadAsPMD(const char* const filepath);
 			Result LoadAsPMX(const char* const filepath);
 
+			void Reset();
+
 			//// VB = Vertex Buffer 
 			//ComPtr<ID3D12Resource> mVB_Resource;
 			//D3D12_VERTEX_BUFFER_VIEW mVB_View;
