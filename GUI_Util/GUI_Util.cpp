@@ -409,14 +409,8 @@ void Canvas::SetClearColor(float _r, float _g, float _b)
 	mClearColor = Color(_r, _g, _b);
 }
 
-template <class To, class From>
-To strong_cast(From from)
-{
-	assert(sizeof(To) == sizeof(From));
-	return *(reinterpret_cast<To*>(reinterpret_cast<void*>(&from)));
-}
 
 void Canvas::Draw()
 {
-	DebugOutFloat4(strong_cast<MathUtil::float4>(mClearColor));
+	DebugOutFloat4(System::strong_cast<MathUtil::float4>(mClearColor));
 }

@@ -65,6 +65,15 @@ namespace System
 
 	void newArray_CreateWideCharStrFromMultiByteStr(wchar_t** wText, const char* const);
 	void newArray_CreateWideCharStrFromMultiByteStr(char16_t** u16Text, const char* const);
+
+	// 汎用ポインタを用いた強引な型変換
+	// 明らかにメモリ状のバイナリが一致している場合にのみ使用する
+	template <class To, class From>
+	To strong_cast(From from)
+	{
+		assert(sizeof(To) == sizeof(From));
+		return *(reinterpret_cast<To*>(reinterpret_cast<void*>(&from)));
+	}
 }
 
 #endif // _SYSTEM_H_

@@ -2,11 +2,11 @@
 #define _DEBUG_MESSAGE_H_
 
 #include"ToString.h"
+#include<cassert>
 
 #ifdef _DEBUG
 #include<iostream>
 #include<bitset>
-#include<cassert>
 #define SET_JAPANESE_ENABLE std::wcout.imbue(std::locale("Japanese", std::locale::ctype));
 // コンソール出力マクロ
 // シンプルな一行出力
