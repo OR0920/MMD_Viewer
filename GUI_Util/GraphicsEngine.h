@@ -49,6 +49,7 @@ namespace GUI
 			void Reset();
 
 			char* mModelName;
+			
 
 		};
 
@@ -80,14 +81,17 @@ namespace GUI
 		class GraphicsEngine
 		{
 		public:
-			GraphicsEngine(); ~GraphicsEngine();
 
 			Result Init(const GUI::ParentWindow& parent);
 			
-			
 			void Draw(const Scene& scene);
 
+			static GraphicsEngine& Instance();
 		private:
+			GraphicsEngine(); ~GraphicsEngine();
+			GraphicsEngine(GraphicsEngine& engine);
+			GraphicsEngine& operator=(const GraphicsEngine& engine) const;
+
 			int mParentWidth;
 			int mParentHeight;
 

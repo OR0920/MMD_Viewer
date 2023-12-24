@@ -412,7 +412,6 @@ Result Model::LoadAsPMD(const char* const filepath)
 		mModelName[i] = name[i];
 	}
 
-
 	std::vector<Vertex> vertices(file.GetVertexCount());
 
 	for (int i = 0; i < vertices.size(); ++i)
@@ -421,7 +420,6 @@ Result Model::LoadAsPMD(const char* const filepath)
 
 		v.LoadFromPMD(file.GetVertex(i));
 	}
-
 
 	DebugMessage(filepath << " is Loaded !");
 
@@ -603,3 +601,9 @@ void GraphicsEngine::Draw(const Scene& scene)
 	mFenceValue++;
 }
 
+
+GraphicsEngine& GraphicsEngine::Instance()
+{
+	static GraphicsEngine engine;
+	return engine;
+}

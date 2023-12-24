@@ -37,7 +37,7 @@ int MAIN()
 		return -1;
 	}
 
-	GUI::Graphics::GraphicsEngine engine;
+	auto& engine = GUI::Graphics::GraphicsEngine::Instance();
 	if (engine.Init(mainWindow) == GUI::Result::FAIL)
 	{
 		return -1;
