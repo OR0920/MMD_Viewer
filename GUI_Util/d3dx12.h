@@ -3275,7 +3275,7 @@ inline bool operator==(const D3D12_RENDER_PASS_ENDING_ACCESS_RESOLVE_PARAMETERS&
 inline bool operator==(const D3D12_RENDER_PASS_BEGINNING_ACCESS& a, const D3D12_RENDER_PASS_BEGINNING_ACCESS& b) noexcept
 {
     if (a.Type != b.Type) return false;
-    if (a.Type == D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR && !(a.Clear == b.Clear)) return false;
+    if (a.Type == D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR && !(a.SetClearColor == b.SetClearColor)) return false;
     return true;
 }
 inline bool operator==(const D3D12_RENDER_PASS_ENDING_ACCESS& a, const D3D12_RENDER_PASS_ENDING_ACCESS& b) noexcept

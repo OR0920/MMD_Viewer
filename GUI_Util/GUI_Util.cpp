@@ -3,6 +3,7 @@
 
 
 // std
+#include<cassert>
 
 // windows
 #include<windows.h>
@@ -11,6 +12,8 @@
 // my lib
 #include "DebugMessage.h"
 #include "System.h"
+
+#include"MathUtil.h"
 
 // Window
 using namespace GUI;
@@ -367,3 +370,53 @@ FileCatcher& FileCatcher::Instance()
 	return inst;
 }
 
+// Color
+
+Color::Color()
+{
+
+}
+
+Color::Color(float _r, float _g, float _b, float _a)
+	:
+	r(_r), g(_g), b(_b), a(_a)
+{
+	
+}
+
+
+// Canvas
+Canvas::Canvas(const ParentWindow& parent)
+{
+	if (parent.GetHandle() == 0)
+	{
+		mIsSuccessInit = FAIL;
+
+		return;
+	}
+
+	mIsSuccessInit == SUCCESS;
+}
+
+Result Canvas::IsSuccessInit() const 
+{
+	return mIsSuccessInit;
+}
+
+
+void Canvas::SetClearColor(float _r, float _g, float _b)
+{
+	mClearColor = Color(_r, _g, _b);
+}
+
+template <class To, class From>
+To strong_cast(From from)
+{
+	assert(sizeof(To) == sizeof(From));
+	return *(reinterpret_cast<To*>(reinterpret_cast<void*>(&from)));
+}
+
+void Canvas::Draw()
+{
+	DebugOutFloat4(strong_cast<MathUtil::float4>(mClearColor));
+}

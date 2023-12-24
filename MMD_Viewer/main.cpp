@@ -37,6 +37,11 @@ int MAIN()
 	}
 
 	// 描画エンジン初期化
+	GUI::Canvas canvas(mainWindow);
+	if (canvas.IsSuccessInit() == GUI::Result::FAIL)
+	{
+		return -1;
+	}
 
 	while (mainWindow.IsClose() == false)
 	{
@@ -50,11 +55,13 @@ int MAIN()
 
 		}
 		// 画面クリア
+		canvas.SetClearColor(0.5f, 0.5f, 0.5f);
 
 		// カメラ更新
 
 		// モデル描画
-
+		
+		canvas.Draw();
 	}
 	
 }

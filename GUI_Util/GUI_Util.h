@@ -113,7 +113,31 @@ namespace GUI
 		static DropPos sDropPos;
 	};
 
+	struct Color
+	{
+		float r = 0.f;
+		float g = 0.f;
+		float b = 0.f;
+		float a = 1.f;
 
+		Color();
+		Color(float _r, float _g, float _b, float _a = 1.f);
+	};
+
+	class Canvas
+	{
+	public:
+		Canvas(const ParentWindow& parent);
+
+		Result IsSuccessInit() const;
+		void SetClearColor(float _r, float _g, float _B);
+
+		void Draw();
+
+	private:
+		Color mClearColor;
+		Result mIsSuccessInit;
+	};
 }
 
 #endif // !_GUI_UTIL_H_
