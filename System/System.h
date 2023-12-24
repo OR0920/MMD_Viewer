@@ -72,7 +72,7 @@ namespace System
 	To strong_cast(From from)
 	{
 		assert(sizeof(To) == sizeof(From));
-		return *(reinterpret_cast<To*>(reinterpret_cast<void*>(&from)));
+		return *(static_cast<To*>(static_cast<void*>(&from)));
 	}
 }
 
