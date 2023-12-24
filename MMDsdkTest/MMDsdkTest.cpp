@@ -356,7 +356,7 @@ namespace MMDsdkTest
 				Assert::IsTrue(h.morphID_Size == 2);
 				Assert::IsTrue(h.rigitbodyID_Size == 1);
 
-				Assert::IsTrue(StringEqual(GetTextMacro(h.modelInfoJp.modelName), "かばんちゃん"));
+				Assert::IsTrue(StringEqual(GetTextMacro(h.modelInfoJP.modelName), "かばんちゃん"));
 			}
 
 			// 頂点データ読み込みテスト

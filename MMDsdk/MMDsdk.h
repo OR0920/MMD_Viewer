@@ -634,7 +634,7 @@ namespace MMDsdk
 			private:
 				ModelInfo(const ModelInfo&);
 				const ModelInfo& operator=(const ModelInfo&) const;
-			} modelInfoJp = {};
+			} modelInfoJP = {};
 
 			ModelInfo modelInfoEng = {};
 

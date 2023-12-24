@@ -40,11 +40,15 @@ namespace GUI
 
 			Result Load(const char* const filepath);
 
+			// ライブラリが呼び出す関数
+			void Draw() const;
 		private:
 			Result LoadAsPMD(const char* const filepath);
 			Result LoadAsPMX(const char* const filepath);
 
 			void Reset();
+
+			char* mModelName;
 
 			//// VB = Vertex Buffer 
 			//ComPtr<ID3D12Resource> mVB_Resource;
@@ -66,9 +70,16 @@ namespace GUI
 				const Color clearColor
 			);
 
-			const Color& GetBackGroundColor() const;
+
+			void PutModel(const Model& model);
+			
+
+			// ライブラリが呼び出す関数
+			// ユーザーから呼び出せないようにインターフェイスの引数を指定する
+			void Draw(ComPtr<ID3D12GraphicsCommandList> mCommandList, const D3D12_CPU_DESCRIPTOR_HANDLE& rtvHandle) const;
 		private:
 			Color mClearColor;
+			const Model* mModel;
 		};
 
 		// parent で指定したウィンドウにDirect3Dでの描画を有効にする

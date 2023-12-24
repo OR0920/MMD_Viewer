@@ -30,7 +30,7 @@ using namespace GUI;
 	}\
 }
 
-GraphicsEngine::GraphicsEngine() 
+GraphicsEngine::GraphicsEngine()
 	:
 	mParentWidth(0),
 	mParentHeight(0),
@@ -363,8 +363,11 @@ public:
 };
 
 
-Model::Model() {}
-Model::~Model() {}
+Model::Model() : mModelName(nullptr) {}
+Model::~Model() 
+{
+	System::SafeDeleteArray(&mModelName);
+}
 
 Result Model::Load(const char* const filepath)
 {
@@ -383,6 +386,11 @@ Result Model::Load(const char* const filepath)
 	}
 }
 
+void Model::Draw() const
+{
+	DebugOutString(mModelName);
+}
+
 Result Model::LoadAsPMD(const char* const filepath)
 {
 	MMDsdk::PmdFile file(filepath);
@@ -395,6 +403,15 @@ Result Model::LoadAsPMD(const char* const filepath)
 	Reset();
 
 	file.DebugOutHeader();
+	auto nameLength = file.GetHeader().modelInfoJP.modelName.GetLength();
+	auto name = file.GetHeader().modelInfoJP.modelName.GetText();
+	mModelName = new char[nameLength] {'\0'};
+
+	for (int i = 0; i < nameLength; ++i)
+	{
+		mModelName[i] = name[i];
+	}
+
 
 	std::vector<Vertex> vertices(file.GetVertexCount());
 
@@ -423,7 +440,15 @@ Result Model::LoadAsPMX(const char* const filepath)
 	Reset();
 
 	file.DebugOutHeader();
+	auto nameLength = file.GetHeader().modelInfoJP.modelName.GetLength();
+	auto name = file.GetHeader().modelInfoJP.modelName.GetText();
+	mModelName = new char[nameLength] { '\0' };
 
+	for (int i = 0; i < nameLength; ++i)
+	{
+		mModelName[i] = name[i];
+	}
+	
 	std::vector<Vertex> vertices(file.GetVertexCount());
 	for (int i = 0; i < vertices.size(); ++i)
 	{
@@ -439,11 +464,13 @@ Result Model::LoadAsPMX(const char* const filepath)
 void Model::Reset()
 {
 	// モデルデータを消去する
+	System::SafeDeleteArray(&mModelName);
 }
 
 Scene::Scene()
 	:
-	mClearColor()
+	mClearColor(),
+	mModel(nullptr)
 {
 
 }
@@ -461,11 +488,22 @@ void Scene::SetBackGroundColor
 	mClearColor = clearColor;
 }
 
-const Color& Scene::GetBackGroundColor() const
+void Scene::PutModel(const Model& model)
 {
-	return mClearColor;
+	mModel = &model;
 }
 
+void Scene::Draw(ComPtr<ID3D12GraphicsCommandList> mCommandList, const D3D12_CPU_DESCRIPTOR_HANDLE& rtvHandle) const
+{
+	auto clearCol = mClearColor;
+	const float clearColor[] = { clearCol.r, clearCol.g, clearCol.b, clearCol.a };
+	mCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, NULL);
+
+	if (mModel != nullptr)
+	{
+		mModel->Draw();
+	}
+}
 
 void GraphicsEngine::Draw(const Scene& scene)
 {
@@ -525,10 +563,8 @@ void GraphicsEngine::Draw(const Scene& scene)
 	mCommandList->RSSetViewports(1, &viewport);
 	mCommandList->RSSetScissorRects(1, &scissorRect);
 
-	//画面クリア
-	auto clearCol = scene.GetBackGroundColor();
-	const float clearColor[] = { clearCol.r, clearCol.g, clearCol.b, clearCol.a };
-	mCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, NULL);
+	// シーンクラスへ委ねる
+	scene.Draw(mCommandList, rtvHandle);
 
 	//バックバッファのトランジションをPresentモードにする
 	resBarrier = CD3DX12_RESOURCE_BARRIER::Transition

@@ -59,10 +59,11 @@ int MAIN()
 			DebugOutString(fc.GetPath());
 
 			// モデル読み込み
-			model.Load(fc.GetPath());
-
-			// シーンにモデルを登録
-
+			if (model.Load(fc.GetPath()) == GUI::Result::SUCCESS)
+			{
+				// シーンにモデルを登録
+				scene.PutModel(model);
+			} 
 		}
 
 		// マウスの入力をカメラに反映 Scene

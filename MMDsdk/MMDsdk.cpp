@@ -62,10 +62,12 @@ void TextBufferVariable::Load(void* _file, EncodeType encode)
 
 
 	auto& file = GetFile(_file);
-	file.Read(mLength);
+	int binaryLength = 0;
+	file.Read(binaryLength);
 
-	char* s16 = new char[mLength + 2] { '\0' };
-	file.ReadArray(s16, mLength);
+	// ÉèÉCÉhNULLï∂éöï™
+	char* s16 = new char[binaryLength + 2] { '\0' };
+	file.ReadArray(s16, binaryLength);
 
 	if (encode == EncodeType::UTF16)
 	{
@@ -75,6 +77,7 @@ void TextBufferVariable::Load(void* _file, EncodeType encode)
 		//auto bytesize = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, NULL, 0, NULL, NULL);
 		//mStr = new char[bytesize] {};
 		//WideCharToMultiByte(CP_ACP, 0, (LPWSTR)s16, -1, (LPSTR)mStr, bytesize, NULL, NULL);
+		mLength = System::GetStringLength(mStr);
 	}
 
 	SafeDeleteArray(&s16);
@@ -1217,9 +1220,9 @@ PmxFile::PmxFile(const char* const filepath)
 	file.Read(mHeader.fileConfigLength);
 	file.Read(mHeader.encode, mHeader.fileConfigLength);
 
-	mHeader.modelInfoJp.modelName.Load(&file, mHeader.encode);
+	mHeader.modelInfoJP.modelName.Load(&file, mHeader.encode);
 	mHeader.modelInfoEng.modelName.Load(&file, mHeader.encode);
-	mHeader.modelInfoJp.comment.Load(&file, mHeader.encode);
+	mHeader.modelInfoJP.comment.Load(&file, mHeader.encode);
 	mHeader.modelInfoEng.comment.Load(&file, mHeader.encode);
 
 	// í∏ì_ì«Ç›çûÇ›
@@ -1485,12 +1488,12 @@ void PmxFile::Header::DebugOut() const
 {
 	DebugMessage("PMXFile /////////////////////////////////////////");
 	DebugMessage("<<<<ModelName>>>");
-	DebugMessage(GetTextMacro(modelInfoJp.modelName));
+	DebugMessage(GetTextMacro(modelInfoJP.modelName));
 	DebugMessage("<<<<ModelName Eng>>>");
 	DebugMessage(GetTextMacro(modelInfoEng.modelName));
 	DebugMessageNewLine();
 	DebugMessage("<<<<Comment>>>");
-	DebugMessage(GetTextMacro(modelInfoJp.comment));
+	DebugMessage(GetTextMacro(modelInfoJP.comment));
 	DebugMessageNewLine();
 	DebugMessage("<<<<Comment Eng>>>");
 	DebugMessage(GetTextMacro(modelInfoEng.comment));
