@@ -77,7 +77,8 @@ namespace GUI
 			GraphicsEngine(); ~GraphicsEngine();
 
 			Result Init(const GUI::ParentWindow& parent);
-
+			
+			
 			void Draw(const Scene& scene);
 
 		private:
