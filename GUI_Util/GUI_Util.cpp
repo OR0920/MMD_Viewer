@@ -351,7 +351,7 @@ bool FileCatcher::Update()
 
 int FileCatcher::GetLength() const
 {
-	return mFilePath.size();
+	return static_cast<int>(mFilePath.size());
 }
 
 const char* const FileCatcher::GetPath() const
@@ -387,6 +387,8 @@ Color::Color(float _r, float _g, float _b, float _a)
 
 // Canvas
 Canvas::Canvas(const ParentWindow& parent)
+	:
+	mIsSuccessInit(FAIL)
 {
 	if (parent.GetHandle() == 0)
 	{
@@ -395,7 +397,7 @@ Canvas::Canvas(const ParentWindow& parent)
 		return;
 	}
 
-	mIsSuccessInit == SUCCESS;
+	mIsSuccessInit = SUCCESS;
 }
 
 Result Canvas::IsSuccessInit() const 
