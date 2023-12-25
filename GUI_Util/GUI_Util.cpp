@@ -395,11 +395,16 @@ Color::Color(float _r, float _g, float _b, float _a)
 ComPtr<ID3D12Device> Canvas::sDevice = nullptr;
 ComPtr<ID3D12CommandQueue> Canvas::sCommandQueue = nullptr;
 
-Canvas::Canvas(const ParentWindow& parent)
+Canvas::Canvas(const ParentWindow& parent, const int frameCount)
 	:
 	mIsSuccessInit(FAIL),
+	mFrameCount(frameCount),
+	mWindow(parent),
+	mWidth(parent.GetWindowWidth()),
+	mHeight(parent.GetWindowHeight()),
 	mCommandAllocator(nullptr),
-	mCommandList(nullptr)
+	mCommandList(nullptr),
+	mSwapChain(nullptr)
 {
 	if (parent.GetHandle() == 0)
 	{
@@ -437,6 +442,7 @@ void Canvas::EndDraw()
 	if(FAILED(result))\
 	{\
 		DebugMessageFunctionError(InitFunction, at);\
+		DebugOutParamHex(result);\
 		return FAIL;\
 	}\
 }\
@@ -509,6 +515,57 @@ Result Canvas::InitDirect3D()
 		mCommandList->Close();
 	}
 
+
+	// スワップチェイン作成
+	{
+		ComPtr<IDXGIFactory1> factory1 = nullptr;
+		ReturnIfFiled
+		(
+			CreateDXGIFactory1(IID_PPV_ARGS(factory1.ReleaseAndGetAddressOf())),
+			Canvas::InitDirect3D()
+		);
+
+		ComPtr<IDXGIFactory4> factory4 = nullptr;
+		ReturnIfFiled
+		(
+			factory1->QueryInterface(factory4.ReleaseAndGetAddressOf()),
+			Canvas::InitDirect3D()
+		);
+
+
+		DXGI_SWAP_CHAIN_DESC1 scd = {};
+		scd.BufferCount = mFrameCount;
+		scd.Width = mWidth;
+		scd.Height = mHeight;
+		scd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		scd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		scd.SampleDesc.Count = 1;
+
+		ComPtr<IDXGISwapChain1> sw1 = nullptr;
+
+		ReturnIfFiled
+		(
+			factory4->CreateSwapChainForHwnd
+			(
+				sCommandQueue.Get(),
+				mWindow.GetHandle(),
+				&scd, NULL, NULL,
+				sw1.ReleaseAndGetAddressOf()
+			),
+			Canvas::InitDirect3D()
+		);
+
+		ReturnIfFiled
+		(
+			sw1->QueryInterface(IID_PPV_ARGS(mSwapChain.ReleaseAndGetAddressOf())),
+			Canvas::InitDirect3D()
+		);
+	}
+
+
+
+	// last;
 
 	return SUCCESS;
 }

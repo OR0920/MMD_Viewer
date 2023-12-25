@@ -132,7 +132,7 @@ namespace GUI
 	class Canvas
 	{
 	public:
-		Canvas(const ParentWindow& parent);
+		Canvas(const ParentWindow& parent, const int frameCount);
 
 		Result IsSuccessInit() const;
 
@@ -141,14 +141,18 @@ namespace GUI
 		void EndDraw();
 	private:
 		Result mIsSuccessInit;
+		const int mFrameCount;
+		const ParentWindow& mWindow;
+		const int mWidth, mHeight;
 
 		Result InitDirect3D();
 
 		static ComPtr<ID3D12Device> sDevice;
 		static ComPtr<ID3D12CommandQueue> sCommandQueue;
-		
+
 		ComPtr<ID3D12CommandAllocator> mCommandAllocator;
 		ComPtr<ID3D12GraphicsCommandList> mCommandList;
+		ComPtr<IDXGISwapChain3> mSwapChain;
 	};
 }
 

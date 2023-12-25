@@ -36,14 +36,8 @@ int MAIN()
 	}
 
 	// •`‰æƒGƒ“ƒWƒ“‰Šú‰»
-	GUI::Canvas canvas(mainWindow);
+	GUI::Canvas canvas(mainWindow, 2);
 	if (canvas.IsSuccessInit() == GUI::Result::FAIL)
-	{
-		return -1;
-	}
-
-	GUI::Canvas canvas2(mainWindow);
-	if (canvas2.IsSuccessInit() == GUI::Result::FAIL)
 	{
 		return -1;
 	}
