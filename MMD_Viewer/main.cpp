@@ -14,7 +14,7 @@ int MAIN()
 {
 	// デバッグ表示を日本語に対応させる
 	SET_JAPANESE_ENABLE;
-	
+
 	// メモリリークのデバッグを有効化
 	System::CheckMemoryLeak();
 
@@ -42,6 +42,12 @@ int MAIN()
 		return -1;
 	}
 
+	GUI::Canvas canvas2(mainWindow);
+	if (canvas2.IsSuccessInit() == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
 	while (mainWindow.IsClose() == false)
 	{
 		if (fc.Update() == true)
@@ -49,7 +55,7 @@ int MAIN()
 			DebugOutString(fc.GetPath());
 
 			// モデル削除
-			
+
 			// モデル読み込み
 
 		}
@@ -61,9 +67,9 @@ int MAIN()
 		// カメラ更新
 
 		// モデル描画
-				
+
 
 		canvas.EndDraw();
 	}
-	
+
 }

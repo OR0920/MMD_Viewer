@@ -144,7 +144,11 @@ namespace GUI
 
 		Result InitDirect3D();
 
-		ComPtr<ID3D12Device> mDevice;
+		static ComPtr<ID3D12Device> sDevice;
+		static ComPtr<ID3D12CommandQueue> sCommandQueue;
+		
+		ComPtr<ID3D12CommandAllocator> mCommandAllocator;
+		ComPtr<ID3D12GraphicsCommandList> mCommandList;
 	};
 }
 

@@ -392,9 +392,14 @@ Color::Color(float _r, float _g, float _b, float _a)
 
 
 // Canvas
+ComPtr<ID3D12Device> Canvas::sDevice = nullptr;
+ComPtr<ID3D12CommandQueue> Canvas::sCommandQueue = nullptr;
+
 Canvas::Canvas(const ParentWindow& parent)
 	:
-	mIsSuccessInit(FAIL)
+	mIsSuccessInit(FAIL),
+	mCommandAllocator(nullptr),
+	mCommandList(nullptr)
 {
 	if (parent.GetHandle() == 0)
 	{
@@ -451,17 +456,37 @@ Result Canvas::InitDirect3D()
 	}
 #endif // _DEBUG
 
+	// デバイス作成
 	{
-		ReturnIfFiled
-		(
-			D3D12CreateDevice
+		if (sDevice == nullptr)
+		{
+			ReturnIfFiled
 			(
-				nullptr, D3D_FEATURE_LEVEL_12_0,
-				IID_PPV_ARGS(mDevice.ReleaseAndGetAddressOf())
-			),
-			Canvas::InitDirect3D()
-		);
+				D3D12CreateDevice
+				(
+					nullptr, D3D_FEATURE_LEVEL_12_0,
+					IID_PPV_ARGS(sDevice.ReleaseAndGetAddressOf())
+				),
+				Canvas::InitDirect3D()
+			);
+		}
 	}
+
+	// コマンドキュー作成
+	{
+		if (sCommandQueue == nullptr)
+		{
+			D3D12_COMMAND_QUEUE_DESC cqd = {};
+			cqd.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+			cqd.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+			ReturnIfFiled
+			(
+				sDevice->CreateCommandQueue(&cqd, IID_PPV_ARGS(sCommandQueue.ReleaseAndGetAddressOf())), 
+				Canvas::InitDirect3D()
+			);
+		}
+	}
+
 
 	return SUCCESS;
 }

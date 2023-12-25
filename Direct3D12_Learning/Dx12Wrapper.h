@@ -49,10 +49,10 @@ private:
 	ComPtr<IDXGISwapChain4> mSwapChain;
 
 	// デバイス毎
-	ComPtr<ID3D12Device> mDevice;
+	ComPtr<ID3D12Device> sDevice;
 	ComPtr<ID3D12CommandAllocator> mCommandAllocator;
 	ComPtr<ID3D12GraphicsCommandList> mCommandList;
-	ComPtr<ID3D12CommandQueue> mCommandQueue;
+	ComPtr<ID3D12CommandQueue> sCommandQueue;
 
 	// 描画先毎
 	std::vector<ComPtr<ID3D12Resource>> mBackBuffer; // 可変長にしておこう
