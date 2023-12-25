@@ -472,19 +472,41 @@ Result Canvas::InitDirect3D()
 		}
 	}
 
-	// コマンドキュー作成
+	// コマンド関連作成
 	{
+		auto commandType = D3D12_COMMAND_LIST_TYPE_DIRECT;
 		if (sCommandQueue == nullptr)
 		{
 			D3D12_COMMAND_QUEUE_DESC cqd = {};
 			cqd.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-			cqd.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+			cqd.Type = commandType;
 			ReturnIfFiled
 			(
-				sDevice->CreateCommandQueue(&cqd, IID_PPV_ARGS(sCommandQueue.ReleaseAndGetAddressOf())), 
+				sDevice->CreateCommandQueue(&cqd, IID_PPV_ARGS(sCommandQueue.ReleaseAndGetAddressOf())),
 				Canvas::InitDirect3D()
 			);
 		}
+
+		ReturnIfFiled
+		(
+			sDevice->CreateCommandAllocator
+			(
+				commandType,
+				IID_PPV_ARGS(mCommandAllocator.ReleaseAndGetAddressOf())
+			),
+			Canvas::InitDirect3D()
+		);
+
+		ReturnIfFiled
+		(
+			sDevice->CreateCommandList
+			(
+				0, commandType, mCommandAllocator.Get(), NULL,
+				IID_PPV_ARGS(mCommandList.ReleaseAndGetAddressOf())
+			),
+			Canvas::InitDirect3D()
+		);
+		mCommandList->Close();
 	}
 
 
