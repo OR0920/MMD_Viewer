@@ -136,6 +136,8 @@ namespace GUI
 		void EndDraw();
 	private:
 		Result mIsSuccessInit;
+
+		Result InitDirect3D();
 	};
 }
 

@@ -8,6 +8,14 @@
 // windows
 #include<windows.h>
 #include<tchar.h>
+#include<wrl.h>
+
+#include<dxgi1_4.h>
+#pragma comment(lib, "dxgi.lib")
+#include<d3d12.h>
+#pragma comment(lib, "d3d12.lib")
+
+#include"d3dx12.h"
 
 // my lib
 #include "DebugMessage.h"
@@ -15,7 +23,10 @@
 
 #include"MathUtil.h"
 
-// Window
+template<class T>
+using ComPtr = Microsoft::WRL::ComPtr<T>;
+
+// ParentWindow
 using namespace GUI;
 
 ParentWindow::~ParentWindow()
@@ -381,7 +392,7 @@ Color::Color(float _r, float _g, float _b, float _a)
 	:
 	r(_r), g(_g), b(_b), a(_a)
 {
-	
+
 }
 
 
@@ -397,10 +408,10 @@ Canvas::Canvas(const ParentWindow& parent)
 		return;
 	}
 
-	mIsSuccessInit = SUCCESS;
+	mIsSuccessInit = InitDirect3D();
 }
 
-Result Canvas::IsSuccessInit() const 
+Result Canvas::IsSuccessInit() const
 {
 	return mIsSuccessInit;
 }
@@ -418,4 +429,33 @@ void Canvas::Clear(const Color& clearColor)
 void Canvas::EndDraw()
 {
 
+}
+
+#define ReturnIfFiled(InitFunction, at)\
+{\
+	auto result = InitFunction;\
+	if(FAILED(result))\
+	{\
+		DebugMessageFunctionError(InitFunction, at);\
+		return FAIL;\
+	}\
+}\
+
+Result Canvas::InitDirect3D()
+{
+
+#ifdef _DEBUG
+	{
+		ComPtr<ID3D12Debug> debug;
+		ReturnIfFiled
+		(
+			D3D12GetDebugInterface(IID_PPV_ARGS(debug.ReleaseAndGetAddressOf())),
+			Canvas::InitDirect3D()
+		);
+		debug->EnableDebugLayer();
+	}
+#endif // _DEBUG
+
+
+	return SUCCESS;
 }
