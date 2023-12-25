@@ -54,14 +54,17 @@ int MAIN()
 			// モデル読み込み
 
 		}
+
+		canvas.BeginDraw();
 		// 画面クリア
-		canvas.SetClearColor(0.5f, 0.5f, 0.5f);
+		canvas.Clear();
 
 		// カメラ更新
 
 		// モデル描画
-		
-		canvas.Draw();
+				
+
+		canvas.EndDraw();
 	}
 	
 }

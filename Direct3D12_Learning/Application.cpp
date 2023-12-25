@@ -181,7 +181,7 @@ void Application::Run()
 		mDx12->SetScene();
 
 		mPmdActor->Update();
-		mPmdActor->Draw();
+		mPmdActor->Clear();
 
 		mDx12->EndDraw();
 

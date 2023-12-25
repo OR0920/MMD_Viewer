@@ -405,14 +405,17 @@ Result Canvas::IsSuccessInit() const
 	return mIsSuccessInit;
 }
 
-
-void Canvas::SetClearColor(float _r, float _g, float _b)
+void Canvas::BeginDraw()
 {
-	mClearColor = Color(_r, _g, _b);
+
 }
 
-
-void Canvas::Draw()
+void Canvas::Clear(const Color& clearColor)
 {
-	DebugOutFloat4(System::strong_cast<MathUtil::float4>(mClearColor));
+	DebugOutFloat4(System::strong_cast<MathUtil::float4>(clearColor));
+}
+
+void Canvas::EndDraw()
+{
+
 }

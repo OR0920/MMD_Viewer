@@ -130,12 +130,11 @@ namespace GUI
 		Canvas(const ParentWindow& parent);
 
 		Result IsSuccessInit() const;
-		void SetClearColor(float _r, float _g, float _B);
 
-		void Draw();
-
+		void BeginDraw();
+		void Clear(const Color& clearColor = Color(0.f, 0.f, 1.f));
+		void EndDraw();
 	private:
-		Color mClearColor;
 		Result mIsSuccessInit;
 	};
 }
