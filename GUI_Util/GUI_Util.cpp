@@ -452,7 +452,15 @@ Result Canvas::InitDirect3D()
 #endif // _DEBUG
 
 	{
-
+		ReturnIfFiled
+		(
+			D3D12CreateDevice
+			(
+				nullptr, D3D_FEATURE_LEVEL_12_0,
+				IID_PPV_ARGS(mDevice.ReleaseAndGetAddressOf())
+			),
+			Canvas::InitDirect3D()
+		);
 	}
 
 	return SUCCESS;

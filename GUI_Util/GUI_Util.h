@@ -144,7 +144,7 @@ namespace GUI
 
 		Result InitDirect3D();
 
-
+		ComPtr<ID3D12Device> mDevice;
 	};
 }
 
