@@ -113,6 +113,11 @@ namespace GUI
 		static DropPos sDropPos;
 	};
 
+
+	template<class T>
+	using ComPtr = Microsoft::WRL::ComPtr<T>;
+
+
 	struct Color
 	{
 		float r = 0.f;
@@ -138,6 +143,8 @@ namespace GUI
 		Result mIsSuccessInit;
 
 		Result InitDirect3D();
+
+
 	};
 }
 

@@ -8,11 +8,8 @@
 // windows
 #include<windows.h>
 #include<tchar.h>
-#include<wrl.h>
 
-#include<dxgi1_4.h>
 #pragma comment(lib, "dxgi.lib")
-#include<d3d12.h>
 #pragma comment(lib, "d3d12.lib")
 
 #include"d3dx12.h"
@@ -23,8 +20,6 @@
 
 #include"MathUtil.h"
 
-template<class T>
-using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 // ParentWindow
 using namespace GUI;
@@ -456,6 +451,9 @@ Result Canvas::InitDirect3D()
 	}
 #endif // _DEBUG
 
+	{
+
+	}
 
 	return SUCCESS;
 }

@@ -10,7 +10,6 @@
 #include"GUI_Util.h"
 using namespace std;
 
-
 int MAIN()
 {
 	// デバッグ表示を日本語に対応させる
