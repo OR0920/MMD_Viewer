@@ -391,6 +391,40 @@ Color::Color(float _r, float _g, float _b, float _a)
 }
 
 
+// Model
+Model::Model()
+{
+	DebugMessage("Model Created !");
+}
+
+Model::Model(const Model& other)
+{
+	DebugMessage("Copy Model Created !");
+}
+
+const Model& Model::operator=(const Model& other)
+{
+	DebugMessage("Model Copyed !");
+	return *this;
+}
+
+Result Model::Load(const char* const filepath)
+{
+	DebugMessage("Model Loaded !");
+	return SUCCESS;
+}
+
+void Model::Reset()
+{
+	DebugMessage("Model Reseted !");
+}
+
+void Model::Draw()
+{
+	DebugMessage("Model Drawed !");
+}
+
+
 // Canvas
 ComPtr<ID3D12Device> Canvas::sDevice = nullptr;
 ComPtr<ID3D12CommandQueue> Canvas::sCommandQueue = nullptr;

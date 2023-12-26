@@ -130,8 +130,24 @@ namespace GUI
 		Color(float _r, float _g, float _b, float _a = 1.f);
 	};
 
+	class Model
+	{
+	public:
+		Model();
+		Model(const Model& other);
+		const Model& operator=(const Model& other);
+
+		Result Load(const char* const filepath);
+		void Reset();
+		void Draw();
+
+	private:
+
+	};
+
 	class Canvas
 	{
+		friend Model;
 	public:
 		Canvas(const ParentWindow& parent, const int frameCount);
 

@@ -42,6 +42,9 @@ int MAIN()
 		return -1;
 	}
 
+
+	GUI::Model model;
+
 	while (mainWindow.IsClose() == false)
 	{
 		if (fc.Update() == true)
@@ -51,7 +54,15 @@ int MAIN()
 			// モデル削除
 
 			// モデル読み込み
-
+			// 読み込み用モデルクラス
+			GUI::Model tModel;
+			if (tModel.Load(fc.GetPath()) == GUI::Result::SUCCESS)
+			{
+				model.Reset();
+				// モデルをコピー
+				model = tModel;
+				DebugMessageNewLine();
+			}
 		}
 
 		canvas.BeginDraw();
@@ -61,7 +72,7 @@ int MAIN()
 		// カメラ更新
 
 		// モデル描画
-
+		model.Draw();
 
 		canvas.EndDraw();
 	}
