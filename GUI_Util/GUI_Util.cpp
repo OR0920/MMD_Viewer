@@ -472,25 +472,33 @@ Result Model::LoadAsPMX(const char* const filepath)
 	return SUCCESS;
 }
 
-// Canvas
-Canvas* Canvas::sCanvas = nullptr;
+// GraphicsDevice
+GraphicsDevice* GraphicsDevice::sCanvas = nullptr;
 
-Result Canvas::Init(const ParentWindow& window, const int frameCount)
+Result GraphicsDevice::Init(const ParentWindow& window, const int frameCount)
 {
 	if (window.GetHandle() == 0)
 	{
 		return FAIL;
 	}
-	sCanvas = new Canvas(window, frameCount);
-	return sCanvas->InitDirect3D();
+	if (sCanvas == nullptr)
+	{
+		sCanvas = new GraphicsDevice(window, frameCount);
+		return sCanvas->InitDirect3D();
+	}
+	else
+	{
+		DebugMessage("ERROR : The " ToString(GraphicsDevice) " is already Initialized !");
+		return FAIL;
+	}
 }
 
-Canvas& Canvas::Instance()
+GraphicsDevice& GraphicsDevice::Instance()
 {
 	return *sCanvas;
 }
 
-void Canvas::Tern()
+void GraphicsDevice::Tern()
 {
 	if (sCanvas != nullptr)
 	{
@@ -500,7 +508,7 @@ void Canvas::Tern()
 }
 
 
-void Canvas::BeginDraw()
+void GraphicsDevice::BeginDraw()
 {
 	mCurrentBufferID = mSwapChain->GetCurrentBackBufferIndex();
 
@@ -549,13 +557,13 @@ void Canvas::BeginDraw()
 
 }
 
-void Canvas::Clear(const Color& clearColor)
+void GraphicsDevice::Clear(const Color& clearColor)
 {
 	float color[] = { clearColor.r, clearColor.g, clearColor.b, clearColor.a };
 	mCommandList->ClearRenderTargetView(mRTV_Handle, color, 0, NULL);
 }
 
-void Canvas::EndDraw()
+void GraphicsDevice::EndDraw()
 {
 	auto resourceBarrier =
 		CD3DX12_RESOURCE_BARRIER::Transition
@@ -584,7 +592,7 @@ void Canvas::EndDraw()
 
 
 
-Canvas::Canvas(const ParentWindow& window, const int frameCount)
+GraphicsDevice::GraphicsDevice(const ParentWindow& window, const int frameCount)
 	:
 	mIsSuccessInit(FAIL),
 	mFrameCount(frameCount),
@@ -609,7 +617,7 @@ Canvas::Canvas(const ParentWindow& window, const int frameCount)
 
 }
 
-Canvas::~Canvas()
+GraphicsDevice::~GraphicsDevice()
 {
 }
 
@@ -624,7 +632,7 @@ Canvas::~Canvas()
 	}\
 }\
 
-Result Canvas::InitDirect3D()
+Result GraphicsDevice::InitDirect3D()
 {
 
 #ifdef _DEBUG
@@ -633,7 +641,7 @@ Result Canvas::InitDirect3D()
 		ReturnIfFiled
 		(
 			D3D12GetDebugInterface(IID_PPV_ARGS(debug.ReleaseAndGetAddressOf())),
-			Canvas::InitDirect3D()
+			GraphicsDevice::InitDirect3D()
 		);
 		debug->EnableDebugLayer();
 	}
@@ -648,7 +656,7 @@ Result Canvas::InitDirect3D()
 				nullptr, D3D_FEATURE_LEVEL_12_0,
 				IID_PPV_ARGS(mDevice.ReleaseAndGetAddressOf())
 			),
-			Canvas::InitDirect3D()
+			GraphicsDevice::InitDirect3D()
 		);
 	}
 
@@ -661,7 +669,7 @@ Result Canvas::InitDirect3D()
 		ReturnIfFiled
 		(
 			mDevice->CreateCommandQueue(&cqd, IID_PPV_ARGS(mCommandQueue.ReleaseAndGetAddressOf())),
-			Canvas::InitDirect3D()
+			GraphicsDevice::InitDirect3D()
 		);
 
 		ReturnIfFiled
@@ -671,7 +679,7 @@ Result Canvas::InitDirect3D()
 				commandType,
 				IID_PPV_ARGS(mCommandAllocator.ReleaseAndGetAddressOf())
 			),
-			Canvas::InitDirect3D()
+			GraphicsDevice::InitDirect3D()
 		);
 
 		ReturnIfFiled
@@ -681,7 +689,7 @@ Result Canvas::InitDirect3D()
 				0, commandType, mCommandAllocator.Get(), NULL,
 				IID_PPV_ARGS(mCommandList.ReleaseAndGetAddressOf())
 			),
-			Canvas::InitDirect3D()
+			GraphicsDevice::InitDirect3D()
 		);
 		mCommandList->Close();
 	}
@@ -693,14 +701,14 @@ Result Canvas::InitDirect3D()
 		ReturnIfFiled
 		(
 			CreateDXGIFactory1(IID_PPV_ARGS(factory1.ReleaseAndGetAddressOf())),
-			Canvas::InitDirect3D()
+			GraphicsDevice::InitDirect3D()
 		);
 
 		ComPtr<IDXGIFactory4> factory4 = nullptr;
 		ReturnIfFiled
 		(
 			factory1->QueryInterface(factory4.ReleaseAndGetAddressOf()),
-			Canvas::InitDirect3D()
+			GraphicsDevice::InitDirect3D()
 		);
 
 
@@ -724,13 +732,13 @@ Result Canvas::InitDirect3D()
 				&scd, NULL, NULL,
 				sw1.ReleaseAndGetAddressOf()
 			),
-			Canvas::InitDirect3D()
+			GraphicsDevice::InitDirect3D()
 		);
 
 		ReturnIfFiled
 		(
 			sw1->QueryInterface(IID_PPV_ARGS(mSwapChain.ReleaseAndGetAddressOf())),
-			Canvas::InitDirect3D()
+			GraphicsDevice::InitDirect3D()
 		);
 	}
 
@@ -747,7 +755,7 @@ Result Canvas::InitDirect3D()
 			(
 				&rtvDhd, IID_PPV_ARGS(mRTV_Heap.ReleaseAndGetAddressOf())
 			),
-			Canvas::InitDirect3D()
+			GraphicsDevice::InitDirect3D()
 		);
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle
@@ -765,7 +773,7 @@ Result Canvas::InitDirect3D()
 					i,
 					IID_PPV_ARGS(mRT_Resouces[i].ReleaseAndGetAddressOf())
 				),
-				Canvas::InitDirect3D()
+				GraphicsDevice::InitDirect3D()
 			);
 
 			mDevice->CreateRenderTargetView
@@ -822,7 +830,7 @@ Result Canvas::InitDirect3D()
 				&clearValue,
 				IID_PPV_ARGS(mDSB_Resouce.ReleaseAndGetAddressOf())
 			),
-			Canvas::InitDirect3D()
+			GraphicsDevice::InitDirect3D()
 		);
 
 		D3D12_DESCRIPTOR_HEAP_DESC dsvHd = {};
@@ -838,7 +846,7 @@ Result Canvas::InitDirect3D()
 				&dsvHd,
 				IID_PPV_ARGS(mDSV_Heap.ReleaseAndGetAddressOf())
 			),
-			Canvas::InitDirect3D()
+			GraphicsDevice::InitDirect3D()
 		);
 
 		D3D12_DEPTH_STENCIL_VIEW_DESC dsvd = {};
@@ -866,7 +874,7 @@ Result Canvas::InitDirect3D()
 				D3D12_FENCE_FLAG_NONE,
 				IID_PPV_ARGS(mFence.ReleaseAndGetAddressOf())
 			),
-			Canvas::InitDirect3D()
+			GraphicsDevice::InitDirect3D()
 		);
 
 		mFenceValue = 1;

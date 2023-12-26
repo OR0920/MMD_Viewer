@@ -36,12 +36,12 @@ int MAIN()
 	}
 
 	// 描画エンジン初期化
-	if (GUI::Canvas::Init(mainWindow, 2) == GUI::Result::FAIL)
+	if (GUI::GraphicsDevice::Init(mainWindow, 2) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
 
-	auto& canvas = GUI::Canvas::Instance();
+	auto& device = GUI::GraphicsDevice::Instance();
 
 	GUI::Model model;
 
@@ -70,16 +70,16 @@ int MAIN()
 
 		}
 
-		canvas.BeginDraw();
+		device.BeginDraw();
 		// 画面クリア
-		canvas.Clear(GUI::Color(0.5f, 0.5f, 0.5f));
+		device.Clear(GUI::Color(0.5f, 0.5f, 0.5f));
 
 		// カメラ更新
 
 		// モデル描画
 		model.Draw();
 
-		canvas.EndDraw();
+		device.EndDraw();
 	}
-	GUI::Canvas::Tern();
+	GUI::GraphicsDevice::Tern();
 }

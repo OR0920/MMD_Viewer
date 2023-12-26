@@ -149,21 +149,28 @@ namespace GUI
 		Result LoadAsPMX(const char* const filepath);
 	};
 
-	class Canvas
+	class GraphicsDevice
 	{
 		friend Model;
 	public:
+		// 描画先のウィンドウとバックバッファ数を指定する
 		static Result Init(const ParentWindow& window, const int frameCount);
-		static Canvas& Instance();
+		// シングルトン
+		static GraphicsDevice& Instance();
+		// 終了処理
 		static void Tern();
 
+		// 描画の準備を行う
 		void BeginDraw();
+		// 画面クリア
 		void Clear(const Color& clearColor = Color(0.f, 0.f, 1.f));
+
+		// 描画処理を実行する
 		void EndDraw();
 		
 	private:
-		static Canvas* sCanvas;
-		Canvas(const ParentWindow& window, const int frameCount); ~Canvas();
+		static GraphicsDevice* sCanvas;
+		GraphicsDevice(const ParentWindow& window, const int frameCount); ~GraphicsDevice();
 
 		Result InitDirect3D();
 
@@ -171,6 +178,8 @@ namespace GUI
 		const int mFrameCount;
 		const ParentWindow& mWindow;
 		const int mWidth, mHeight;
+
+		static ComPtr<ID3D12Device> GetDevice();
 
 		ComPtr<ID3D12Device> mDevice;
 		ComPtr<ID3D12CommandQueue> mCommandQueue;
