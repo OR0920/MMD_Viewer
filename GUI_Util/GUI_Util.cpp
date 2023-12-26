@@ -201,7 +201,7 @@ MainWindow::MainWindow()
 	mWidth(0),
 	mHeight(0),
 	mWindowHandle(NULL),
-	mWindowClass({})	
+	mWindowClass({})
 {
 
 }
@@ -434,7 +434,6 @@ Result Model::Load(const char* const filepath)
 		return FAIL;
 	}
 
-	// last
 }
 
 void Model::Reset()
@@ -444,9 +443,25 @@ void Model::Reset()
 
 void Model::Draw()
 {
-	DebugMessage("Model Drawed !");
 }
 
+struct Vertex
+{
+	MathUtil::float3 position = {};
+	MathUtil::float3 normal = {};
+
+	void LoadFromPMD_Vertex(const MMDsdk::PmdFile::Vertex& data)
+	{
+		position = System::strong_cast<MathUtil::float3>(data.position);
+		normal = System::strong_cast<MathUtil::float3>(data.normal);
+	}
+};
+
+D3D12_INPUT_ELEMENT_DESC inputLayout[] =
+{
+	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+};
 
 Result Model::LoadAsPMD(const char* const filepath)
 {
@@ -457,6 +472,22 @@ Result Model::LoadAsPMD(const char* const filepath)
 		return FAIL;
 	}
 
+	std::vector<Vertex> vertex(file.GetVertexCount());
+
+	for (int i = 0; i < file.GetVertexCount(); ++i)
+	{
+		vertex[i].LoadFromPMD_Vertex(file.GetVertex(i));
+	}
+
+	std::vector<int> index(file.GetIndexCount());
+	for (int i = 0; i < file.GetIndexCount(); ++i)
+	{
+		index[i] = static_cast<int> (file.GetIndex(i));
+	}
+
+	DebugOutParam(index[file.GetLastIndexID()]);
+
+	// last
 	return SUCCESS;
 }
 
