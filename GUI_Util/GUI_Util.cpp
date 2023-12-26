@@ -407,8 +407,11 @@ Canvas::Canvas(const ParentWindow& parent, const int frameCount)
 	mSwapChain(nullptr),
 	mRTV_Heap(nullptr),
 	mRT_Resouces(),
+	mCurrentBufferID(0),
+	mRTV_Handle({}),
 	mDSV_Heap(nullptr),
 	mDSB_Resouce(nullptr),
+	mDSV_Handle({}),
 	mFence(nullptr),
 	mFenceValue(0)
 {
@@ -429,17 +432,84 @@ Result Canvas::IsSuccessInit() const
 
 void Canvas::BeginDraw()
 {
+	mCurrentBufferID = mSwapChain->GetCurrentBackBufferIndex();
+
+	mCommandAllocator->Reset();
+	mCommandList->Reset(mCommandAllocator.Get(), 0);
+
+	auto resourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition
+	(
+		mRT_Resouces[mCurrentBufferID].Get(),
+		D3D12_RESOURCE_STATE_PRESENT,
+		D3D12_RESOURCE_STATE_RENDER_TARGET
+	);
+
+	mCommandList->ResourceBarrier
+	(
+		1,
+		&resourceBarrier
+	);
+
+	mRTV_Handle = CD3DX12_CPU_DESCRIPTOR_HANDLE
+	(
+		mRTV_Heap->GetCPUDescriptorHandleForHeapStart(),
+		mCurrentBufferID,
+		sDevice->GetDescriptorHandleIncrementSize
+		(
+			D3D12_DESCRIPTOR_HEAP_TYPE_RTV
+		)
+	);
+	mDSV_Handle =
+		mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
+
+	mCommandList->OMSetRenderTargets(1, &mRTV_Handle, false, &mDSV_Handle);
+
+	auto viewport = CD3DX12_VIEWPORT
+	(
+		0.f, 0.f,
+		static_cast<float>(mWidth),
+		static_cast<float>(mHeight)
+	);
+	auto scissorRect = CD3DX12_RECT
+	(
+		0, 0, mWidth, mHeight
+	);
+	mCommandList->RSSetViewports(1, &viewport);
+	mCommandList->RSSetScissorRects(1, &scissorRect);
 
 }
 
 void Canvas::Clear(const Color& clearColor)
 {
-	DebugOutFloat4(System::strong_cast<MathUtil::float4>(clearColor));
+	float color[] = { clearColor.r, clearColor.g, clearColor.b, clearColor.a };
+	mCommandList->ClearRenderTargetView(mRTV_Handle, color, 0, NULL);
 }
 
 void Canvas::EndDraw()
 {
+	auto resourceBarrier =
+		CD3DX12_RESOURCE_BARRIER::Transition
+		(
+			mRT_Resouces[mCurrentBufferID].Get(),
+			D3D12_RESOURCE_STATE_RENDER_TARGET,
+			D3D12_RESOURCE_STATE_PRESENT
+		);
 
+	mCommandList->ResourceBarrier(1, &resourceBarrier);
+
+	mCommandList->Close();
+	ID3D12CommandList* ppCommandList[] = { mCommandList.Get() };
+	sCommandQueue->ExecuteCommandLists(_countof(ppCommandList), ppCommandList);
+
+	mSwapChain->Present(1, 0);
+
+	sCommandQueue->Signal(mFence.Get(), mFenceValue);
+	do
+	{
+		;
+	} while (mFence->GetCompletedValue() < mFenceValue);
+
+	mFenceValue++;
 }
 
 #define ReturnIfFiled(InitFunction, at)\

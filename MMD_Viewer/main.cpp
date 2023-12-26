@@ -56,7 +56,7 @@ int MAIN()
 
 		canvas.BeginDraw();
 		// 画面クリア
-		canvas.Clear();
+		canvas.Clear(GUI::Color(0.5f, 0.5f, 0.5f));
 
 		// カメラ更新
 
