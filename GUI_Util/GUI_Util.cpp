@@ -30,10 +30,16 @@ ParentWindow::~ParentWindow()
 
 }
 
-//// MainWindow
-//static HWND gMainWindowHandle = NULL;
-//static WNDCLASSEX gMainWindowClass = {};
+// MainWindow
 
+MainWindow& MainWindow::Instance()
+{
+	static MainWindow inst;
+	return inst;
+}
+
+// コールバック関数類
+// ヘッダに書きたくないので、メンバにはしない
 BOOL CALLBACK ParentResize(HWND hwnd, LPARAM lparam)
 {
 	// 子ウィンドウにサイズ変更を通知
@@ -41,7 +47,6 @@ BOOL CALLBACK ParentResize(HWND hwnd, LPARAM lparam)
 	SendMessage(hwnd, WM_SIZE, NULL, NULL);
 	return true;
 }
-
 LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
 	PAINTSTRUCT ps;
@@ -77,6 +82,7 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
 	return DefWindowProc(hwnd, msg, wp, lp);
 }
+
 
 Result MainWindow::Create(int width, int height)
 {
@@ -156,7 +162,7 @@ Result MainWindow::Create(int width, int height)
 	return Result::SUCCESS;
 }
 
-bool MainWindow::IsClose()
+Result MainWindow::ProcessMessage()
 {
 	MSG msg = {};
 
@@ -168,15 +174,10 @@ bool MainWindow::IsClose()
 
 	if (msg.message == WM_QUIT)
 	{
-		isClose = true;
+		return QUIT;
 	}
 
-	return isClose;
-}
-
-const HWND MainWindow::GetHandle() const
-{
-	return mWindowHandle;
+	return CONTINUE;
 }
 
 const int MainWindow::GetWindowWidth() const
@@ -189,19 +190,18 @@ const int MainWindow::GetWindowHeight() const
 	return mHeight;
 }
 
-MainWindow& MainWindow::Instance()
+
+const HWND MainWindow::GetHandle() const
 {
-	static MainWindow inst;
-	return inst;
+	return mWindowHandle;
 }
 
 MainWindow::MainWindow()
 	:
-	mWindowHandle(NULL),
-	mWindowClass({}),
-	isClose(false),
 	mWidth(0),
-	mHeight(0)
+	mHeight(0),
+	mWindowHandle(NULL),
+	mWindowClass({})	
 {
 
 }
@@ -222,6 +222,12 @@ void GUI::ErrorBox(const TCHAR* const message)
 bool FileCatcher::sIsUpdated = false;
 TCHAR FileCatcher::sFilePath[MAX_PATH] = {};
 FileCatcher::DropPos FileCatcher::sDropPos = {};
+
+FileCatcher& FileCatcher::Instance()
+{
+	static FileCatcher inst;
+	return inst;
+}
 
 // プロシージャー
 LRESULT CALLBACK FileCatcher::FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
@@ -268,18 +274,6 @@ LRESULT CALLBACK FileCatcher::FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LP
 	return DefWindowProc(hwnd, msg, wp, lp);
 }
 
-FileCatcher::FileCatcher()
-	:
-	mWindowClass({}),
-	mFilePath()
-{
-
-}
-
-FileCatcher::~FileCatcher()
-{
-	UnregisterClass(mWindowClass.lpszClassName, mWindowClass.hInstance);
-}
 
 Result FileCatcher::Create(const ParentWindow& parent)
 {
@@ -376,10 +370,18 @@ const FileCatcher::DropPos& FileCatcher::GetDropPos() const
 	return sDropPos;
 }
 
-FileCatcher& FileCatcher::Instance()
+
+FileCatcher::FileCatcher()
+	:
+	mWindowClass({}),
+	mFilePath()
 {
-	static FileCatcher inst;
-	return inst;
+
+}
+
+FileCatcher::~FileCatcher()
+{
+	UnregisterClass(mWindowClass.lpszClassName, mWindowClass.hInstance);
 }
 
 // Color
@@ -421,7 +423,7 @@ Result Model::Load(const char* const filepath)
 		DebugMessage("Load PMD File !");
 		return SUCCESS;
 	}
-	else if(LoadAsPMX(filepath) == SUCCESS)
+	else if (LoadAsPMX(filepath) == SUCCESS)
 	{
 		DebugMessage("Load PMX File !");
 		return SUCCESS;
@@ -471,43 +473,32 @@ Result Model::LoadAsPMX(const char* const filepath)
 }
 
 // Canvas
-ComPtr<ID3D12Device> Canvas::sDevice = nullptr;
-ComPtr<ID3D12CommandQueue> Canvas::sCommandQueue = nullptr;
+Canvas* Canvas::sCanvas = nullptr;
 
-Canvas::Canvas(const ParentWindow& parent, const int frameCount)
-	:
-	mIsSuccessInit(FAIL),
-	mFrameCount(frameCount),
-	mWindow(parent),
-	mWidth(parent.GetWindowWidth()),
-	mHeight(parent.GetWindowHeight()),
-	mCommandAllocator(nullptr),
-	mCommandList(nullptr),
-	mSwapChain(nullptr),
-	mRTV_Heap(nullptr),
-	mRT_Resouces(),
-	mCurrentBufferID(0),
-	mRTV_Handle({}),
-	mDSV_Heap(nullptr),
-	mDSB_Resouce(nullptr),
-	mDSV_Handle({}),
-	mFence(nullptr),
-	mFenceValue(0)
+Result Canvas::Init(const ParentWindow& window, const int frameCount)
 {
-	if (parent.GetHandle() == 0)
+	if (window.GetHandle() == 0)
 	{
-		mIsSuccessInit = FAIL;
-
-		return;
+		return FAIL;
 	}
-
-	mIsSuccessInit = InitDirect3D();
+	sCanvas = new Canvas(window, frameCount);
+	return sCanvas->InitDirect3D();
 }
 
-Result Canvas::IsSuccessInit() const
+Canvas& Canvas::Instance()
 {
-	return mIsSuccessInit;
+	return *sCanvas;
 }
+
+void Canvas::Tern()
+{
+	if (sCanvas != nullptr)
+	{
+		delete sCanvas;
+		sCanvas = nullptr;
+	}
+}
+
 
 void Canvas::BeginDraw()
 {
@@ -533,7 +524,7 @@ void Canvas::BeginDraw()
 	(
 		mRTV_Heap->GetCPUDescriptorHandleForHeapStart(),
 		mCurrentBufferID,
-		sDevice->GetDescriptorHandleIncrementSize
+		mDevice->GetDescriptorHandleIncrementSize
 		(
 			D3D12_DESCRIPTOR_HEAP_TYPE_RTV
 		)
@@ -578,17 +569,48 @@ void Canvas::EndDraw()
 
 	mCommandList->Close();
 	ID3D12CommandList* ppCommandList[] = { mCommandList.Get() };
-	sCommandQueue->ExecuteCommandLists(_countof(ppCommandList), ppCommandList);
+	mCommandQueue->ExecuteCommandLists(_countof(ppCommandList), ppCommandList);
 
 	mSwapChain->Present(1, 0);
 
-	sCommandQueue->Signal(mFence.Get(), mFenceValue);
+	mCommandQueue->Signal(mFence.Get(), mFenceValue);
 	do
 	{
 		;
 	} while (mFence->GetCompletedValue() < mFenceValue);
 
 	mFenceValue++;
+}
+
+
+
+Canvas::Canvas(const ParentWindow& window, const int frameCount)
+	:
+	mIsSuccessInit(FAIL),
+	mFrameCount(frameCount),
+	mWindow(window),
+	mWidth(window.GetWindowWidth()),
+	mHeight(window.GetWindowHeight()),
+	mDevice(nullptr),
+	mCommandQueue(nullptr),
+	mCommandAllocator(nullptr),
+	mCommandList(nullptr),
+	mSwapChain(nullptr),
+	mRTV_Heap(nullptr),
+	mRT_Resouces(),
+	mCurrentBufferID(0),
+	mRTV_Handle({}),
+	mDSV_Heap(nullptr),
+	mDSB_Resouce(nullptr),
+	mDSV_Handle({}),
+	mFence(nullptr),
+	mFenceValue(0)
+{
+
+}
+
+Canvas::~Canvas()
+{
 }
 
 #define ReturnIfFiled(InitFunction, at)\
@@ -619,38 +641,32 @@ Result Canvas::InitDirect3D()
 
 	// デバイス作成
 	{
-		if (sDevice == nullptr)
-		{
-			ReturnIfFiled
+		ReturnIfFiled
+		(
+			D3D12CreateDevice
 			(
-				D3D12CreateDevice
-				(
-					nullptr, D3D_FEATURE_LEVEL_12_0,
-					IID_PPV_ARGS(sDevice.ReleaseAndGetAddressOf())
-				),
-				Canvas::InitDirect3D()
-			);
-		}
+				nullptr, D3D_FEATURE_LEVEL_12_0,
+				IID_PPV_ARGS(mDevice.ReleaseAndGetAddressOf())
+			),
+			Canvas::InitDirect3D()
+		);
 	}
 
 	// コマンド関連作成
 	{
 		auto commandType = D3D12_COMMAND_LIST_TYPE_DIRECT;
-		if (sCommandQueue == nullptr)
-		{
-			D3D12_COMMAND_QUEUE_DESC cqd = {};
-			cqd.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-			cqd.Type = commandType;
-			ReturnIfFiled
-			(
-				sDevice->CreateCommandQueue(&cqd, IID_PPV_ARGS(sCommandQueue.ReleaseAndGetAddressOf())),
-				Canvas::InitDirect3D()
-			);
-		}
+		D3D12_COMMAND_QUEUE_DESC cqd = {};
+		cqd.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+		cqd.Type = commandType;
+		ReturnIfFiled
+		(
+			mDevice->CreateCommandQueue(&cqd, IID_PPV_ARGS(mCommandQueue.ReleaseAndGetAddressOf())),
+			Canvas::InitDirect3D()
+		);
 
 		ReturnIfFiled
 		(
-			sDevice->CreateCommandAllocator
+			mDevice->CreateCommandAllocator
 			(
 				commandType,
 				IID_PPV_ARGS(mCommandAllocator.ReleaseAndGetAddressOf())
@@ -660,7 +676,7 @@ Result Canvas::InitDirect3D()
 
 		ReturnIfFiled
 		(
-			sDevice->CreateCommandList
+			mDevice->CreateCommandList
 			(
 				0, commandType, mCommandAllocator.Get(), NULL,
 				IID_PPV_ARGS(mCommandList.ReleaseAndGetAddressOf())
@@ -703,7 +719,7 @@ Result Canvas::InitDirect3D()
 		(
 			factory4->CreateSwapChainForHwnd
 			(
-				sCommandQueue.Get(),
+				mCommandQueue.Get(),
 				mWindow.GetHandle(),
 				&scd, NULL, NULL,
 				sw1.ReleaseAndGetAddressOf()
@@ -727,7 +743,7 @@ Result Canvas::InitDirect3D()
 
 		ReturnIfFiled
 		(
-			sDevice->CreateDescriptorHeap
+			mDevice->CreateDescriptorHeap
 			(
 				&rtvDhd, IID_PPV_ARGS(mRTV_Heap.ReleaseAndGetAddressOf())
 			),
@@ -752,7 +768,7 @@ Result Canvas::InitDirect3D()
 				Canvas::InitDirect3D()
 			);
 
-			sDevice->CreateRenderTargetView
+			mDevice->CreateRenderTargetView
 			(
 				mRT_Resouces[i].Get(),
 				NULL, rtvHandle
@@ -761,7 +777,7 @@ Result Canvas::InitDirect3D()
 			rtvHandle.Offset
 			(
 				1,
-				sDevice->GetDescriptorHandleIncrementSize
+				mDevice->GetDescriptorHandleIncrementSize
 				(
 					D3D12_DESCRIPTOR_HEAP_TYPE_RTV
 				)
@@ -797,7 +813,7 @@ Result Canvas::InitDirect3D()
 
 		ReturnIfFiled
 		(
-			sDevice->CreateCommittedResource
+			mDevice->CreateCommittedResource
 			(
 				&dsbHp,
 				D3D12_HEAP_FLAG_NONE,
@@ -817,7 +833,7 @@ Result Canvas::InitDirect3D()
 
 		ReturnIfFiled
 		(
-			sDevice->CreateDescriptorHeap
+			mDevice->CreateDescriptorHeap
 			(
 				&dsvHd,
 				IID_PPV_ARGS(mDSV_Heap.ReleaseAndGetAddressOf())
@@ -833,7 +849,7 @@ Result Canvas::InitDirect3D()
 		auto dsvHandle =
 			mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
 
-		sDevice->CreateDepthStencilView
+		mDevice->CreateDepthStencilView
 		(
 			mDSB_Resouce.Get(),
 			&dsvd,
@@ -844,7 +860,7 @@ Result Canvas::InitDirect3D()
 	{
 		ReturnIfFiled
 		(
-			sDevice->CreateFence
+			mDevice->CreateFence
 			(
 				0,
 				D3D12_FENCE_FLAG_NONE,

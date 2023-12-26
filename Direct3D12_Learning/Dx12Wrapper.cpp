@@ -40,10 +40,10 @@ Dx12Wrapper::Dx12Wrapper(HWND argWindowHandle)
 	mWindowSize({}),
 	mDxgiFactory(nullptr),
 	mSwapChain(nullptr),
-	sDevice(nullptr),
+	mDevice(nullptr),
 	mCommandAllocator(nullptr),
 	mCommandList(nullptr),
-	sCommandQueue(nullptr),
+	mCommandQueue(nullptr),
 	mDepthBuffer(nullptr),
 	mBackBuffer(),
 	mRTV_Heaps(nullptr),
@@ -74,7 +74,7 @@ Dx12Wrapper::Dx12Wrapper(HWND argWindowHandle)
 	CallInitFunctionWithAssert(CreateDepthStensilView());
 	CallInitFunctionWithAssert
 	(
-		sDevice->CreateFence
+		mDevice->CreateFence
 		(
 			mFenceValue,
 			D3D12_FENCE_FLAGS::D3D12_FENCE_FLAG_NONE,
@@ -142,7 +142,7 @@ HRESULT Dx12Wrapper::InitializeDevices()
 
 	for (auto level : levels)
 	{
-		if (SUCCEEDED(D3D12CreateDevice(nullptr, level, IID_PPV_ARGS(sDevice.ReleaseAndGetAddressOf()))))
+		if (SUCCEEDED(D3D12CreateDevice(nullptr, level, IID_PPV_ARGS(mDevice.ReleaseAndGetAddressOf()))))
 		{
 			featureLevel = level;
 			result = S_OK;
@@ -160,19 +160,19 @@ HRESULT Dx12Wrapper::InitializeDevices()
 HRESULT Dx12Wrapper::InitializeCommandObjects()
 {
 	auto result =
-		sDevice->CreateCommandAllocator
+		mDevice->CreateCommandAllocator
 		(
 			D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT,
 			IID_PPV_ARGS(mCommandAllocator.ReleaseAndGetAddressOf())
 		);
 	if (FAILED(result))
 	{
-		DebugMessageFunctionError(sDevice->CreateCommandAllocator, Dx12Wrapper::InitializeCommandObjects);
+		DebugMessageFunctionError(mDevice->CreateCommandAllocator, Dx12Wrapper::InitializeCommandObjects);
 		assert(false);
 		return result;
 	}
 	result =
-		sDevice->CreateCommandList
+		mDevice->CreateCommandList
 		(
 			0,
 			D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT,
@@ -182,7 +182,7 @@ HRESULT Dx12Wrapper::InitializeCommandObjects()
 		);
 	if (FAILED(result))
 	{
-		DebugMessageFunctionError(sDevice->CreateCommandList, InitializeCommandObjects);
+		DebugMessageFunctionError(mDevice->CreateCommandList, InitializeCommandObjects);
 		assert(false);
 		return result;
 	}
@@ -192,10 +192,10 @@ HRESULT Dx12Wrapper::InitializeCommandObjects()
 	cmdQueueDesc.NodeMask = 0;
 	cmdQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY::D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
 	cmdQueueDesc.Type = D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT;
-	result = sDevice->CreateCommandQueue(&cmdQueueDesc, IID_PPV_ARGS(sCommandQueue.ReleaseAndGetAddressOf()));
+	result = mDevice->CreateCommandQueue(&cmdQueueDesc, IID_PPV_ARGS(mCommandQueue.ReleaseAndGetAddressOf()));
 	if (FAILED(result))
 	{
-		DebugMessageFunctionError(sDevice->CreateCommandQueue, InitializeCommandObjects);
+		DebugMessageFunctionError(mDevice->CreateCommandQueue, InitializeCommandObjects);
 		assert(false);
 		return result;
 	}
@@ -229,7 +229,7 @@ HRESULT Dx12Wrapper::CreateSwapChain(const HWND& argWindowHandle)
 
 	auto result = mDxgiFactory->CreateSwapChainForHwnd
 	(
-		sCommandQueue.Get(),
+		mCommandQueue.Get(),
 		argWindowHandle,
 		&swapChainDesc,
 		nullptr,
@@ -269,10 +269,10 @@ HRESULT Dx12Wrapper::CreateFinalRenderTarget()
 	heapDesc.NodeMask = 0;
 	heapDesc.NumDescriptors = 2;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	result = sDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mRTV_Heaps.ReleaseAndGetAddressOf()));
+	result = mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mRTV_Heaps.ReleaseAndGetAddressOf()));
 	if (FAILED(result))
 	{
-		DebugMessageFunctionError(sDevice->CreateDescriptorHeap(), Dx12Wrapper::CreateFinalRenderTarget());
+		DebugMessageFunctionError(mDevice->CreateDescriptorHeap(), Dx12Wrapper::CreateFinalRenderTarget());
 		assert(SUCCEEDED(result));
 		return result;
 	}
@@ -311,11 +311,11 @@ HRESULT Dx12Wrapper::CreateFinalRenderTarget()
 		rtvDesc.Format = mBackBuffer[i]->GetDesc().Format;
 
 		// 取得したリソースのビューを作成する
-		sDevice->CreateRenderTargetView(mBackBuffer[i].Get(), &rtvDesc, rtvHandle);
+		mDevice->CreateRenderTargetView(mBackBuffer[i].Get(), &rtvDesc, rtvHandle);
 
 		// 次のバッファへ
 		rtvHandle.ptr +=
-			sDevice->GetDescriptorHandleIncrementSize
+			mDevice->GetDescriptorHandleIncrementSize
 			(
 				D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV
 			);
@@ -340,7 +340,7 @@ HRESULT Dx12Wrapper::CreateSceneView()
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(SceneData) + 0xff) & ~0xff);
 
-	result = sDevice->CreateCommittedResource
+	result = mDevice->CreateCommittedResource
 	(
 		&heapProp,
 		D3D12_HEAP_FLAG_NONE,
@@ -351,7 +351,7 @@ HRESULT Dx12Wrapper::CreateSceneView()
 	);
 	if (FAILED(result))
 	{
-		DebugMessageFunctionError(sDevice->CreateCommittedResource(), Dx12Wrapper::CreateSceneView());
+		DebugMessageFunctionError(mDevice->CreateCommittedResource(), Dx12Wrapper::CreateSceneView());
 		assert(SUCCEEDED(result));
 		return result;
 	}
@@ -382,10 +382,10 @@ HRESULT Dx12Wrapper::CreateSceneView()
 	descHeapDesc.NumDescriptors = 1;
 	descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-	result = sDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(mSceneDescriptorHeap.ReleaseAndGetAddressOf()));
+	result = mDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(mSceneDescriptorHeap.ReleaseAndGetAddressOf()));
 	if (FAILED(result))
 	{
-		DebugMessageFunctionError(sDevice->CreateDescriptorHeap(), Dx12Wrapper::CreateSceneView());
+		DebugMessageFunctionError(mDevice->CreateDescriptorHeap(), Dx12Wrapper::CreateSceneView());
 		return result;
 	}
 
@@ -395,7 +395,7 @@ HRESULT Dx12Wrapper::CreateSceneView()
 	cbvDesc.BufferLocation = mSceneConstantBuffer->GetGPUVirtualAddress();
 	cbvDesc.SizeInBytes = mSceneConstantBuffer->GetDesc().Width;
 
-	sDevice->CreateConstantBufferView(&cbvDesc, heapHandle);
+	mDevice->CreateConstantBufferView(&cbvDesc, heapHandle);
 
 	return result;
 }
@@ -497,7 +497,7 @@ HRESULT Dx12Wrapper::CreateDepthStensilView()
 
 	CD3DX12_CLEAR_VALUE depthClearValue(DXGI_FORMAT::DXGI_FORMAT_D32_FLOAT, 1.f, 0);
 
-	result = sDevice->CreateCommittedResource
+	result = mDevice->CreateCommittedResource
 	(
 		&depthHeapProp,
 		D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
@@ -508,7 +508,7 @@ HRESULT Dx12Wrapper::CreateDepthStensilView()
 	);
 	if (FAILED(result))
 	{
-		DebugMessageFunctionError(sDevice->CreateCommittedResource(), Dx12Wrapper::CreateDepthStensilView());
+		DebugMessageFunctionError(mDevice->CreateCommittedResource(), Dx12Wrapper::CreateDepthStensilView());
 		return result;
 	}
 
@@ -517,11 +517,11 @@ HRESULT Dx12Wrapper::CreateDepthStensilView()
 	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-	result = sDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(mDSV_Heaps.ReleaseAndGetAddressOf()));
+	result = mDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(mDSV_Heaps.ReleaseAndGetAddressOf()));
 
 	if (FAILED(result))
 	{
-		DebugMessageFunctionError(sDevice->CreateDescriptorHeap, Dx12Wrapper::CreateDepthStensilView());
+		DebugMessageFunctionError(mDevice->CreateDescriptorHeap, Dx12Wrapper::CreateDepthStensilView());
 		return result;
 	}
 
@@ -530,7 +530,7 @@ HRESULT Dx12Wrapper::CreateDepthStensilView()
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION::D3D12_DSV_DIMENSION_TEXTURE2D;
 	dsvDesc.Flags = D3D12_DSV_FLAGS::D3D12_DSV_FLAG_NONE;
 
-	sDevice->CreateDepthStencilView(mDepthBuffer.Get(), &dsvDesc, mDSV_Heaps->GetCPUDescriptorHandleForHeapStart());
+	mDevice->CreateDepthStencilView(mDepthBuffer.Get(), &dsvDesc, mDSV_Heaps->GetCPUDescriptorHandleForHeapStart());
 	return result;
 }
 
@@ -573,7 +573,7 @@ ComPtr<ID3D12Resource> Dx12Wrapper::CreateTextureFromFile(const std::string texp
 	auto resDesc = CD3DX12_RESOURCE_DESC::Tex2D(metadata.format, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels);
 
 	ComPtr<ID3D12Resource> texBuff = nullptr;
-	result = sDevice->CreateCommittedResource
+	result = mDevice->CreateCommittedResource
 	(
 		&texHeapProp,
 		D3D12_HEAP_FLAG_NONE,
@@ -585,7 +585,7 @@ ComPtr<ID3D12Resource> Dx12Wrapper::CreateTextureFromFile(const std::string texp
 
 	if (FAILED(result))
 	{
-		DebugMessageFunctionError(sDevice->CreateCommittedResource(texBuff), Dx12Wrapper::CreateTextureFromFile());
+		DebugMessageFunctionError(mDevice->CreateCommittedResource(texBuff), Dx12Wrapper::CreateTextureFromFile());
 		return nullptr;
 	}
 
@@ -622,7 +622,7 @@ void Dx12Wrapper::BeginDraw()
 	mCommandList->ResourceBarrier(1, &barrier);
 
 	auto rtvHandle = mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
-	rtvHandle.ptr += sDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV) * backBufferIndex;
+	rtvHandle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV) * backBufferIndex;
 
 	auto dsvHandle = mDSV_Heaps->GetCPUDescriptorHandleForHeapStart();
 	mCommandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
@@ -656,8 +656,8 @@ void Dx12Wrapper::EndDraw()
 	mCommandList->Close();
 
 	ID3D12CommandList* cmdLists[] = { mCommandList.Get() };
-	sCommandQueue->ExecuteCommandLists(1, cmdLists);
-	sCommandQueue->Signal(mFence.Get(), ++mFenceValue);
+	mCommandQueue->ExecuteCommandLists(1, cmdLists);
+	mCommandQueue->Signal(mFence.Get(), ++mFenceValue);
 
 	if (mFence->GetCompletedValue() < mFenceValue)
 	{
@@ -678,7 +678,7 @@ ComPtr<IDXGISwapChain4> Dx12Wrapper::GetSwapChain()
 
 ComPtr<ID3D12Device> Dx12Wrapper::GetDevice()
 {
-	return sDevice;
+	return mDevice;
 }
 
 

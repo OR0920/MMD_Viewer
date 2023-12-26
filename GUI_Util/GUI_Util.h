@@ -27,6 +27,8 @@ namespace GUI
 	{
 		SUCCESS = 0,
 		FAIL = 1,
+		CONTINUE,
+		QUIT,
 	};
 
 	// 子ウィンドウを持てるウィンドウのインターフェイス
@@ -46,22 +48,21 @@ namespace GUI
 	class MainWindow : public ParentWindow
 	{
 	public:
+		// メインウィンドウは一つだけを想定しシングルトン
+		static MainWindow& Instance();
+
 		// サイズを指定し生成
 		Result Create(int width, int height);
-		// 閉じるボタンが押されるとtrueを返す
-		bool IsClose();
-
+		// メッセージを処理する
+		// 閉じるボタンが押されるとfalseを返す
+		Result ProcessMessage();
 
 		const int GetWindowWidth() const;
 		const int GetWindowHeight() const;
 
-		// メインウィンドウは一つだけを想定しシングルトン
-		static MainWindow& Instance();
-
 		// ライブラリ側から呼び出す関数
 		const HWND GetHandle() const;
 	private:
-		bool isClose;
 		MainWindow();
 		~MainWindow();
 
@@ -78,11 +79,8 @@ namespace GUI
 	class FileCatcher
 	{
 	public:
-		struct DropPos
-		{
-			long x;
-			long y;
-		};
+		// シングルトン用関数
+		static FileCatcher& Instance();
 
 		// 親を指定し生成
 		// 親のクライアント領域いっぱいにサイズが指定される
@@ -94,10 +92,14 @@ namespace GUI
 		// パスの長さ、パス、ドロップされた位置を取得する
 		int GetLength() const;
 		const char* const GetPath() const;
+
+		struct DropPos
+		{
+			long x;
+			long y;
+		};
 		const DropPos& GetDropPos() const;
 
-		// シングルトン用関数
-		static FileCatcher& Instance();
 
 		// コールバック関数。　ユーザーからは呼び出さない。
 		static LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
@@ -151,23 +153,27 @@ namespace GUI
 	{
 		friend Model;
 	public:
-		Canvas(const ParentWindow& parent, const int frameCount);
-
-		Result IsSuccessInit() const;
+		static Result Init(const ParentWindow& window, const int frameCount);
+		static Canvas& Instance();
+		static void Tern();
 
 		void BeginDraw();
 		void Clear(const Color& clearColor = Color(0.f, 0.f, 1.f));
 		void EndDraw();
+		
 	private:
+		static Canvas* sCanvas;
+		Canvas(const ParentWindow& window, const int frameCount); ~Canvas();
+
+		Result InitDirect3D();
+
 		Result mIsSuccessInit;
 		const int mFrameCount;
 		const ParentWindow& mWindow;
 		const int mWidth, mHeight;
 
-		Result InitDirect3D();
-
-		static ComPtr<ID3D12Device> sDevice;
-		static ComPtr<ID3D12CommandQueue> sCommandQueue;
+		ComPtr<ID3D12Device> mDevice;
+		ComPtr<ID3D12CommandQueue> mCommandQueue;
 
 		ComPtr<ID3D12CommandAllocator> mCommandAllocator;
 		ComPtr<ID3D12GraphicsCommandList> mCommandList;

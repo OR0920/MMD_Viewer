@@ -36,16 +36,16 @@ int MAIN()
 	}
 
 	// •`‰æƒGƒ“ƒWƒ“‰Šú‰»
-	GUI::Canvas canvas(mainWindow, 2);
-	if (canvas.IsSuccessInit() == GUI::Result::FAIL)
+	if (GUI::Canvas::Init(mainWindow, 2) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
 
+	auto& canvas = GUI::Canvas::Instance();
 
 	GUI::Model model;
 
-	while (mainWindow.IsClose() == false)
+	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
 	{
 		if (fc.Update() == true)
 		{
@@ -81,5 +81,5 @@ int MAIN()
 
 		canvas.EndDraw();
 	}
-
+	GUI::Canvas::Tern();
 }
