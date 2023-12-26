@@ -3,6 +3,7 @@
 
 // std
 #include<string>
+#include<vector>
 
 // windows
 #include<windows.h>
@@ -153,6 +154,14 @@ namespace GUI
 		ComPtr<ID3D12CommandAllocator> mCommandAllocator;
 		ComPtr<ID3D12GraphicsCommandList> mCommandList;
 		ComPtr<IDXGISwapChain3> mSwapChain;
+
+		// RT : Render Target, RTV : Render Target View
+		ComPtr<ID3D12DescriptorHeap> mRTV_Heap;
+		std::vector<ComPtr<ID3D12Resource>>	mRT_Resouce;
+
+		// DSB : Depth Stencil Buffer, DSV : Depth Stencil View
+		ComPtr<ID3D12DescriptorHeap> mDSV_Heap;
+		ComPtr<ID3D12Resource> mDSB_Resouce;
 	};
 }
 

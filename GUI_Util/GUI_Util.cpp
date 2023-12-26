@@ -404,7 +404,8 @@ Canvas::Canvas(const ParentWindow& parent, const int frameCount)
 	mHeight(parent.GetWindowHeight()),
 	mCommandAllocator(nullptr),
 	mCommandList(nullptr),
-	mSwapChain(nullptr)
+	mSwapChain(nullptr),
+	mRTV_Heap(nullptr)
 {
 	if (parent.GetHandle() == 0)
 	{
@@ -563,9 +564,130 @@ Result Canvas::InitDirect3D()
 		);
 	}
 
+	// レンダーターゲット作成
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC rtvDhd = {};
+		rtvDhd.NumDescriptors = mFrameCount;
+		rtvDhd.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		rtvDhd.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
+		ReturnIfFiled
+		(
+			sDevice->CreateDescriptorHeap
+			(
+				&rtvDhd, IID_PPV_ARGS(mRTV_Heap.ReleaseAndGetAddressOf())
+			),
+			Canvas::InitDirect3D()
+		);
 
-	// last;
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle
+		(
+			mRTV_Heap->GetCPUDescriptorHandleForHeapStart()
+		);
+
+		mRT_Resouce.assign(mFrameCount, nullptr);
+		for (UINT i = 0; i < mFrameCount; ++i)
+		{
+			ReturnIfFiled
+			(
+				mSwapChain->GetBuffer
+				(
+					i,
+					IID_PPV_ARGS(mRT_Resouce[i].ReleaseAndGetAddressOf())
+				),
+				Canvas::InitDirect3D()
+			);
+
+			sDevice->CreateRenderTargetView
+			(
+				mRT_Resouce[i].Get(),
+				NULL, rtvHandle
+			);
+
+			rtvHandle.Offset
+			(
+				1,
+				sDevice->GetDescriptorHandleIncrementSize
+				(
+					D3D12_DESCRIPTOR_HEAP_TYPE_RTV
+				)
+			);
+		}
+	}
+
+	// デプスバッファ
+	{
+		D3D12_HEAP_PROPERTIES dsbHp = {};
+		dsbHp.Type = D3D12_HEAP_TYPE_DEFAULT;
+		dsbHp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		dsbHp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+		dsbHp.CreationNodeMask = NULL;
+		dsbHp.VisibleNodeMask = NULL;
+
+		D3D12_RESOURCE_DESC dsbRd = {};
+		dsbRd.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		dsbRd.Alignment = 0;
+		dsbRd.Width = mWidth;
+		dsbRd.Height = mHeight;
+		dsbRd.DepthOrArraySize = 1;
+		dsbRd.MipLevels = 1;
+		dsbRd.Format = DXGI_FORMAT_D32_FLOAT;
+		dsbRd.SampleDesc = { 1, 0 };
+		dsbRd.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		dsbRd.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+		D3D12_CLEAR_VALUE clearValue = {};
+		clearValue.Format = DXGI_FORMAT_D32_FLOAT;
+		clearValue.DepthStencil.Depth = 1.f;
+		clearValue.DepthStencil.Stencil = 0;
+
+		ReturnIfFiled
+		(
+			sDevice->CreateCommittedResource
+			(
+				&dsbHp,
+				D3D12_HEAP_FLAG_NONE,
+				&dsbRd,
+				D3D12_RESOURCE_STATE_DEPTH_WRITE,
+				&clearValue,
+				IID_PPV_ARGS(mDSB_Resouce.ReleaseAndGetAddressOf())
+			),
+			Canvas::InitDirect3D()
+		);
+
+		D3D12_DESCRIPTOR_HEAP_DESC dsvHd = {};
+		dsvHd.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+		dsvHd.NumDescriptors = 1;
+		dsvHd.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		dsvHd.NodeMask = NULL;
+
+		ReturnIfFiled
+		(
+			sDevice->CreateDescriptorHeap
+			(
+				&dsvHd,
+				IID_PPV_ARGS(mDSV_Heap.ReleaseAndGetAddressOf())
+			),
+			Canvas::InitDirect3D()
+		);
+
+		D3D12_DEPTH_STENCIL_VIEW_DESC dsvd = {};
+		dsvd.Format = DXGI_FORMAT_D32_FLOAT;
+		dsvd.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+		dsvd.Flags = D3D12_DSV_FLAG_NONE;
+		dsvd.Texture2D.MipSlice = 0;
+		auto dsvHandle = 
+			mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
+
+		sDevice->CreateDepthStencilView
+		(
+			mDSB_Resouce.Get(),
+			&dsvd,
+			dsvHandle
+		);
+	}
+
+	// last
 
 	return SUCCESS;
 }
