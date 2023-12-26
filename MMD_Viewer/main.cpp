@@ -61,8 +61,13 @@ int MAIN()
 				model.Reset();
 				// モデルをコピー
 				model = tModel;
-				DebugMessageNewLine();
 			}
+			else
+			{
+				GUI::ErrorBox(L"サポートされていないファイルです\n Not Supported File");
+			}
+			DebugMessageNewLine();
+
 		}
 
 		canvas.BeginDraw();

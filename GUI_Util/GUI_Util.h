@@ -72,6 +72,7 @@ namespace GUI
 		WNDCLASSEX mWindowClass;
 	};
 
+	void ErrorBox(const TCHAR* const message);
 
 	// 領域内にドロップされたウィンドウを認識するウィンドウ
 	class FileCatcher
@@ -142,7 +143,8 @@ namespace GUI
 		void Draw();
 
 	private:
-
+		Result LoadAsPMD(const char* const filepath);
+		Result LoadAsPMX(const char* const filepath);
 	};
 
 	class Canvas

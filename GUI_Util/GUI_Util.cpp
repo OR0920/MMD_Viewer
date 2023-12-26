@@ -19,6 +19,7 @@
 #include "System.h"
 
 #include"MathUtil.h"
+#include"MMDsdk.h"
 
 
 // ParentWindow
@@ -210,6 +211,11 @@ MainWindow::~MainWindow()
 	UnregisterClass(mWindowClass.lpszClassName, mWindowClass.hInstance);
 }
 
+// ErrorBox
+void GUI::ErrorBox(const TCHAR* const message)
+{
+	MessageBox(NULL, message, _T("ERROR"), MB_ICONERROR);
+}
 
 // FileCatcher
 
@@ -410,8 +416,23 @@ const Model& Model::operator=(const Model& other)
 
 Result Model::Load(const char* const filepath)
 {
-	DebugMessage("Model Loaded !");
-	return SUCCESS;
+	if (LoadAsPMD(filepath) == SUCCESS)
+	{
+		DebugMessage("Load PMD File !");
+		return SUCCESS;
+	}
+	else if(LoadAsPMX(filepath) == SUCCESS)
+	{
+		DebugMessage("Load PMX File !");
+		return SUCCESS;
+	}
+	else
+	{
+		DebugMessage("Not Supported File !");
+		return FAIL;
+	}
+
+	// last
 }
 
 void Model::Reset()
@@ -424,6 +445,30 @@ void Model::Draw()
 	DebugMessage("Model Drawed !");
 }
 
+
+Result Model::LoadAsPMD(const char* const filepath)
+{
+	MMDsdk::PmdFile file(filepath);
+
+	if (file.IsSuccessLoad() == false)
+	{
+		return FAIL;
+	}
+
+	return SUCCESS;
+}
+
+Result Model::LoadAsPMX(const char* const filepath)
+{
+	MMDsdk::PmxFile file(filepath);
+
+	if (file.IsSuccessLoad() == false)
+	{
+		return FAIL;
+	}
+
+	return SUCCESS;
+}
 
 // Canvas
 ComPtr<ID3D12Device> Canvas::sDevice = nullptr;
