@@ -157,11 +157,14 @@ namespace GUI
 
 		// RT : Render Target, RTV : Render Target View
 		ComPtr<ID3D12DescriptorHeap> mRTV_Heap;
-		std::vector<ComPtr<ID3D12Resource>>	mRT_Resouce;
+		std::vector<ComPtr<ID3D12Resource>>	mRT_Resouces;
 
 		// DSB : Depth Stencil Buffer, DSV : Depth Stencil View
 		ComPtr<ID3D12DescriptorHeap> mDSV_Heap;
 		ComPtr<ID3D12Resource> mDSB_Resouce;
+
+		ComPtr<ID3D12Fence> mFence;
+		UINT mFenceValue;
 	};
 }
 

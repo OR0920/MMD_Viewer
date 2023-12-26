@@ -405,7 +405,12 @@ Canvas::Canvas(const ParentWindow& parent, const int frameCount)
 	mCommandAllocator(nullptr),
 	mCommandList(nullptr),
 	mSwapChain(nullptr),
-	mRTV_Heap(nullptr)
+	mRTV_Heap(nullptr),
+	mRT_Resouces(),
+	mDSV_Heap(nullptr),
+	mDSB_Resouce(nullptr),
+	mFence(nullptr),
+	mFenceValue(0)
 {
 	if (parent.GetHandle() == 0)
 	{
@@ -585,7 +590,7 @@ Result Canvas::InitDirect3D()
 			mRTV_Heap->GetCPUDescriptorHandleForHeapStart()
 		);
 
-		mRT_Resouce.assign(mFrameCount, nullptr);
+		mRT_Resouces.assign(mFrameCount, nullptr);
 		for (UINT i = 0; i < mFrameCount; ++i)
 		{
 			ReturnIfFiled
@@ -593,14 +598,14 @@ Result Canvas::InitDirect3D()
 				mSwapChain->GetBuffer
 				(
 					i,
-					IID_PPV_ARGS(mRT_Resouce[i].ReleaseAndGetAddressOf())
+					IID_PPV_ARGS(mRT_Resouces[i].ReleaseAndGetAddressOf())
 				),
 				Canvas::InitDirect3D()
 			);
 
 			sDevice->CreateRenderTargetView
 			(
-				mRT_Resouce[i].Get(),
+				mRT_Resouces[i].Get(),
 				NULL, rtvHandle
 			);
 
@@ -676,7 +681,7 @@ Result Canvas::InitDirect3D()
 		dsvd.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 		dsvd.Flags = D3D12_DSV_FLAG_NONE;
 		dsvd.Texture2D.MipSlice = 0;
-		auto dsvHandle = 
+		auto dsvHandle =
 			mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
 
 		sDevice->CreateDepthStencilView
@@ -685,6 +690,21 @@ Result Canvas::InitDirect3D()
 			&dsvd,
 			dsvHandle
 		);
+	}
+
+	{
+		ReturnIfFiled
+		(
+			sDevice->CreateFence
+			(
+				0,
+				D3D12_FENCE_FLAG_NONE,
+				IID_PPV_ARGS(mFence.ReleaseAndGetAddressOf())
+			),
+			Canvas::InitDirect3D()
+		);
+
+		mFenceValue = 1;
 	}
 
 	// last
