@@ -154,7 +154,6 @@ namespace GUI
 		D3D12_VERTEX_BUFFER_VIEW mVB_View;
 		ComPtr<ID3D12Resource> mIB_Resource;
 		D3D12_INDEX_BUFFER_VIEW mIB_View;
-
 		
 	};
 
@@ -232,7 +231,8 @@ namespace GUI
 		ComPtr<ID3D12DescriptorHeap> mCB_Heap;
 		ConstantBuffer* mappedCB;
 
-
+		ComPtr<ID3D12RootSignature> mRootSignature;
+		ComPtr<ID3D12PipelineState> mPipelineState;
 	};
 }
 

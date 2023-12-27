@@ -801,7 +801,11 @@ GraphicsDevice::GraphicsDevice(const ParentWindow& window, const int frameCount)
 	mDSB_Resouce(nullptr),
 	mDSV_Handle({}),
 	mFence(nullptr),
-	mFenceValue(0)
+	mFenceValue(0),
+	mCB_Resource(nullptr),
+	mCB_Heap(nullptr),
+	mRootSignature(nullptr),
+	mPipelineState(nullptr)
 {
 
 }
@@ -1059,6 +1063,51 @@ Result GraphicsDevice::InitDirect3D()
 		);
 
 		mFenceValue = 1;
+	}
+
+	//　ルートシグネチャ作成
+	{
+		CD3DX12_DESCRIPTOR_RANGE range[1];
+		range[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+
+		CD3DX12_ROOT_PARAMETER rootParameter[1];
+		rootParameter[0].InitAsDescriptorTable(1, &range[0], D3D12_SHADER_VISIBILITY_ALL);
+
+		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
+		rootSignatureDesc.Init_1_0
+		(
+			_countof(rootParameter),
+			rootParameter,
+			0, nullptr,
+			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+		);
+
+		ComPtr<ID3DBlob> sigunature;
+		ComPtr<ID3DBlob> error;
+
+		ReturnIfFiled
+		(
+			D3DX12SerializeVersionedRootSignature
+			(
+				&rootSignatureDesc,
+				D3D_ROOT_SIGNATURE_VERSION_1,
+				sigunature.ReleaseAndGetAddressOf(),
+				error.ReleaseAndGetAddressOf()
+			),
+			GraphicsDevice::InitDirect3D()
+		);
+
+		ReturnIfFiled
+		(
+			mDevice->CreateRootSignature
+			(
+				0,
+				sigunature->GetBufferPointer(),
+				sigunature->GetBufferSize(),
+				IID_PPV_ARGS(mRootSignature.ReleaseAndGetAddressOf())
+			),
+			GraphicsDevice::InitDirect3D()
+		);
 	}
 
 	// last
