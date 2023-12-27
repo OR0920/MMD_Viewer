@@ -147,6 +147,11 @@ namespace GUI
 	private:
 		Result LoadAsPMD(const char* const filepath);
 		Result LoadAsPMX(const char* const filepath);
+
+		ComPtr<ID3D12Resource> mVB_Resource;
+		D3D12_VERTEX_BUFFER_VIEW mVB_View;
+		ComPtr<ID3D12Resource> mIB_Resource;
+		D3D12_INDEX_BUFFER_VIEW mIB_View;
 	};
 
 	class GraphicsDevice

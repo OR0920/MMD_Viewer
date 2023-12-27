@@ -398,14 +398,45 @@ Color::Color(float _r, float _g, float _b, float _a)
 
 }
 
+// WinAPI の HRESULT を確認するマクロ
+#define ReturnIfFiled(InitFunction, at)\
+{\
+	auto result = InitFunction;\
+	if(FAILED(result))\
+	{\
+		DebugMessageFunctionError(InitFunction, at);\
+		DebugOutParamHex(result);\
+		return FAIL;\
+	}\
+}\
+
+// From : https://learn.microsoft.com/ja-jp/windows/win32/medfound/saferelease
+template <class T> void SafeRelease(T** ppT)
+{
+	if (*ppT)
+	{
+		(*ppT)->Release();
+		*ppT = NULL;
+	}
+}
 
 // Model
 Model::Model()
+	:
+	mVB_Resource(nullptr),
+	mVB_View({}),
+	mIB_Resource(nullptr),
+	mIB_View({})
 {
 	DebugMessage("Model Created !");
 }
 
 Model::Model(const Model& other)
+	:
+	mVB_Resource(other.mVB_Resource),
+	mVB_View(other.mVB_View),
+	mIB_Resource(other.mIB_Resource),
+	mIB_View(other.mIB_View)
 {
 	DebugMessage("Copy Model Created !");
 }
@@ -439,6 +470,8 @@ Result Model::Load(const char* const filepath)
 void Model::Reset()
 {
 	DebugMessage("Model Reseted !");
+	SafeRelease(mVB_Resource.GetAddressOf());
+	SafeRelease(mIB_Resource.GetAddressOf());
 }
 
 void Model::Draw()
@@ -472,11 +505,60 @@ Result Model::LoadAsPMD(const char* const filepath)
 		return FAIL;
 	}
 
-	std::vector<Vertex> vertex(file.GetVertexCount());
+	auto device = GraphicsDevice::GetDevice();
 
-	for (int i = 0; i < file.GetVertexCount(); ++i)
+	// 頂点バッファ作成
 	{
-		vertex[i].LoadFromPMD_Vertex(file.GetVertex(i));
+		// 生データ
+		std::vector<Vertex> vertex(file.GetVertexCount());
+
+		// ファイルからデータコピー
+		for (int i = 0; i < file.GetVertexCount(); ++i)
+		{
+			vertex[i].LoadFromPMD_Vertex(file.GetVertex(i));
+		}
+
+		// 合計のデータサイズ
+		auto vertexBufferSize = sizeof(Vertex) * file.GetVertexCount();
+
+		// データサイズ分アップロード用のリソースを作成
+		CD3DX12_HEAP_PROPERTIES heapProp(D3D12_HEAP_TYPE_UPLOAD);
+		auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
+
+		ReturnIfFiled
+		(
+			device->CreateCommittedResource
+			(
+				&heapProp,
+				D3D12_HEAP_FLAG_NONE,
+				&resDesc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
+				IID_PPV_ARGS(mVB_Resource.ReleaseAndGetAddressOf())
+			),
+			Model::LoadAsPMD()
+		);
+
+		// ビューの作成
+		mVB_View.BufferLocation = mVB_Resource->GetGPUVirtualAddress();
+		mVB_View.StrideInBytes = sizeof(Vertex);
+		mVB_View.SizeInBytes = vertexBufferSize;
+
+		// 生データから、VRAM上にコピー
+		Vertex* resource = nullptr;
+		auto range = CD3DX12_RANGE(0, 0);
+		ReturnIfFiled
+		(
+			mVB_Resource->Map(0, &range, reinterpret_cast<void**>(&resource)),
+			Model::LoadAsPMD()
+		);
+		for (int i = 0; i < vertex.size(); ++i)
+		{
+			DebugOutParam(i);
+			resource[i].position = vertex[i].position;
+			resource[i].normal = vertex[i].normal;
+		}
+		mVB_Resource->Unmap(0, NULL);
 	}
 
 	std::vector<int> index(file.GetIndexCount());
@@ -652,16 +734,6 @@ GraphicsDevice::~GraphicsDevice()
 {
 }
 
-#define ReturnIfFiled(InitFunction, at)\
-{\
-	auto result = InitFunction;\
-	if(FAILED(result))\
-	{\
-		DebugMessageFunctionError(InitFunction, at);\
-		DebugOutParamHex(result);\
-		return FAIL;\
-	}\
-}\
 
 Result GraphicsDevice::InitDirect3D()
 {
@@ -689,6 +761,8 @@ Result GraphicsDevice::InitDirect3D()
 			),
 			GraphicsDevice::InitDirect3D()
 		);
+
+		mDevice->SetName(_T(ToString(GraphicsDevice::mDevice)));
 	}
 
 	// コマンド関連作成
@@ -914,4 +988,9 @@ Result GraphicsDevice::InitDirect3D()
 	// last
 
 	return SUCCESS;
+}
+
+ComPtr<ID3D12Device> GraphicsDevice::GetDevice()
+{
+	return Instance().mDevice;
 }
