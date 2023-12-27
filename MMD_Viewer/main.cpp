@@ -43,7 +43,6 @@ int MAIN()
 
 	auto& device = GUI::GraphicsDevice::Instance();
 
-	GUI::Model::LoadDefaultShader();
 	// ƒ‚ƒfƒ‹ì¬
 	GUI::Model model;
 	
