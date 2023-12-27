@@ -505,7 +505,7 @@ struct Vertex
 	}
 };
 
-D3D12_INPUT_ELEMENT_DESC inputLayout[] =
+const D3D12_INPUT_ELEMENT_DESC inputLayout[] =
 {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -651,17 +651,16 @@ Result GraphicsDevice::Init(const ParentWindow& window, const int frameCount)
 	if (sCanvas == nullptr)
 	{
 		sCanvas = new GraphicsDevice(window, frameCount);
-		ReturnIfFiled
-		(
-			sCanvas->InitDirect3D(),
-			GraphicsDevice::Init()
-		);
 
-		ReturnIfFiled
-		(
-			sCanvas->InitConstantResource(),
-			GraphicsDevice::Init()
-		);
+		if (sCanvas->InitDirect3D() == FAIL)
+		{
+			return FAIL;
+		}
+		if (sCanvas->InitConstantResource() == FAIL)
+		{
+			return FAIL;
+		}
+
 
 		return SUCCESS;
 	}
@@ -1105,6 +1104,37 @@ Result GraphicsDevice::InitDirect3D()
 				sigunature->GetBufferPointer(),
 				sigunature->GetBufferSize(),
 				IID_PPV_ARGS(mRootSignature.ReleaseAndGetAddressOf())
+			),
+			GraphicsDevice::InitDirect3D()
+		);
+	}
+
+	// パイプラインステート作成
+	{
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+		psoDesc.InputLayout.pInputElementDescs = inputLayout;
+		psoDesc.InputLayout.NumElements = _countof(inputLayout);
+		psoDesc.pRootSignature = mRootSignature.Get();
+		psoDesc.VS = CD3DX12_SHADER_BYTECODE(gVertexShader, _countof(gVertexShader) * sizeof(BYTE));
+		psoDesc.PS = CD3DX12_SHADER_BYTECODE(gPixelShader, _countof(gPixelShader) * sizeof(BYTE));
+		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+		psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+		psoDesc.BlendState.AlphaToCoverageEnable = true;
+		psoDesc.DepthStencilState.DepthEnable = false;
+		psoDesc.DepthStencilState.StencilEnable = false;
+		psoDesc.SampleMask = UINT_MAX;
+		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		psoDesc.NumRenderTargets = 1;
+		psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		psoDesc.SampleDesc.Count = 1;
+
+		ReturnIfFiled
+		(
+			mDevice->CreateGraphicsPipelineState
+			(
+				&psoDesc, IID_PPV_ARGS(mPipelineState.ReleaseAndGetAddressOf())
 			),
 			GraphicsDevice::InitDirect3D()
 		);
