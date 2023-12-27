@@ -423,8 +423,6 @@ template <class T> void SafeRelease(T** ppT)
 }
 
 // Model
-ComPtr<ID3DBlob> Model::sVS_Blob = nullptr;
-ComPtr<ID3DBlob> Model::sPS_Blob = nullptr;
 
 Model::Model()
 	:
@@ -490,19 +488,9 @@ void Model::Draw()
 {
 }
 
-Result Model::LoadDefaultShader()
-{
-	auto device = GraphicsDevice::GetDevice();
+#include"VertexShader.h"
+#include"PixelShader.h"
 
-	System::FileReadBin file("VertexShader.hlsl");
-	if (file.IsFileOpenSuccsess() == false)
-	{
-		return FAIL;
-	}
-
-		
-	return SUCCESS;
-}
 
 struct Vertex
 {

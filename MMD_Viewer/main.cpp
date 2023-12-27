@@ -43,12 +43,6 @@ int MAIN()
 
 	auto& device = GUI::GraphicsDevice::Instance();
 
-
-	if (GUI::Model::LoadDefaultShader() == GUI::Result::FAIL)
-	{
-		return -1;
-	};
-
 	// ÉÇÉfÉãçÏê¨
 	GUI::Model model;
 	
