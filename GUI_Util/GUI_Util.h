@@ -197,8 +197,8 @@ namespace GUI
 		const ParentWindow& mWindow;
 		const int mWidth, mHeight;
 
-		static ComPtr<ID3D12Device> GetDevice();
-		static ComPtr<ID3D12GraphicsCommandList> GetCommandList();
+		static ComPtr<ID3D12Device>& GetDevice();
+		static ComPtr<ID3D12GraphicsCommandList>& GetCommandList();
 
 		ComPtr<ID3D12Device> mDevice;
 		ComPtr<ID3D12CommandQueue> mCommandQueue;

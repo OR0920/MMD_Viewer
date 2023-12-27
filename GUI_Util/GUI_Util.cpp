@@ -430,7 +430,8 @@ Model::Model()
 	mVB_Resource(nullptr),
 	mVB_View({}),
 	mIB_Resource(nullptr),
-	mIB_View({})
+	mIB_View({}),
+	mIndexCount(0)
 {
 	DebugMessage("Model Created !");
 }
@@ -440,7 +441,8 @@ Model::Model(const Model& other)
 	mVB_Resource(other.mVB_Resource),
 	mVB_View(other.mVB_View),
 	mIB_Resource(other.mIB_Resource),
-	mIB_View(other.mIB_View)
+	mIB_View(other.mIB_View),
+	mIndexCount(other.mIndexCount)
 {
 	DebugMessage("Copy Model Created !");
 }
@@ -453,6 +455,7 @@ const Model& Model::operator=(const Model& other)
 	mVB_View = other.mVB_View;
 	mIB_Resource = other.mIB_Resource;
 	mIB_View = other.mIB_View;
+	mIndexCount = other.mIndexCount;
 
 	return *this;
 }
@@ -820,6 +823,7 @@ GraphicsDevice::GraphicsDevice(const ParentWindow& window, const int frameCount)
 	mFenceValue(0),
 	mCB_Resource(nullptr),
 	mCB_Heap(nullptr),
+	mappedCB(nullptr),
 	mRootSignature(nullptr),
 	mPipelineState(nullptr)
 {
@@ -1164,7 +1168,9 @@ Result GraphicsDevice::InitDirect3D()
 
 Result GraphicsDevice::InitConstantResource()
 {
+	DebugOutParam(sizeof(ConstantBuffer));
 	auto constantBufferSize = D3D12Allignment(sizeof(ConstantBuffer));
+	DebugOutParam(constantBufferSize);
 
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(constantBufferSize);
@@ -1225,12 +1231,12 @@ Result GraphicsDevice::InitConstantResource()
 	return SUCCESS;
 }
 
-ComPtr<ID3D12Device> GraphicsDevice::GetDevice()
+ComPtr<ID3D12Device>& GraphicsDevice::GetDevice()
 {
 	return Instance().mDevice;
 }
 
-ComPtr<ID3D12GraphicsCommandList> GraphicsDevice::GetCommandList()
+ComPtr<ID3D12GraphicsCommandList>& GraphicsDevice::GetCommandList()
 {
 	return Instance().mCommandList;
 }
