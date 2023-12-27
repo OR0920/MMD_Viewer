@@ -493,7 +493,7 @@ void Model::Draw()
 	auto commandList = GraphicsDevice::GetCommandList();
 
 
-	commandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->IASetVertexBuffers(0, 1, &mVB_View);
 	commandList->IASetIndexBuffer(&mIB_View);
 
