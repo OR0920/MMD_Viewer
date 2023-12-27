@@ -43,8 +43,10 @@ int MAIN()
 
 	auto& device = GUI::GraphicsDevice::Instance();
 
+	GUI::Model::LoadDefaultShader();
+	// ÉÇÉfÉãçÏê¨
 	GUI::Model model;
-
+	
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
 	{
 		if (fc.Update() == true)

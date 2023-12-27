@@ -144,9 +144,13 @@ namespace GUI
 		void Reset();
 		void Draw();
 
+
 	private:
 		Result LoadAsPMD(const char* const filepath);
 		Result LoadAsPMX(const char* const filepath);
+
+		static ComPtr<ID3DBlob> sVS_Blob;
+		static ComPtr<ID3DBlob> sPS_Blob;
 
 		ComPtr<ID3D12Resource> mVB_Resource;
 		D3D12_VERTEX_BUFFER_VIEW mVB_View;

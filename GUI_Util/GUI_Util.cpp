@@ -421,6 +421,9 @@ template <class T> void SafeRelease(T** ppT)
 }
 
 // Model
+ComPtr<ID3DBlob> Model::sVS_Blob = nullptr;
+ComPtr<ID3DBlob> Model::sPS_Blob = nullptr;
+
 Model::Model()
 	:
 	mVB_Resource(nullptr),
@@ -444,6 +447,12 @@ Model::Model(const Model& other)
 const Model& Model::operator=(const Model& other)
 {
 	DebugMessage("Model Copyed !");
+
+	mVB_Resource = other.mVB_Resource;
+	mVB_View = other.mVB_View;
+	mIB_Resource = other.mIB_Resource;
+	mIB_View = other.mIB_View;
+
 	return *this;
 }
 
@@ -452,12 +461,10 @@ Result Model::Load(const char* const filepath)
 	if (LoadAsPMD(filepath) == SUCCESS)
 	{
 		DebugMessage("Load PMD File !");
-		return SUCCESS;
 	}
 	else if (LoadAsPMX(filepath) == SUCCESS)
 	{
 		DebugMessage("Load PMX File !");
-		return SUCCESS;
 	}
 	else
 	{
@@ -465,6 +472,9 @@ Result Model::Load(const char* const filepath)
 		return FAIL;
 	}
 
+
+
+	return SUCCESS;
 }
 
 void Model::Reset()
@@ -477,6 +487,7 @@ void Model::Reset()
 void Model::Draw()
 {
 }
+
 
 struct Vertex
 {
@@ -522,7 +533,7 @@ Result Model::LoadAsPMD(const char* const filepath)
 		auto vertexBufferSize = sizeof(Vertex) * file.GetVertexCount();
 
 		// データサイズ分アップロード用のリソースを作成
-		CD3DX12_HEAP_PROPERTIES heapProp(D3D12_HEAP_TYPE_UPLOAD);
+		auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 		auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
 
 		ReturnIfFiled
@@ -554,20 +565,59 @@ Result Model::LoadAsPMD(const char* const filepath)
 		);
 		for (int i = 0; i < vertex.size(); ++i)
 		{
-			DebugOutParam(i);
 			resource[i].position = vertex[i].position;
 			resource[i].normal = vertex[i].normal;
 		}
 		mVB_Resource->Unmap(0, NULL);
 	}
 
-	std::vector<int> index(file.GetIndexCount());
-	for (int i = 0; i < file.GetIndexCount(); ++i)
 	{
-		index[i] = static_cast<int> (file.GetIndex(i));
-	}
+		std::vector<int> index(file.GetIndexCount());
+		for (int i = 0; i < file.GetIndexCount(); ++i)
+		{
+			index[i] = static_cast<int> (file.GetIndex(i));
+		}
 
-	DebugOutParam(index[file.GetLastIndexID()]);
+		auto indexBufferSize = index.size() * sizeof(int);
+
+		// データサイズ分アップロード用のリソースを作成
+		auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+		auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(indexBufferSize);
+
+		ReturnIfFiled
+		(
+			device->CreateCommittedResource
+			(
+				&heapProp,
+				D3D12_HEAP_FLAG_NONE,
+				&resDesc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
+				IID_PPV_ARGS(mIB_Resource.ReleaseAndGetAddressOf())
+			),
+			Model::LoadAsPMD()
+		);
+
+		// ビューの作成
+		mIB_View.BufferLocation = mIB_Resource->GetGPUVirtualAddress();
+		mIB_View.Format = DXGI_FORMAT_R32_UINT;
+		mIB_View.SizeInBytes = indexBufferSize;
+
+		// 生データから、VRAM上にコピー
+		int* resource = nullptr;
+		// CPU側からは見ない
+		auto range = CD3DX12_RANGE(0, 0);
+		ReturnIfFiled
+		(
+			mIB_Resource->Map(0, &range, reinterpret_cast<void**>(&resource)),
+			Model::LoadAsPMD()
+		);
+		for (int i = 0; i < index.size(); ++i)
+		{
+			resource[i] = index[i];
+		}
+		mIB_Resource->Unmap(0, NULL);
+	}
 
 	// last
 	return SUCCESS;
