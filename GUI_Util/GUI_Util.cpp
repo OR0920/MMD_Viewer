@@ -13,6 +13,8 @@
 #pragma comment(lib, "d3d12.lib")
 
 #include"d3dx12.h"
+#include<d3dcompiler.h>
+#pragma comment(lib, "d3dcompiler.lib")
 
 // my lib
 #include "DebugMessage.h"
@@ -488,6 +490,19 @@ void Model::Draw()
 {
 }
 
+Result Model::LoadDefaultShader()
+{
+	auto device = GraphicsDevice::GetDevice();
+
+	System::FileReadBin file("VertexShader.hlsl");
+	if (file.IsFileOpenSuccsess() == false)
+	{
+		return FAIL;
+	}
+
+		
+	return SUCCESS;
+}
 
 struct Vertex
 {

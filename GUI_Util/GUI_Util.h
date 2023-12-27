@@ -144,7 +144,7 @@ namespace GUI
 		void Reset();
 		void Draw();
 
-
+		static Result LoadDefaultShader();
 	private:
 		Result LoadAsPMD(const char* const filepath);
 		Result LoadAsPMX(const char* const filepath);
