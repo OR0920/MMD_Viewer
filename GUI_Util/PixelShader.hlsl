@@ -2,6 +2,7 @@
 
 float4 PS_Main(VS_Output input) : SV_TARGET
 {
-    float4 color = (input.normalInWorld.xyz, 1.f);
+    return float4(1.f, 1.f, 1.f, 1.f);
+    float4 color = float4(input.normalInWorld.xyz, 1.f);
 	return color;
 }

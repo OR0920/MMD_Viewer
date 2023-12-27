@@ -48,14 +48,18 @@ int MAIN()
 
 
 	// カメラ初期化
-	MathUtil::float3 eye = { 0.f, 20.f, -50.f };
-	MathUtil::float3 target = { 0.f, 20.f, 0.f };
+	MathUtil::float3 eye = { 0.f, 0.f, -50.f };
+	MathUtil::float3 target = { 0.f, 0.f, 0.f };
 	MathUtil::float3 up = MathUtil::Vector::basicZ.GetFloat3();
 	device.SetCamera(eye, target, up);
 
 	
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
 	{
+		device.BeginDraw();
+		// 画面クリア
+		device.Clear(GUI::Color(0.f, 0.f, 1.f));
+
 		if (fc.Update() == true)
 		{
 			DebugOutString(fc.GetPath());
@@ -67,6 +71,7 @@ int MAIN()
 			GUI::Model tModel;
 			if (tModel.Load(fc.GetPath()) == GUI::Result::SUCCESS)
 			{
+				tModel.Draw();
 				model.Reset();
 				// モデルをコピー
 				model = tModel;
@@ -79,9 +84,6 @@ int MAIN()
 
 		}
 
-		device.BeginDraw();
-		// 画面クリア
-		device.Clear(GUI::Color(0.5f, 0.5f, 0.5f));
 
 		// カメラ更新
 		

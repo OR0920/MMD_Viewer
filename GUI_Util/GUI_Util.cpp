@@ -473,8 +473,6 @@ Result Model::Load(const char* const filepath)
 		return FAIL;
 	}
 
-
-
 	return SUCCESS;
 }
 
@@ -487,6 +485,19 @@ void Model::Reset()
 
 void Model::Draw()
 {
+	if (mVB_Resource == nullptr) return;
+	if (mIB_Resource == nullptr) return;
+	DebugMessage("Model Draw !");
+
+	auto device = GraphicsDevice::GetDevice();
+	auto commandList = GraphicsDevice::GetCommandList();
+
+
+	commandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->IASetVertexBuffers(0, 1, &mVB_View);
+	commandList->IASetIndexBuffer(&mIB_View);
+
+	commandList->DrawIndexedInstanced(mIndexCount, 1, 0, 0, 0);
 }
 
 #include"VertexShader.h"
@@ -575,7 +586,9 @@ Result Model::LoadAsPMD(const char* const filepath)
 		mVB_Resource->Unmap(0, NULL);
 	}
 
+	// インデックスデータ
 	{
+		mIndexCount = file.GetIndexCount();
 		std::vector<int> index(file.GetIndexCount());
 		for (int i = 0; i < file.GetIndexCount(); ++i)
 		{
@@ -733,6 +746,12 @@ void GraphicsDevice::BeginDraw()
 	mCommandList->RSSetViewports(1, &viewport);
 	mCommandList->RSSetScissorRects(1, &scissorRect);
 
+	mCommandList->SetPipelineState(mPipelineState.Get());
+
+	mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+	mCommandList->SetDescriptorHeaps(1, mCB_Heap.GetAddressOf());
+
+	mCommandList->SetGraphicsRootDescriptorTable(0, mCB_Heap->GetGPUDescriptorHandleForHeapStart());
 }
 
 void GraphicsDevice::Clear(const Color& clearColor)
@@ -1195,6 +1214,7 @@ Result GraphicsDevice::InitConstantResource()
 		GraphicsDevice::InitConstantResource()
 	);
 
+	mappedCB->world = MathUtil::Matrix::GenerateMatrixIdentity();
 
 	mappedCB->projection = MathUtil::Matrix::GenerateMatrixPerspectiveFovLH
 	(
@@ -1210,4 +1230,9 @@ Result GraphicsDevice::InitConstantResource()
 ComPtr<ID3D12Device> GraphicsDevice::GetDevice()
 {
 	return Instance().mDevice;
+}
+
+ComPtr<ID3D12GraphicsCommandList> GraphicsDevice::GetCommandList()
+{
+	return Instance().mCommandList;
 }
