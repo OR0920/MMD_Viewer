@@ -487,11 +487,9 @@ void Model::Draw()
 {
 	if (mVB_Resource == nullptr) return;
 	if (mIB_Resource == nullptr) return;
-	DebugMessage("Model Draw !");
+	//DebugMessage("Model Draw !");
 
-	auto device = GraphicsDevice::GetDevice();
 	auto commandList = GraphicsDevice::GetCommandList();
-
 
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->IASetVertexBuffers(0, 1, &mVB_View);
@@ -1140,7 +1138,7 @@ Result GraphicsDevice::InitDirect3D()
 		psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 		psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-		psoDesc.BlendState.AlphaToCoverageEnable = true;
+		//psoDesc.BlendState.AlphaToCoverageEnable = true;
 		psoDesc.DepthStencilState.DepthEnable = false;
 		psoDesc.DepthStencilState.StencilEnable = false;
 		psoDesc.SampleMask = UINT_MAX;
