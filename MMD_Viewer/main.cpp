@@ -45,6 +45,14 @@ int MAIN()
 
 	// モデル作成
 	GUI::Model model;
+
+
+	// カメラ初期化
+	MathUtil::float3 eye = { 0.f, 20.f, -50.f };
+	MathUtil::float3 target = { 0.f, 20.f, 0.f };
+	MathUtil::float3 up = MathUtil::Vector::basicZ.GetFloat3();
+	device.SetCamera(eye, target, up);
+
 	
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
 	{
@@ -76,7 +84,7 @@ int MAIN()
 		device.Clear(GUI::Color(0.5f, 0.5f, 0.5f));
 
 		// カメラ更新
-
+		
 		// モデル描画
 		model.Draw();
 

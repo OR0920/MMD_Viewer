@@ -16,6 +16,7 @@
 #include<d3dcompiler.h>
 #pragma comment(lib, "d3dcompiler.lib")
 
+#define D3D12Allignment(buffSize) (buffSize + 0xff) & ~0xff;
 // my lib
 #include "DebugMessage.h"
 #include "System.h"
@@ -650,7 +651,19 @@ Result GraphicsDevice::Init(const ParentWindow& window, const int frameCount)
 	if (sCanvas == nullptr)
 	{
 		sCanvas = new GraphicsDevice(window, frameCount);
-		return sCanvas->InitDirect3D();
+		ReturnIfFiled
+		(
+			sCanvas->InitDirect3D(),
+			GraphicsDevice::Init()
+		);
+
+		ReturnIfFiled
+		(
+			sCanvas->InitConstantResource(),
+			GraphicsDevice::Init()
+		);
+
+		return SUCCESS;
 	}
 	else
 	{
@@ -727,6 +740,16 @@ void GraphicsDevice::Clear(const Color& clearColor)
 {
 	float color[] = { clearColor.r, clearColor.g, clearColor.b, clearColor.a };
 	mCommandList->ClearRenderTargetView(mRTV_Handle, color, 0, NULL);
+}
+
+void GraphicsDevice::SetCamera
+(
+	const MathUtil::float3 eye,
+	const MathUtil::float3 target,
+	const MathUtil::float3 up
+)
+{
+	mappedCB->view = MathUtil::Matrix::GenerateMatrixLookAtLH(eye, target, up);
 }
 
 void GraphicsDevice::EndDraw()
@@ -1039,6 +1062,68 @@ Result GraphicsDevice::InitDirect3D()
 	}
 
 	// last
+
+	return SUCCESS;
+}
+
+Result GraphicsDevice::InitConstantResource()
+{
+	auto constantBufferSize = D3D12Allignment(sizeof(ConstantBuffer));
+
+	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(constantBufferSize);
+
+	ReturnIfFiled
+	(
+		mDevice->CreateCommittedResource
+		(
+			&heapProp,
+			D3D12_HEAP_FLAG_NONE,
+			&resDesc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(mCB_Resource.ReleaseAndGetAddressOf())
+		),
+		GraphicsDevice::InitConstantResource()
+	);
+
+	D3D12_DESCRIPTOR_HEAP_DESC cbHeapDesc = {};
+	cbHeapDesc.NumDescriptors = 1;
+	cbHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	cbHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	ReturnIfFiled
+	(
+		mDevice->CreateDescriptorHeap
+		(
+			&cbHeapDesc,
+			IID_PPV_ARGS(mCB_Heap.ReleaseAndGetAddressOf())
+		),
+		GraphicsDevice::InitConstantResource()
+	);
+
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbViewDesc = {};
+	cbViewDesc.BufferLocation = mCB_Resource->GetGPUVirtualAddress();
+	cbViewDesc.SizeInBytes = constantBufferSize;
+	mDevice->CreateConstantBufferView(&cbViewDesc, mCB_Heap->GetCPUDescriptorHandleForHeapStart());
+
+	auto range = CD3DX12_RANGE(0, 0);
+	ReturnIfFiled
+	(
+		mCB_Resource->Map
+		(
+			0, &range, reinterpret_cast<void**>(&mappedCB)
+		),
+		GraphicsDevice::InitConstantResource()
+	);
+
+
+	mappedCB->projection = MathUtil::Matrix::GenerateMatrixPerspectiveFovLH
+	(
+		MathUtil::PI_DIV4,
+		static_cast<float>(mWidth) / static_cast<float>(mHeight),
+		0.1f,
+		1000.f
+	);
 
 	return SUCCESS;
 }

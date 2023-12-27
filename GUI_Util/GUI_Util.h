@@ -12,6 +12,8 @@
 #include<d3d12.h>
 #include<dxgi1_4.h>
 
+// myLib
+#include"MathUtil.h"
 
 #ifdef _DEBUG
 #define MAIN main 
@@ -172,6 +174,14 @@ namespace GUI
 		// 画面クリア
 		void Clear(const Color& clearColor = Color(0.f, 0.f, 1.f));
 
+		// カメラセット
+		void SetCamera
+		(
+			const MathUtil::float3 eye,
+			const MathUtil::float3 target,
+			const MathUtil::float3 up
+		);
+
 		// 描画処理を実行する
 		void EndDraw();
 		
@@ -180,6 +190,7 @@ namespace GUI
 		GraphicsDevice(const ParentWindow& window, const int frameCount); ~GraphicsDevice();
 
 		Result InitDirect3D();
+		Result InitConstantResource();
 
 		Result mIsSuccessInit;
 		const int mFrameCount;
@@ -210,6 +221,18 @@ namespace GUI
 
 		ComPtr<ID3D12Fence> mFence;
 		UINT mFenceValue;
+
+		struct ConstantBuffer
+		{
+			MathUtil::Matrix world;
+			MathUtil::Matrix view;
+			MathUtil::Matrix projection;
+		};
+		ComPtr<ID3D12Resource> mCB_Resource;
+		ComPtr<ID3D12DescriptorHeap> mCB_Heap;
+		ConstantBuffer* mappedCB;
+
+
 	};
 }
 
