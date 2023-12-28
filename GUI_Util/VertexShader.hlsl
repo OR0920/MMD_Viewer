@@ -1,29 +1,41 @@
-#include"ShaderStructs.hlsli"
+#include "ShaderStructs.hlsli"
 
 struct VS_Input
 {
-    float4 position : POSITION;
+    float4 pos : POSITION;
     float4 normal : NORMAL;
+    float2 uv : TEXCOORD;
 };
 
-cbuffer Transforms : register(b0)
+
+cbuffer scene : register(b0)
 {
-    matrix W;
-    matrix V;
-    matrix P;
+    matrix view;
+    matrix projection;
+    float3 eye;
+}
+
+cbuffer transform : register(b1)
+{
+    matrix world;
 };
 
-VS_Output VS_Main(VS_Input input ) 
+VS_OutPut VS_Main(VS_Input vsi)
 {
-    VS_Output output;
+    vsi.pos.w = 1.f;
+    VS_OutPut vso;
     
-    input.position.w = 1.f;
-    
-    output.position = mul(W, input.position);
-    output.position = mul(V, output.position);
-    output.position = mul(P, output.position);
-    
-    output.normalInWorld = mul(W, input.normal);
-    
-    return output;
+    vso.pos = vsi.pos;
+    vsi.pos = mul(world, vsi.pos);
+
+    vso.ray = normalize(eye - vsi.pos.xyz);
+    vso.svpos = mul(mul(projection, view), vsi.pos);
+
+    vsi.normal.w = 0.f;
+    vso.normal = mul(world, vsi.normal);
+    vso.vnormal = mul(view, vso.normal);
+
+    vso.uv = vsi.uv;
+
+    return vso;
 }
