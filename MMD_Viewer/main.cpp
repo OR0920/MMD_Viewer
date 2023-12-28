@@ -72,6 +72,20 @@ int MAIN()
 		return -1;
 	}
 
+	// 深度ステンシル作成
+	GUI::Graphics::DepthStencilBuffer depthStencil;
+	if (device.CreateDepthBuffer(depthStencil, swapChain) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	GUI::Graphics::Fence fence;
+	if(device.CreateFence(fence) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+
 	// モデル作成
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
 	{

@@ -127,7 +127,8 @@ namespace GUI
 		class GraphicsCommand;
 		class SwapChain;
 		class RenderTarget;
-
+		class DepthStencilBuffer;
+		class Fence;
 
 		class Device
 		{
@@ -137,7 +138,20 @@ namespace GUI
 			Result Create();
 
 			Result CreateGraphicsCommand(GraphicsCommand& graphicsCommand);
-			Result CreateRenderTarget(RenderTarget& rendertarget, const SwapChain& swapchain);
+			Result CreateRenderTarget
+			(
+				RenderTarget& renderTarget,
+				const SwapChain& swapChain
+			);
+
+			// 深度バッファのみ使用する場合
+			Result CreateDepthBuffer
+			(
+				DepthStencilBuffer& depthStencilBuffer,
+				const SwapChain& swapChain
+			);
+
+			Result CreateFence(Fence& fence);
 		private:
 			ComPtr<ID3D12Device> mDevice;
 		};
@@ -149,8 +163,8 @@ namespace GUI
 
 			Result Create
 			(
-				const GraphicsCommand& device, 
-				const ParentWindow& targetWindow, 
+				const GraphicsCommand& device,
+				const ParentWindow& targetWindow,
 				const int frameCount
 			);
 
@@ -182,7 +196,10 @@ namespace GUI
 
 		class RenderTarget
 		{
-			friend Result Device::CreateRenderTarget(RenderTarget&, const SwapChain&);
+			friend Result Device::CreateRenderTarget
+			(
+				RenderTarget&, const SwapChain&
+			);
 		public:
 			RenderTarget(); ~RenderTarget();
 
@@ -197,12 +214,29 @@ namespace GUI
 
 		class DepthStencilBuffer
 		{
+			friend Result Device::CreateDepthBuffer
+			(
+				DepthStencilBuffer&, const SwapChain&
+			);
 		public:
 			DepthStencilBuffer(); ~DepthStencilBuffer();
 
 		private:
+			ComPtr<ID3D12Resource> mDSB_Resource;
+			ComPtr<ID3D12DescriptorHeap> mDSV_Heap;
+
 		};
 
+		class Fence
+		{
+			friend Result Device::CreateFence(Fence&);
+		public:
+			Fence(); ~Fence();
+
+		private:
+			ComPtr<ID3D12Fence> mFence;
+			UINT64 mFenceValue;
+		};
 	}
 }
 

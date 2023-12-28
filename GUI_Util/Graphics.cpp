@@ -133,17 +133,16 @@ Result Device::CreateGraphicsCommand(GraphicsCommand& command)
 	return SUCCESS;
 }
 
-Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& swapchain)
+Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& swapChain)
 {
 	DXGI_SWAP_CHAIN_DESC desc = {};
-	ReturnIfFailed
-	(
-		swapchain.GetDesc(&desc),
-		Device::CreateRenderTarget()
-	);
+	if (swapChain.GetDesc(&desc) == Result::FAIL)
+	{
+		return FAIL;
+	}
 
 	auto& bufferCount = renderTarget.mBufferCount = desc.BufferCount;
-	
+
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	heapDesc.NodeMask = 0;
@@ -162,7 +161,7 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 
 	renderTarget.mRT_Resource = new ComPtr<ID3D12Resource>[bufferCount] {nullptr};
 
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle 
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle
 		= renderTarget.mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
 
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
@@ -171,9 +170,9 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 
 	for (int i = 0; i < renderTarget.mBufferCount; ++i)
 	{
-		auto result = swapchain.GetBuffer
+		auto result = swapChain.GetBuffer
 		(
-			i, 
+			i,
 			reinterpret_cast<void**>
 			(renderTarget.mRT_Resource[i].ReleaseAndGetAddressOf())
 		);
@@ -196,6 +195,92 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 	return SUCCESS;
 }
 
+Result Device::CreateDepthBuffer
+(
+	DepthStencilBuffer& depthStencilBuffer,
+	const SwapChain& swapChain
+)
+{
+	DXGI_SWAP_CHAIN_DESC swDesc = {};
+	if (swapChain.GetDesc(&swDesc) == Result::FAIL)
+	{
+		return FAIL;
+	}
+
+	auto depthFormat = DXGI_FORMAT_D32_FLOAT;
+
+	auto resDesc = CD3DX12_RESOURCE_DESC::Tex2D
+	(
+		depthFormat,
+		swDesc.BufferDesc.Width,
+		swDesc.BufferDesc.Height
+	);
+	resDesc.MipLevels = 1;
+	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+	auto clearValue = CD3DX12_CLEAR_VALUE(depthFormat, 1.f, 0);
+
+	ReturnIfFailed
+	(
+		mDevice->CreateCommittedResource
+		(
+			&heapProp,
+			D3D12_HEAP_FLAG_NONE,
+			&resDesc,
+			D3D12_RESOURCE_STATE_DEPTH_WRITE,
+			&clearValue,
+			IID_PPV_ARGS(depthStencilBuffer.mDSB_Resource.ReleaseAndGetAddressOf())
+		),
+		Device::CreateDepthBuffer()
+	);
+
+	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+	heapDesc.NumDescriptors = 1;
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	
+	ReturnIfFailed
+	(
+		mDevice->CreateDescriptorHeap
+		(
+			&heapDesc,
+			IID_PPV_ARGS(depthStencilBuffer.mDSV_Heap.ReleaseAndGetAddressOf())
+		),
+		Device::CreateDepthBuffer()
+	);
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+	dsvDesc.Format = depthFormat;
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+	mDevice->CreateDepthStencilView
+	(
+		depthStencilBuffer.mDSB_Resource.Get(),
+		&dsvDesc,
+		depthStencilBuffer.mDSV_Heap->GetCPUDescriptorHandleForHeapStart()
+	);
+
+
+	return SUCCESS;
+}
+
+Result Device::CreateFence(Fence& fence)
+{
+	ReturnIfFailed
+	(
+		mDevice->CreateFence
+		(
+			fence.mFenceValue,
+			D3D12_FENCE_FLAG_NONE,
+			IID_PPV_ARGS(fence.mFence.ReleaseAndGetAddressOf())
+		),
+		Device::CreateFence()
+	);
+	return SUCCESS;
+}
 
 // コマンド
 GraphicsCommand::GraphicsCommand()
@@ -322,7 +407,11 @@ Result SwapChain::GetBuffer(const unsigned int bufferID, void** resource) const
 
 RenderTarget::RenderTarget()
 	:
-	mRTV_Heaps(nullptr)
+	mRTV_Heaps(nullptr),
+	mRT_Resource(nullptr),
+	mBufferCount(0),
+	mViewPort({}),
+	mScissorRect({})
 {
 
 }
@@ -339,11 +428,29 @@ RenderTarget::~RenderTarget()
 
 // 深度ステンシルバッファ
 DepthStencilBuffer::DepthStencilBuffer()
+	:
+	mDSB_Resource(nullptr),
+	mDSV_Heap(nullptr)
 {
 
 }
 
 DepthStencilBuffer::~DepthStencilBuffer()
+{
+
+}
+
+// フェンス
+
+Fence::Fence()
+	:
+	mFence(nullptr),
+	mFenceValue(0)
+{
+	
+}
+
+Fence::~Fence()
 {
 
 }
