@@ -44,50 +44,16 @@ int MAIN()
 	auto& device = GUI::GraphicsDevice::Instance();
 
 	// モデル作成
-	GUI::Model model;
-
-
-	// カメラ初期化
-	MathUtil::float3 eye = { 0.f, 0.f, -100.f };
-	MathUtil::float3 target = { 0.f, 0.f, 0.f };
-	MathUtil::float3 up = MathUtil::Vector::basicZ.GetFloat3();
-	device.SetCamera(eye, target, up);
-
-	
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
 	{
-		device.BeginDraw();
-		// 画面クリア
-		device.Clear(GUI::Color(0.5f, 0.5f, 0.5f));
-
 		if (fc.Update() == true)
 		{
 			DebugOutString(fc.GetPath());
-
-			// モデル削除
-
-			// モデル読み込み
-			// 読み込み用モデルクラス
-			GUI::Model tModel;
-			if (tModel.Load(fc.GetPath()) == GUI::Result::SUCCESS)
-			{
-				model.Reset();
-				// モデルをコピー
-				model = tModel;
-			}
-			else
-			{
-				GUI::ErrorBox(L"サポートされていないファイルです\n Not Supported File");
-			}
-			DebugMessageNewLine();
 		}
 
-
-		// カメラ更新
+		device.BeginDraw();
+		device.Clear(GUI::Color(0.5f, 0.5f, 0.5f));
 		
-		// モデル描画
-		model.Draw();
-
 		device.EndDraw();
 	}
 	GUI::GraphicsDevice::Tern();

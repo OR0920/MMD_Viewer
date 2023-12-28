@@ -135,32 +135,9 @@ namespace GUI
 		Color(float _r, float _g, float _b, float _a = 1.f);
 	};
 
-	class Model
-	{
-	public:
-		Model();
-		Model(const Model& other);
-		const Model& operator=(const Model& other);
-
-		Result Load(const char* const filepath);
-		void Reset();
-		void Draw();
-
-	private:
-		Result LoadAsPMD(const char* const filepath);
-		Result LoadAsPMX(const char* const filepath);
-
-		ComPtr<ID3D12Resource> mVB_Resource;
-		D3D12_VERTEX_BUFFER_VIEW mVB_View;
-		ComPtr<ID3D12Resource> mIB_Resource;
-		D3D12_INDEX_BUFFER_VIEW mIB_View;
-		
-		int mIndexCount;
-	};
-
+	
 	class GraphicsDevice
 	{
-		friend Model;
 	public:
 		// 描画先のウィンドウとバックバッファ数を指定する
 		static Result Init(const ParentWindow& window, const int frameCount);
@@ -174,14 +151,6 @@ namespace GUI
 		// 画面クリア
 		void Clear(const Color& clearColor = Color(0.f, 0.f, 1.f));
 
-		// カメラセット
-		void SetCamera
-		(
-			const MathUtil::float3 eye,
-			const MathUtil::float3 target,
-			const MathUtil::float3 up
-		);
-
 		// 描画処理を実行する
 		void EndDraw();
 		
@@ -190,15 +159,11 @@ namespace GUI
 		GraphicsDevice(const ParentWindow& window, const int frameCount); ~GraphicsDevice();
 
 		Result InitDirect3D();
-		Result InitConstantResource();
 
 		Result mIsSuccessInit;
 		const int mFrameCount;
 		const ParentWindow& mWindow;
 		const int mWidth, mHeight;
-
-		static ComPtr<ID3D12Device>& GetDevice();
-		static ComPtr<ID3D12GraphicsCommandList>& GetCommandList();
 
 		ComPtr<ID3D12Device> mDevice;
 		ComPtr<ID3D12CommandQueue> mCommandQueue;
@@ -223,18 +188,6 @@ namespace GUI
 		ComPtr<ID3D12Fence> mFence;
 		UINT mFenceValue;
 
-		struct ConstantBuffer
-		{
-			MathUtil::Matrix world;
-			MathUtil::Matrix view;
-			MathUtil::Matrix projection;
-		};
-		ComPtr<ID3D12Resource> mCB_Resource;
-		ComPtr<ID3D12DescriptorHeap> mCB_Heap;
-		ConstantBuffer* mappedCB;
-
-		ComPtr<ID3D12RootSignature> mRootSignature;
-		ComPtr<ID3D12PipelineState> mPipelineState;
 	};
 }
 
