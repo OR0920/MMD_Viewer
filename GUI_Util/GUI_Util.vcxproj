@@ -165,6 +165,8 @@
   <ItemGroup>
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="GUI_Util.h" />
+    <ClInclude Include="PixelShader.h" />
+    <ClInclude Include="VertexShader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GUI_Util.cpp" />
