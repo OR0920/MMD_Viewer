@@ -14,6 +14,7 @@
 
 // my lib
 #include "System.h"
+#include"MathUtil.h"
 
 #define ReturnIfFailed(func, at)\
 {\
@@ -39,6 +40,31 @@ void SafeRelease(ComInterface** ptr)
 	}
 }
 
+Color::Color
+(
+	float _r,
+	float _g,
+	float _b,
+	float _a
+)
+	:
+	r(_r),
+	g(_g),
+	b(_b),
+	a(_a)
+{
+
+}
+
+Color::Color()
+	:
+	r(0.f),
+	g(0.f),
+	b(0.f),
+	a(1.f)
+{
+
+}
 
 // デバッグレイヤ
 
@@ -130,6 +156,17 @@ Result Device::CreateGraphicsCommand(GraphicsCommand& command)
 		Device::CreateGraphicsCommand()
 	);
 
+	ReturnIfFailed
+	(
+		mDevice->CreateFence
+		(
+			command.mFenceValue,
+			D3D12_FENCE_FLAG_NONE,
+			IID_PPV_ARGS(command.mFence.ReleaseAndGetAddressOf())
+		),
+		Device::CreateFence()
+	);
+
 	command.mCommandList->Close();
 
 	command.mDevice = mDevice.Get();
@@ -196,7 +233,7 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 	renderTarget.mScissorRect
 		= CD3DX12_RECT(0, 0, desc.BufferDesc.Width, desc.BufferDesc.Width);
 
-	renderTarget.mIncrementSize 
+	renderTarget.mIncrementSize
 		= mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 	return SUCCESS;
@@ -274,27 +311,18 @@ Result Device::CreateDepthBuffer
 	return SUCCESS;
 }
 
-Result Device::CreateFence(Fence& fence)
-{
-	ReturnIfFailed
-	(
-		mDevice->CreateFence
-		(
-			fence.mFenceValue,
-			D3D12_FENCE_FLAG_NONE,
-			IID_PPV_ARGS(fence.mFence.ReleaseAndGetAddressOf())
-		),
-		Device::CreateFence()
-	);
-	return SUCCESS;
-}
-
 // コマンド
 GraphicsCommand::GraphicsCommand()
 	:
+	mDevice(nullptr),
+	mSwapChain(nullptr),
 	mCommandQueue(nullptr),
 	mCommandAllocator(nullptr),
-	mCommandList()
+	mCommandList(),
+	rtvHandle({}),
+	dsvHandle({}),
+	mFence(nullptr),
+	mFenceValue(0)
 {
 
 }
@@ -308,7 +336,10 @@ void GraphicsCommand::BeginDraw()
 {
 	mCommandAllocator->Reset();
 	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+
 }
+
+
 
 void GraphicsCommand::UnlockRenderTarget(const RenderTarget& renderTarget)
 {
@@ -321,6 +352,8 @@ void GraphicsCommand::UnlockRenderTarget(const RenderTarget& renderTarget)
 
 	mCommandList->ResourceBarrier(1, &barrier);
 }
+
+
 
 void GraphicsCommand::SetRenderTarget
 (
@@ -338,9 +371,12 @@ void GraphicsCommand::SetRenderTarget
 		return;
 	}
 
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = {}, dsvHandle = {};
+	auto viewport = renderTarget->GetViewPort();
+	auto rect = renderTarget->GetRect();
+	mCommandList->RSSetViewports(1, &viewport);
+	mCommandList->RSSetScissorRects(1, &rect);
 
-	renderTarget->GetDescriptorHandle(&rtvHandle, mSwapChain->GetCurrentBackBufferIndex());
+	renderTarget->GetDescriptorHandle(rtvHandle, mSwapChain->GetCurrentBackBufferIndex());
 
 	if (depthStencilBuffer == nullptr)
 	{
@@ -348,9 +384,26 @@ void GraphicsCommand::SetRenderTarget
 		return;
 	}
 
-	depthStencilBuffer->GetDescriptorHandle(&dsvHandle);
+	depthStencilBuffer->GetDescriptorHandle(dsvHandle);
 	mCommandList->OMSetRenderTargets(1, &rtvHandle, 1, &dsvHandle);
 }
+
+
+
+void GraphicsCommand::ClearRenderTarget(const Color& color)
+{
+	float col[] = { color.r, color.g, color.b, color.a };
+	mCommandList->ClearRenderTargetView(rtvHandle, col, 0, nullptr);
+}
+
+
+
+void GraphicsCommand::ClearDepthBuffer()
+{
+	mCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+}
+
+
 
 void GraphicsCommand::LockRenderTarget(const RenderTarget& renderTarget)
 {
@@ -365,8 +418,19 @@ void GraphicsCommand::LockRenderTarget(const RenderTarget& renderTarget)
 
 void GraphicsCommand::EndDraw()
 {
+	mCommandList->Close();
+
 	ID3D12CommandList* cmdLists[] = { mCommandList.Get() };
 	mCommandQueue->ExecuteCommandLists(1, cmdLists);
+
+	mCommandQueue->Signal(mFence.Get(), ++mFenceValue);
+
+	do
+	{
+
+	} while (mFence->GetCompletedValue() < mFenceValue);
+
+
 }
 
 // スワップチェイン
@@ -462,6 +526,11 @@ int SwapChain::GetCurrentBackBufferIndex() const
 	return mSwapChain->GetCurrentBackBufferIndex();
 }
 
+void SwapChain::Present()
+{
+	mSwapChain->Present(1, 0);
+}
+
 Result SwapChain::GetDesc(void* desc) const
 {
 	ReturnIfFailed
@@ -506,16 +575,15 @@ RenderTarget::~RenderTarget()
 	System::SafeDeleteArray(&mRT_Resource);
 }
 
-void RenderTarget::GetDescriptorHandle(void* handlePtr, const int bufferID) const
+void RenderTarget::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, const int bufferID) const
 {
 	if (bufferID < 0 || mBufferCount <= bufferID)
 	{
 		DebugMessage("ERROR: The ID is Out of Range !");
-		return ;
+		return;
 	}
-	auto ptr = reinterpret_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(handlePtr);
-	*ptr = mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
-	(*ptr).ptr += mIncrementSize * bufferID;
+	handle = mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
+	handle.ptr += mIncrementSize * bufferID;
 }
 
 const ComPtr<ID3D12Resource> RenderTarget::GetResource(const int bufferID) const
@@ -526,6 +594,16 @@ const ComPtr<ID3D12Resource> RenderTarget::GetResource(const int bufferID) const
 		return nullptr;
 	}
 	return mRT_Resource[bufferID];
+}
+
+D3D12_VIEWPORT RenderTarget::GetViewPort() const 
+{
+	return mViewPort;
+}
+
+D3D12_RECT RenderTarget::GetRect() const
+{
+	return mScissorRect;
 }
 
 // 深度ステンシルバッファ
@@ -542,23 +620,9 @@ DepthStencilBuffer::~DepthStencilBuffer()
 
 }
 
-void DepthStencilBuffer::GetDescriptorHandle(void* handlePtr) const
+void DepthStencilBuffer::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle) const
 {
-	auto ptr = reinterpret_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(handlePtr);
-	*ptr = mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
+	handle = mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
 }
 
-// フェンス
 
-Fence::Fence()
-	:
-	mFence(nullptr),
-	mFenceValue(0)
-{
-
-}
-
-Fence::~Fence()
-{
-
-}

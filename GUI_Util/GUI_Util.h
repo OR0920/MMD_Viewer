@@ -122,6 +122,24 @@ namespace GUI
 		template<class T>
 		using ComPtr = Microsoft::WRL::ComPtr<T>;
 
+		struct Color
+		{
+			float r = 0.f;
+			float g = 0.f;
+			float b = 0.f;
+			float a = 0.f;
+
+			Color
+			(
+				float _r,
+				float _g,
+				float _b,
+				float _a = 1.f
+			);
+
+			Color();
+		};
+
 		Result EnalbleDebugLayer();
 
 		class GraphicsCommand;
@@ -170,6 +188,8 @@ namespace GUI
 
 			int GetCurrentBackBufferIndex() const;
 
+			void Present() ;
+
 			// ライブラリから呼び出す関数
 			Result GetDesc(void* desc) const;
 			Result GetBuffer(const unsigned int bufferID, void** resource) const;
@@ -200,6 +220,13 @@ namespace GUI
 				const DepthStencilBuffer* const depthStencilBuffer = nullptr
 			);
 
+			void ClearRenderTarget
+			(
+				const Color& color = Color(0.5f, 0.5f, 0.5f)
+			);
+
+			void ClearDepthBuffer();
+
 			void LockRenderTarget(const RenderTarget& renderTarget);
 
 			void EndDraw();
@@ -211,6 +238,11 @@ namespace GUI
 			ComPtr<ID3D12CommandAllocator> mCommandAllocator;
 			ComPtr<ID3D12GraphicsCommandList> mCommandList;
 
+			D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle;
+			D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+
+			ComPtr<ID3D12Fence> mFence;
+			UINT64 mFenceValue;
 		};
 
 		class RenderTarget
@@ -223,8 +255,11 @@ namespace GUI
 			RenderTarget(); ~RenderTarget();
 
 			// ライブラリから呼び出す関数
-			void GetDescriptorHandle(void* handlePtr, const int bufferID) const;
+			void GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, const int bufferID) const;
 			const ComPtr<ID3D12Resource> GetResource(const int bufferID) const;
+
+			D3D12_VIEWPORT GetViewPort() const;
+			D3D12_RECT GetRect() const;
 		private:
 			ComPtr<ID3D12DescriptorHeap> mRTV_Heaps;
 			ComPtr<ID3D12Resource>* mRT_Resource;
@@ -246,7 +281,7 @@ namespace GUI
 			DepthStencilBuffer(); ~DepthStencilBuffer();
 
 			// ライブラリから呼び出す関数
-			void GetDescriptorHandle(void* handlePtr) const;
+			void GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle) const;
 		private:
 			ComPtr<ID3D12Resource> mDSB_Resource;
 			ComPtr<ID3D12DescriptorHeap> mDSV_Heap;
@@ -254,16 +289,7 @@ namespace GUI
 
 		};
 
-		class Fence
-		{
-			friend Result Device::CreateFence(Fence&);
-		public:
-			Fence(); ~Fence();
-
-		private:
-			ComPtr<ID3D12Fence> mFence;
-			UINT64 mFenceValue;
-		};
+		
 	}
 }
 

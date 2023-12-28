@@ -79,12 +79,6 @@ int MAIN()
 		return -1;
 	}
 
-	GUI::Graphics::Fence fence;
-	if(device.CreateFence(fence) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
-
 
 	// ƒ‚ƒfƒ‹ì¬
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
@@ -98,11 +92,15 @@ int MAIN()
 		
 		command.UnlockRenderTarget(renderTarget);
 
-		
-		command.SetRenderTarget(&renderTarget);
+		command.SetRenderTarget(&renderTarget, &depthStencil);
+
+		command.ClearRenderTarget();
+		command.ClearDepthBuffer();
 
 		command.LockRenderTarget(renderTarget);
 
 		command.EndDraw();
+
+		swapChain.Present();
 	}
 }
