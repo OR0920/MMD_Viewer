@@ -130,6 +130,10 @@ Result Device::CreateGraphicsCommand(GraphicsCommand& command)
 		Device::CreateGraphicsCommand()
 	);
 
+	command.mCommandList->Close();
+
+	command.mDevice = mDevice.Get();
+
 	return SUCCESS;
 }
 
@@ -192,6 +196,9 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 	renderTarget.mScissorRect
 		= CD3DX12_RECT(0, 0, desc.BufferDesc.Width, desc.BufferDesc.Width);
 
+	renderTarget.mIncrementSize 
+		= mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
 	return SUCCESS;
 }
 
@@ -240,7 +247,7 @@ Result Device::CreateDepthBuffer
 	heapDesc.NumDescriptors = 1;
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	
+
 	ReturnIfFailed
 	(
 		mDevice->CreateDescriptorHeap
@@ -297,6 +304,71 @@ GraphicsCommand::~GraphicsCommand()
 
 }
 
+void GraphicsCommand::BeginDraw()
+{
+	mCommandAllocator->Reset();
+	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+}
+
+void GraphicsCommand::UnlockRenderTarget(const RenderTarget& renderTarget)
+{
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition
+	(
+		renderTarget.GetResource(mSwapChain->GetCurrentBackBufferIndex()).Get(),
+		D3D12_RESOURCE_STATE_PRESENT,
+		D3D12_RESOURCE_STATE_RENDER_TARGET
+	);
+
+	mCommandList->ResourceBarrier(1, &barrier);
+}
+
+void GraphicsCommand::SetRenderTarget
+(
+	const RenderTarget* const renderTarget,
+	const DepthStencilBuffer* const depthStencilBuffer
+)
+{
+	if (renderTarget == nullptr)
+	{
+		DebugMessage
+		(
+			"ERROR: Render Target is nullptr ! \n at: "
+			<< ToString(GraphicsCommand::SetRenderTarget())
+		);
+		return;
+	}
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = {}, dsvHandle = {};
+
+	renderTarget->GetDescriptorHandle(&rtvHandle, mSwapChain->GetCurrentBackBufferIndex());
+
+	if (depthStencilBuffer == nullptr)
+	{
+		mCommandList->OMSetRenderTargets(1, &rtvHandle, 0, nullptr);
+		return;
+	}
+
+	depthStencilBuffer->GetDescriptorHandle(&dsvHandle);
+	mCommandList->OMSetRenderTargets(1, &rtvHandle, 1, &dsvHandle);
+}
+
+void GraphicsCommand::LockRenderTarget(const RenderTarget& renderTarget)
+{
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition
+	(
+		renderTarget.GetResource(mSwapChain->GetCurrentBackBufferIndex()).Get(),
+		D3D12_RESOURCE_STATE_RENDER_TARGET,
+		D3D12_RESOURCE_STATE_PRESENT
+	);
+	mCommandList->ResourceBarrier(1, &barrier);
+}
+
+void GraphicsCommand::EndDraw()
+{
+	ID3D12CommandList* cmdLists[] = { mCommandList.Get() };
+	mCommandQueue->ExecuteCommandLists(1, cmdLists);
+}
+
 // スワップチェイン
 
 SwapChain::SwapChain()
@@ -313,7 +385,7 @@ SwapChain::~SwapChain()
 
 Result SwapChain::Create
 (
-	const GraphicsCommand& device,
+	GraphicsCommand& device,
 	const ParentWindow& targetWindow,
 	const int frameCount
 )
@@ -379,7 +451,15 @@ Result SwapChain::Create
 		tSwCh1->QueryInterface(mSwapChain.ReleaseAndGetAddressOf()),
 		SwapChain::Create()
 	);
+
+	device.mSwapChain = mSwapChain.Get();
+
 	return SUCCESS;
+}
+
+int SwapChain::GetCurrentBackBufferIndex() const
+{
+	return mSwapChain->GetCurrentBackBufferIndex();
 }
 
 Result SwapChain::GetDesc(void* desc) const
@@ -426,6 +506,28 @@ RenderTarget::~RenderTarget()
 	System::SafeDeleteArray(&mRT_Resource);
 }
 
+void RenderTarget::GetDescriptorHandle(void* handlePtr, const int bufferID) const
+{
+	if (bufferID < 0 || mBufferCount <= bufferID)
+	{
+		DebugMessage("ERROR: The ID is Out of Range !");
+		return ;
+	}
+	auto ptr = reinterpret_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(handlePtr);
+	*ptr = mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
+	(*ptr).ptr += mIncrementSize * bufferID;
+}
+
+const ComPtr<ID3D12Resource> RenderTarget::GetResource(const int bufferID) const
+{
+	if (bufferID < 0 || mBufferCount <= bufferID)
+	{
+		DebugMessage("ERROR: The ID is Out of Range !");
+		return nullptr;
+	}
+	return mRT_Resource[bufferID];
+}
+
 // 深度ステンシルバッファ
 DepthStencilBuffer::DepthStencilBuffer()
 	:
@@ -440,6 +542,12 @@ DepthStencilBuffer::~DepthStencilBuffer()
 
 }
 
+void DepthStencilBuffer::GetDescriptorHandle(void* handlePtr) const
+{
+	auto ptr = reinterpret_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(handlePtr);
+	*ptr = mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
+}
+
 // フェンス
 
 Fence::Fence()
@@ -447,7 +555,7 @@ Fence::Fence()
 	mFence(nullptr),
 	mFenceValue(0)
 {
-	
+
 }
 
 Fence::~Fence()

@@ -93,5 +93,16 @@ int MAIN()
 		{
 			DebugOutString(fc.GetPath());
 		}
+
+		command.BeginDraw();
+		
+		command.UnlockRenderTarget(renderTarget);
+
+		
+		command.SetRenderTarget(&renderTarget);
+
+		command.LockRenderTarget(renderTarget);
+
+		command.EndDraw();
 	}
 }

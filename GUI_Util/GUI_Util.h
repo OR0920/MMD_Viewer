@@ -163,10 +163,12 @@ namespace GUI
 
 			Result Create
 			(
-				const GraphicsCommand& device,
+				GraphicsCommand& device,
 				const ParentWindow& targetWindow,
 				const int frameCount
 			);
+
+			int GetCurrentBackBufferIndex() const;
 
 			// ライブラリから呼び出す関数
 			Result GetDesc(void* desc) const;
@@ -181,17 +183,34 @@ namespace GUI
 			friend Result Device::CreateGraphicsCommand(GraphicsCommand&);
 			friend Result SwapChain::Create
 			(
-				const GraphicsCommand&,
+				GraphicsCommand&,
 				const ParentWindow&,
 				const int
 			);
 		public:
 			GraphicsCommand(); ~GraphicsCommand();
 
+			void BeginDraw();
+
+			void UnlockRenderTarget(const RenderTarget& renderTarget);
+
+			void SetRenderTarget
+			(
+				const RenderTarget* const renderTarget,
+				const DepthStencilBuffer* const depthStencilBuffer = nullptr
+			);
+
+			void LockRenderTarget(const RenderTarget& renderTarget);
+
+			void EndDraw();
 		private:
+			ID3D12Device* mDevice;
+			IDXGISwapChain4* mSwapChain;
+
 			ComPtr<ID3D12CommandQueue> mCommandQueue;
 			ComPtr<ID3D12CommandAllocator> mCommandAllocator;
 			ComPtr<ID3D12GraphicsCommandList> mCommandList;
+
 		};
 
 		class RenderTarget
@@ -203,10 +222,15 @@ namespace GUI
 		public:
 			RenderTarget(); ~RenderTarget();
 
+			// ライブラリから呼び出す関数
+			void GetDescriptorHandle(void* handlePtr, const int bufferID) const;
+			const ComPtr<ID3D12Resource> GetResource(const int bufferID) const;
 		private:
 			ComPtr<ID3D12DescriptorHeap> mRTV_Heaps;
 			ComPtr<ID3D12Resource>* mRT_Resource;
 			int mBufferCount;
+
+			int mIncrementSize;
 
 			D3D12_VIEWPORT mViewPort;
 			D3D12_RECT mScissorRect;
@@ -221,9 +245,12 @@ namespace GUI
 		public:
 			DepthStencilBuffer(); ~DepthStencilBuffer();
 
+			// ライブラリから呼び出す関数
+			void GetDescriptorHandle(void* handlePtr) const;
 		private:
 			ComPtr<ID3D12Resource> mDSB_Resource;
 			ComPtr<ID3D12DescriptorHeap> mDSV_Heap;
+
 
 		};
 
