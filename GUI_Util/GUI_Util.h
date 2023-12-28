@@ -125,6 +125,9 @@ namespace GUI
 		Result EnalbleDebugLayer();
 
 		class GraphicsCommand;
+		class SwapChain;
+		class RenderTarget;
+
 
 		class Device
 		{
@@ -134,6 +137,7 @@ namespace GUI
 			Result Create();
 
 			Result CreateGraphicsCommand(GraphicsCommand& graphicsCommand);
+			Result CreateRenderTarget(RenderTarget& rendertarget, const SwapChain& swapchain);
 		private:
 			ComPtr<ID3D12Device> mDevice;
 		};
@@ -149,9 +153,13 @@ namespace GUI
 				const ParentWindow& targetWindow, 
 				const int frameCount
 			);
+
+			// ÉâÉCÉuÉâÉäÇ©ÇÁåƒÇ—èoÇ∑ä÷êî
+			Result GetDesc(void* desc) const;
+			Result GetBuffer(const unsigned int bufferID, void** resource) const;
 		private:
-			
 			ComPtr<IDXGISwapChain4> mSwapChain;
+
 		};
 
 		class GraphicsCommand
@@ -171,6 +179,30 @@ namespace GUI
 			ComPtr<ID3D12CommandAllocator> mCommandAllocator;
 			ComPtr<ID3D12GraphicsCommandList> mCommandList;
 		};
+
+		class RenderTarget
+		{
+			friend Result Device::CreateRenderTarget(RenderTarget&, const SwapChain&);
+		public:
+			RenderTarget(); ~RenderTarget();
+
+		private:
+			ComPtr<ID3D12DescriptorHeap> mRTV_Heaps;
+			ComPtr<ID3D12Resource>* mRT_Resource;
+			int mBufferCount;
+
+			D3D12_VIEWPORT mViewPort;
+			D3D12_RECT mScissorRect;
+		};
+
+		class DepthStencilBuffer
+		{
+		public:
+			DepthStencilBuffer(); ~DepthStencilBuffer();
+
+		private:
+		};
+
 	}
 }
 

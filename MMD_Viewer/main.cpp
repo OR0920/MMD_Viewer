@@ -65,6 +65,13 @@ int MAIN()
 		return -1;
 	}
 
+	// レンダーターゲット作成
+	GUI::Graphics::RenderTarget renderTarget;
+	if (device.CreateRenderTarget(renderTarget, swapChain) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
 	// モデル作成
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
 	{

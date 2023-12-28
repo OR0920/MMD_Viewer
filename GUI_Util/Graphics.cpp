@@ -29,6 +29,17 @@
 using namespace GUI;
 using namespace GUI::Graphics;
 
+template <class ComInterface>
+void SafeRelease(ComInterface** ptr)
+{
+	if (*ptr != nullptr)
+	{
+		(*ptr)->Release();
+		*ptr = nullptr;
+	}
+}
+
+
 // デバッグレイヤ
 
 Result Graphics::EnalbleDebugLayer()
@@ -121,6 +132,70 @@ Result Device::CreateGraphicsCommand(GraphicsCommand& command)
 
 	return SUCCESS;
 }
+
+Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& swapchain)
+{
+	DXGI_SWAP_CHAIN_DESC desc = {};
+	ReturnIfFailed
+	(
+		swapchain.GetDesc(&desc),
+		Device::CreateRenderTarget()
+	);
+
+	auto& bufferCount = renderTarget.mBufferCount = desc.BufferCount;
+	
+	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	heapDesc.NodeMask = 0;
+	heapDesc.NumDescriptors = bufferCount;
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+
+	ReturnIfFailed
+	(
+		mDevice->CreateDescriptorHeap
+		(
+			&heapDesc,
+			IID_PPV_ARGS(renderTarget.mRTV_Heaps.ReleaseAndGetAddressOf())
+		),
+		Device::CreateRenderTarget()
+	);
+
+	renderTarget.mRT_Resource = new ComPtr<ID3D12Resource>[bufferCount] {nullptr};
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle 
+		= renderTarget.mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
+
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+	rtvDesc.Format = desc.BufferDesc.Format;
+	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+
+	for (int i = 0; i < renderTarget.mBufferCount; ++i)
+	{
+		auto result = swapchain.GetBuffer
+		(
+			i, 
+			reinterpret_cast<void**>
+			(renderTarget.mRT_Resource[i].ReleaseAndGetAddressOf())
+		);
+
+		if (result == Result::FAIL)
+		{
+			return FAIL;
+		}
+
+		rtvDesc.Format = renderTarget.mRT_Resource[i]->GetDesc().Format;
+		mDevice->CreateRenderTargetView(renderTarget.mRT_Resource[i].Get(), &rtvDesc, rtvHandle);
+		rtvHandle.ptr +=
+			mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	}
+
+	renderTarget.mViewPort = CD3DX12_VIEWPORT(renderTarget.mRT_Resource[0].Get());
+	renderTarget.mScissorRect
+		= CD3DX12_RECT(0, 0, desc.BufferDesc.Width, desc.BufferDesc.Width);
+
+	return SUCCESS;
+}
+
 
 // コマンド
 GraphicsCommand::GraphicsCommand()
@@ -222,4 +297,53 @@ Result SwapChain::Create
 	return SUCCESS;
 }
 
+Result SwapChain::GetDesc(void* desc) const
+{
+	ReturnIfFailed
+	(
+		mSwapChain->GetDesc(reinterpret_cast<DXGI_SWAP_CHAIN_DESC*>(desc)),
+		SwapChain::GetDesc()
+	);
 
+	return SUCCESS;
+}
+
+Result SwapChain::GetBuffer(const unsigned int bufferID, void** resource) const
+{
+	ReturnIfFailed
+	(
+		mSwapChain->GetBuffer(bufferID, IID_PPV_ARGS(reinterpret_cast<ID3D12Resource**>(resource))),
+		SwapChain::GetBuffer()
+	);
+	return SUCCESS;
+}
+
+//　レンダーターゲット
+
+RenderTarget::RenderTarget()
+	:
+	mRTV_Heaps(nullptr)
+{
+
+}
+
+RenderTarget::~RenderTarget()
+{
+	for (int i = 0; i < mBufferCount; ++i)
+	{
+		SafeRelease(mRT_Resource[i].GetAddressOf());
+	}
+
+	System::SafeDeleteArray(&mRT_Resource);
+}
+
+// 深度ステンシルバッファ
+DepthStencilBuffer::DepthStencilBuffer()
+{
+
+}
+
+DepthStencilBuffer::~DepthStencilBuffer()
+{
+
+}
