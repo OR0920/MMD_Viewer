@@ -573,10 +573,9 @@ Result Model::LoadAsPMD(const char* const filepath)
 
 		// 生データから、VRAM上にコピー
 		Vertex* resource = nullptr;
-		auto range = CD3DX12_RANGE(0, 0);
 		ReturnIfFiled
 		(
-			mVB_Resource->Map(0, &range, reinterpret_cast<void**>(&resource)),
+			mVB_Resource->Map(0, nullptr, reinterpret_cast<void**>(&resource)),
 			Model::LoadAsPMD()
 		);
 		for (int i = 0; i < vertex.size(); ++i)
@@ -624,10 +623,9 @@ Result Model::LoadAsPMD(const char* const filepath)
 		// 生データから、VRAM上にコピー
 		int* resource = nullptr;
 		// CPU側からは見ない
-		auto range = CD3DX12_RANGE(0, 0);
 		ReturnIfFiled
 		(
-			mIB_Resource->Map(0, &range, reinterpret_cast<void**>(&resource)),
+			mIB_Resource->Map(0, nullptr, reinterpret_cast<void**>(&resource)),
 			Model::LoadAsPMD()
 		);
 		for (int i = 0; i < index.size(); ++i)
@@ -761,6 +759,7 @@ void GraphicsDevice::Clear(const Color& clearColor)
 {
 	float color[] = { clearColor.r, clearColor.g, clearColor.b, clearColor.a };
 	mCommandList->ClearRenderTargetView(mRTV_Handle, color, 0, NULL);
+	mCommandList->ClearDepthStencilView(mDSV_Handle, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 }
 
 void GraphicsDevice::SetCamera
@@ -794,7 +793,7 @@ void GraphicsDevice::EndDraw()
 	mCommandQueue->Signal(mFence.Get(), mFenceValue);
 	do
 	{
-		;
+		
 	} while (mFence->GetCompletedValue() < mFenceValue);
 
 	mFenceValue++;
@@ -1210,12 +1209,11 @@ Result GraphicsDevice::InitConstantResource()
 	cbViewDesc.SizeInBytes = constantBufferSize;
 	mDevice->CreateConstantBufferView(&cbViewDesc, mCB_Heap->GetCPUDescriptorHandleForHeapStart());
 
-	auto range = CD3DX12_RANGE(0, 0);
 	ReturnIfFiled
 	(
 		mCB_Resource->Map
 		(
-			0, &range, reinterpret_cast<void**>(&mappedCB)
+			0, nullptr, reinterpret_cast<void**>(&mappedCB)
 		),
 		GraphicsDevice::InitConstantResource()
 	);

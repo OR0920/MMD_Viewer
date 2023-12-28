@@ -48,7 +48,7 @@ int MAIN()
 
 
 	// ƒJƒƒ‰‰Šú‰»
-	MathUtil::float3 eye = { 0.f, 0.f, -10.f };
+	MathUtil::float3 eye = { 0.f, 0.f, -100.f };
 	MathUtil::float3 target = { 0.f, 0.f, 0.f };
 	MathUtil::float3 up = MathUtil::Vector::basicZ.GetFloat3();
 	device.SetCamera(eye, target, up);
@@ -58,7 +58,7 @@ int MAIN()
 	{
 		device.BeginDraw();
 		// ‰æ–ÊƒNƒŠƒA
-		device.Clear(GUI::Color(0.f, 0.f, 1.f));
+		device.Clear(GUI::Color(0.5f, 0.5f, 0.5f));
 
 		if (fc.Update() == true)
 		{
