@@ -36,12 +36,6 @@ int MAIN()
 	}
 
 	// •`‰æƒGƒ“ƒWƒ“‰Šú‰»
-	if (GUI::GraphicsDevice::Init(mainWindow, 2) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
-
-	auto& device = GUI::GraphicsDevice::Instance();
 
 	// ƒ‚ƒfƒ‹ì¬
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
@@ -50,11 +44,5 @@ int MAIN()
 		{
 			DebugOutString(fc.GetPath());
 		}
-
-		device.BeginDraw();
-		device.Clear(GUI::Color(0.5f, 0.5f, 0.5f));
-		
-		device.EndDraw();
 	}
-	GUI::GraphicsDevice::Tern();
 }

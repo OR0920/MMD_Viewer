@@ -12,9 +12,6 @@
 #include<d3d12.h>
 #include<dxgi1_4.h>
 
-// myLib
-#include"MathUtil.h"
-
 #ifdef _DEBUG
 #define MAIN main 
 #else
@@ -119,76 +116,6 @@ namespace GUI
 		static DropPos sDropPos;
 	};
 
-
-	template<class T>
-	using ComPtr = Microsoft::WRL::ComPtr<T>;
-
-
-	struct Color
-	{
-		float r = 0.f;
-		float g = 0.f;
-		float b = 0.f;
-		float a = 1.f;
-
-		Color();
-		Color(float _r, float _g, float _b, float _a = 1.f);
-	};
-
-	
-	class GraphicsDevice
-	{
-	public:
-		// 描画先のウィンドウとバックバッファ数を指定する
-		static Result Init(const ParentWindow& window, const int frameCount);
-		// シングルトン
-		static GraphicsDevice& Instance();
-		// 終了処理
-		static void Tern();
-
-		// 描画の準備を行う
-		void BeginDraw();
-		// 画面クリア
-		void Clear(const Color& clearColor = Color(0.f, 0.f, 1.f));
-
-		// 描画処理を実行する
-		void EndDraw();
-		
-	private:
-		static GraphicsDevice* sCanvas;
-		GraphicsDevice(const ParentWindow& window, const int frameCount); ~GraphicsDevice();
-
-		Result InitDirect3D();
-
-		Result mIsSuccessInit;
-		const int mFrameCount;
-		const ParentWindow& mWindow;
-		const int mWidth, mHeight;
-
-		ComPtr<ID3D12Device> mDevice;
-		ComPtr<ID3D12CommandQueue> mCommandQueue;
-
-		ComPtr<ID3D12CommandAllocator> mCommandAllocator;
-		ComPtr<ID3D12GraphicsCommandList> mCommandList;
-		ComPtr<IDXGISwapChain3> mSwapChain;
-
-		// RT : Render Target, RTV : Render Target View
-		ComPtr<ID3D12DescriptorHeap> mRTV_Heap;
-		std::vector<ComPtr<ID3D12Resource>>	mRT_Resouces;
-		int mCurrentBufferID;
-
-		D3D12_CPU_DESCRIPTOR_HANDLE mRTV_Handle;
-
-		// DSB : Depth Stencil Buffer, DSV : Depth Stencil View
-		ComPtr<ID3D12DescriptorHeap> mDSV_Heap;
-		ComPtr<ID3D12Resource> mDSB_Resouce;
-
-		D3D12_CPU_DESCRIPTOR_HANDLE mDSV_Handle;
-
-		ComPtr<ID3D12Fence> mFence;
-		UINT mFenceValue;
-
-	};
 }
 
 #endif // !_GUI_UTIL_H_
