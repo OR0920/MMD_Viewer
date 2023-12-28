@@ -48,7 +48,7 @@ int MAIN()
 
 
 	// カメラ初期化
-	MathUtil::float3 eye = { 0.f, 0.f, -50.f };
+	MathUtil::float3 eye = { 0.f, 0.f, -10.f };
 	MathUtil::float3 target = { 0.f, 0.f, 0.f };
 	MathUtil::float3 up = MathUtil::Vector::basicZ.GetFloat3();
 	device.SetCamera(eye, target, up);
@@ -71,7 +71,6 @@ int MAIN()
 			GUI::Model tModel;
 			if (tModel.Load(fc.GetPath()) == GUI::Result::SUCCESS)
 			{
-				tModel.Draw();
 				model.Reset();
 				// モデルをコピー
 				model = tModel;
@@ -81,7 +80,6 @@ int MAIN()
 				GUI::ErrorBox(L"サポートされていないファイルです\n Not Supported File");
 			}
 			DebugMessageNewLine();
-
 		}
 
 

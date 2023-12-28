@@ -29,7 +29,7 @@ if (FAILED(func))\
 	return;\
 }
 
-static const char* const toonDirPath = "../x64/Debug/Test/Model/SharedToonTexture/";
+static const char* const toonDirPath = "../x64/Debug/MMDsdkTest/Test/Model/SharedToonTexture/";
 
 
 static const char* const poseFilePath = "D:/Projects/directx12_samples-master/directx12_samples-master/Chapter10/motion/pose.vmd";
@@ -1122,10 +1122,10 @@ HRESULT PMDActor::CreateTransformView()
 
 	*mMappedMatrices = mTransform.world;
 
-	model->Update();
+	//model->Update();
 	for (int i = 0; i < model->GetBoneCount(); ++i)
 	{
-		mMappedMatrices[i + 1] = model->GetBone(i);
+		//mMappedMatrices[i + 1] = model->GetBone(i);
 	}
 
 
@@ -1367,10 +1367,10 @@ void PMDActor::Update()
 	mAngle += 0.03f;// MathUtil::DegreeToRadian(90.f);
 	mMappedMatrices[0] = MathUtil::Matrix::GenerateMatrixRotationY(mAngle);
 
-	model->Update();
+	//model->Update();
 	for (int i = 0; i < model->GetBoneCount(); ++i)
 	{
-		mMappedMatrices[i + 1] = model->GetBone(i);
+		//mMappedMatrices[i + 1] = model->GetBone(i);
 	}
 }
 
@@ -1418,5 +1418,5 @@ PMDActor::PMDActor(const std::string argFilepath, PMDRenderer& argRenderer)
 	CallInitFunctionWithAssert(CreateTransformView());
 	CallInitFunctionWithAssert(CreateMaterialData());
 	CallInitFunctionWithAssert(CreateMaterialAndTextureView());
-	model->PlayAnimation();
+	//model->PlayAnimation();
 }

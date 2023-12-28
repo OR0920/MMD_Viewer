@@ -517,7 +517,7 @@ struct Vertex
 	}
 };
 
-const D3D12_INPUT_ELEMENT_DESC inputLayout[] =
+D3D12_INPUT_ELEMENT_DESC inputLayout[] =
 {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -750,7 +750,9 @@ void GraphicsDevice::BeginDraw()
 	mCommandList->SetPipelineState(mPipelineState.Get());
 
 	mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
-	mCommandList->SetDescriptorHeaps(1, mCB_Heap.GetAddressOf());
+
+	ID3D12DescriptorHeap* mHeaps[] = { mCB_Heap.Get() };
+	mCommandList->SetDescriptorHeaps(1, mHeaps);
 
 	mCommandList->SetGraphicsRootDescriptorTable(0, mCB_Heap->GetGPUDescriptorHandleForHeapStart());
 }

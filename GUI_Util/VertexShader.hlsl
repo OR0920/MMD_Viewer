@@ -19,9 +19,9 @@ VS_Output VS_Main(VS_Input input )
     
     input.position.w = 1.f;
     
-    input.position = mul(W, input.position);
-    input.position = mul(V, input.position);
-    output.position = mul(P, input.position);
+    output.position = mul(W, input.position);
+    output.position = mul(V, output.position);
+    output.position = mul(P, output.position);
     
     output.normalInWorld = mul(W, input.normal);
     

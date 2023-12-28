@@ -36,7 +36,7 @@ VS_OutPut BasicVS(VS_Input vsi)
         bone[vsi.boneno[2]] * vsi.weight[2] +
         bone[vsi.boneno[3]] * vsi.weight[3];
     
-    vsi.pos = mul(bm, vsi.pos);
+    //vsi.pos = mul(bm, vsi.pos);
     
     vso.pos = vsi.pos;
     vsi.pos = mul(world, vsi.pos);

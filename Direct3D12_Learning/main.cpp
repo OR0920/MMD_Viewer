@@ -3,21 +3,21 @@
 #include"System.h"
 #include"MMDsdk.h"
 
-static const char* const kabanPath = "../x64/Debug/Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
-static const char* const mikuPmxPath = "../x64/Debug/Test/Model/PMX/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx";
-static const char* const hakasePath = "../x64/Debug/Test/Model/PMX/ハカセ/ハカセ/アフリカオオコノハズク.pmx";
+static const char* const kabanPath = "../x64/Debug/MMDsdkTest/Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
+static const char* const mikuPmxPath = "../x64/Debug/MMDsdkTest/Test/Model/PMX/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx";
+static const char* const hakasePath = "../x64/Debug/MMDsdkTest/Test/Model/PMX/ハカセ/ハカセ/アフリカオオコノハズク.pmx";
 static const char* const hashibiroPath = "../x64/debug/Test/Model/PMX/ハシビロコウ/ハシビロコウ.pmx";
-static const char* const kabaPath = "../x64/Debug/Test/Model/PMX/もぐ式カバ_v111/もぐ式カバ_v111/Kaba.pmx";
+static const char* const kabaPath = "../x64/Debug/MMDsdkTest/Test/Model/PMX/もぐ式カバ_v111/もぐ式カバ_v111/Kaba.pmx";
 static const char* const stagePath = "../x64/debug/Test/Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/キョウシュウエリア20170914.pmx";
-static const char* const mikuPath = "../x64/Debug/Test/Model/PMD/初音ミク.pmd";
-static const char* const miku2Path = "../x64/Debug/Test/Model/PMD/初音ミクVer2.pmd";
-static const char* const metalMikuPath = "../x64/Debug/Test/Model/PMD/初音ミクmetal.pmd";
-static const char* const meikoPath = "../x64/Debug/Test/Model/PMD/MEIKO.pmd";
-static const char* const kaitoPath = "../x64/Debug/Test/Model/PMD/カイト.pmd";
-static const char* const rinPath = "../x64/Debug/Test/Model/PMD/鏡音リン.pmd";
-static const char* const rukaPath = "../x64/Debug/Test/Model/PMD/巡音ルカ.pmd";
+static const char* const mikuPath = "../x64/Debug/MMDsdkTest/Test/Model/PMD/初音ミク.pmd";
+static const char* const miku2Path = "../x64/Debug/MMDsdkTest/Test/Model/PMD/初音ミクVer2.pmd";
+static const char* const metalMikuPath = "../x64/Debug/MMDsdkTest/Test/Model/PMD/初音ミクmetal.pmd";
+static const char* const meikoPath = "../x64/Debug/MMDsdkTest/Test/Model/PMD/MEIKO.pmd";
+static const char* const kaitoPath = "../x64/Debug/MMDsdkTest/Test/Model/PMD/カイト.pmd";
+static const char* const rinPath = "../x64/Debug/MMDsdkTest/Test/Model/PMD/鏡音リン.pmd";
+static const char* const rukaPath = "../x64/Debug/MMDsdkTest/Test/Model/PMD/巡音ルカ.pmd";
 static const char* const hachunePath = "D:/Projects/MMD_Viewer/x64/Debug/Test/Model/PMD/PMDモデル はちゅねミク_hatsune_hachi_202312021756/PMD_hachune_1.41/hachune.pmd";
-static const char* const samePath = "../x64/Debug/Test/Model/PMX/GawrGura/GawrGura/GawrGura.pmx";
+static const char* const samePath = "../x64/Debug/MMDsdkTest/Test/Model/PMX/GawrGura/GawrGura/GawrGura.pmx";
 static const char* const senchoPath = "D:/Projects/MMD_Viewer/x64/Debug/Test/Model/PMX/宝鐘マリン公式mmd_ver1.1/螳晞据繝槭Μ繝ｳ蜈ｬ蠑塾md_ver1.1/marin220809.pmx";
 static const char* const mikuPmxPath2 = "D:/Projects/MMD_Viewer/x64/Debug/Test/Model/PMX/Tda式初音ミクV4X_Ver1.00/Tda式初音ミクV4X_Ver1.00//Tda式初音ミクV4X_Ver1.00.pmx";
 
@@ -528,16 +528,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 ////static const char* const hashibiroPath = "C:/Users/onory/source/repos/MMD_Viewer/x64/Debug/Test/Model/PMX/ハシビロコウ/ハシビロコウ.pmx";
 ////static const char* const stagePath = "C:/Users/onory/source/repos/MMD_Viewer/x64/Debug/Test/Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/キョウシュウエリア20170914.pmx";
 //
-//static const char* const kabanPath = "../x64/Debug/Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
+//static const char* const kabanPath = "../x64/Debug/MMDsdkTest/Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
 //static const char* const hashibiroPath = "../x64/debug/PMX/ハシビロコウ/ハシビロコウ.pmx";
 //static const char* const stagePath = "../x64/debug/Test/Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/キョウシュウエリア20170914.pmx";
-//static const char* const mikuPath = "../x64/Debug/Test/Model/PMD/初音ミク.pmd";
-//static const char* const miku2Path = "../x64/Debug/Test/Model/PMD/初音ミクVer2.pmd";
-//static const char* const metalMikuPath = "../x64/Debug/Test/Model/PMD/初音ミクmetal.pmd";
-//static const char* const meikoPath = "../x64/Debug/Test/Model/PMD/MEIKO.pmd";
-//static const char* const kaitoPath = "../x64/Debug/Test/Model/PMD/カイト.pmd";
-//static const char* const rinPath = "../x64/Debug/Test/Model/PMD/鏡音リン.pmd";
-//static const char* const rukaPath = "../x64/Debug/Test/Model/PMD/巡音ルカ.pmd";
+//static const char* const mikuPath = "../x64/Debug/MMDsdkTest/Test/Model/PMD/初音ミク.pmd";
+//static const char* const miku2Path = "../x64/Debug/MMDsdkTest/Test/Model/PMD/初音ミクVer2.pmd";
+//static const char* const metalMikuPath = "../x64/Debug/MMDsdkTest/Test/Model/PMD/初音ミクmetal.pmd";
+//static const char* const meikoPath = "../x64/Debug/MMDsdkTest/Test/Model/PMD/MEIKO.pmd";
+//static const char* const kaitoPath = "../x64/Debug/MMDsdkTest/Test/Model/PMD/カイト.pmd";
+//static const char* const rinPath = "../x64/Debug/MMDsdkTest/Test/Model/PMD/鏡音リン.pmd";
+//static const char* const rukaPath = "../x64/Debug/MMDsdkTest/Test/Model/PMD/巡音ルカ.pmd";
 //static const char* const hachunePath = "D:/Projects/MMD_Viewer/x64/Debug/Test/Model/PMD/PMDモデル はちゅねミク_hatsune_hachi_202312021756/PMD_hachune_1.41/hachune.pmd";
 //
 //const MMDsdk::PmxFile model("ahahaha.text");
