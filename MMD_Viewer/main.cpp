@@ -36,6 +36,34 @@ int MAIN()
 	}
 
 	// 描画エンジン初期化
+	
+	// デバッグモード　有効化
+	if (GUI::Graphics::EnalbleDebugLayer() == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	// デバイス作成
+	GUI::Graphics::Device device;
+	if (device.Create() == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	// コマンドオブジェクト作成
+	GUI::Graphics::GraphicsCommand command;
+	if (device.CreateGraphicsCommand(command) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+	
+	// スワップチェイン作成
+
+	GUI::Graphics::SwapChain swapChain;
+	if (swapChain.Create(command, mainWindow, 2) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
 
 	// モデル作成
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)

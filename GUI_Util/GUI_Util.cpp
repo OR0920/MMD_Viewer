@@ -8,14 +8,6 @@
 #include<windows.h>
 #include<tchar.h>
 
-#pragma comment(lib, "dxgi.lib")
-#pragma comment(lib, "d3d12.lib")
-
-#include"d3dx12.h"
-#include<d3dcompiler.h>
-#pragma comment(lib, "d3dcompiler.lib")
-
-#define D3D12Allignment(buffSize) (buffSize + 0xff) & ~0xff;
 // my lib
 #include "System.h"
 
@@ -380,4 +372,5 @@ FileCatcher::~FileCatcher()
 {
 	UnregisterClass(mWindowClass.lpszClassName, mWindowClass.hInstance);
 }
+
 

@@ -10,7 +10,7 @@
 #include<wrl.h>
 #include<tchar.h>
 #include<d3d12.h>
-#include<dxgi1_4.h>
+#include<dxgi1_6.h>
 
 #ifdef _DEBUG
 #define MAIN main 
@@ -116,6 +116,62 @@ namespace GUI
 		static DropPos sDropPos;
 	};
 
+	// D3D12ÇÃîñÇ¢ÉâÉbÉpÅ[
+	namespace Graphics
+	{
+		template<class T>
+		using ComPtr = Microsoft::WRL::ComPtr<T>;
+
+		Result EnalbleDebugLayer();
+
+		class GraphicsCommand;
+
+		class Device
+		{
+		public:
+			Device(); ~Device();
+
+			Result Create();
+
+			Result CreateGraphicsCommand(GraphicsCommand& graphicsCommand);
+		private:
+			ComPtr<ID3D12Device> mDevice;
+		};
+
+		class SwapChain
+		{
+		public:
+			SwapChain(); ~SwapChain();
+
+			Result Create
+			(
+				const GraphicsCommand& device, 
+				const ParentWindow& targetWindow, 
+				const int frameCount
+			);
+		private:
+			
+			ComPtr<IDXGISwapChain4> mSwapChain;
+		};
+
+		class GraphicsCommand
+		{
+			friend Result Device::CreateGraphicsCommand(GraphicsCommand&);
+			friend Result SwapChain::Create
+			(
+				const GraphicsCommand&,
+				const ParentWindow&,
+				const int
+			);
+		public:
+			GraphicsCommand(); ~GraphicsCommand();
+
+		private:
+			ComPtr<ID3D12CommandQueue> mCommandQueue;
+			ComPtr<ID3D12CommandAllocator> mCommandAllocator;
+			ComPtr<ID3D12GraphicsCommandList> mCommandList;
+		};
+	}
 }
 
 #endif // !_GUI_UTIL_H_

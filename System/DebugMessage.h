@@ -24,7 +24,7 @@
 // バイナリ出力　桁数をdigで指定する
 #define DebugOutParamBin(p, dig) std::cout << ToString(p) << " = " <<  std::bitset<dig>(p) << std::endl;
 // バイナリ出力　16進数
-#define DebugOutParamHex(p) std::cout << ToString(p) << " = " << std::hex << p << std::endl;
+#define DebugOutParamHex(p) std::cout << ToString(p) << " = " << std::hex << p << std::dec << std::endl;
 // 文字列表示、変数名と一緒に
 #define DebugOutString(s) if (s != nullptr) {std::cout << ToString(s) << " = " << s << std::endl;}
 // ワイド文字列表示
