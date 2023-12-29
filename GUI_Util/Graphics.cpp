@@ -431,6 +431,13 @@ Result Device::CreateIndexBuffer
 	return SUCCESS;
 }
 
+Result Device::CreateConstantBuffer(ConstantBuffer& constantBuffer)
+{
+	
+
+	return SUCCESS;
+}
+
 // スワップチェイン
 
 SwapChain::SwapChain()
@@ -1029,4 +1036,18 @@ const D3D12_INDEX_BUFFER_VIEW* const IndexBuffer::GetView() const
 const int IndexBuffer::GetIndexCount() const
 {
 	return mIndexCount;
+}
+
+//　定数バッファ
+
+ConstantBuffer::ConstantBuffer()
+	:
+	mResource(nullptr)
+{
+
+}
+
+ConstantBuffer::~ConstantBuffer()
+{
+
 }

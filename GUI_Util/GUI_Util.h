@@ -151,6 +151,7 @@ namespace GUI
 		class GraphicsPipeline;
 		class VertexBuffer;
 		class IndexBuffer;
+		class ConstantBuffer;
 
 		class Device
 		{
@@ -188,6 +189,8 @@ namespace GUI
 				const unsigned int indexTypeSize,
 				const unsigned int indexCount
 			);
+
+			Result CreateConstantBuffer(ConstantBuffer& constantBuffer);
 		private:
 			ComPtr<ID3D12Device> mDevice;
 		};
@@ -430,7 +433,19 @@ namespace GUI
 
 		};
 
-		
+		class ConstantBuffer
+		{
+			friend Result Device::CreateConstantBuffer
+			(
+				ConstantBuffer& constantBuffer
+			);
+		public:
+			ConstantBuffer(); ~ConstantBuffer();
+
+
+		private:
+			ComPtr<ID3D12Resource> mResource;
+		};
 	}
 }
 

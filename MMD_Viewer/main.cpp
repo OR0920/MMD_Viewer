@@ -158,6 +158,11 @@ int MAIN()
 	// 定数バッファ作成
 	auto rotation = MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f));
 
+	GUI::Graphics::ConstantBuffer constantBuffer;
+	if (device.CreateConstantBuffer(constantBuffer) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
 
 	// モデル作成
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
