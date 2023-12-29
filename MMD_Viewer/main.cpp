@@ -168,7 +168,13 @@ int MAIN()
 	buffer.rotation = rotation;
 
 	GUI::Graphics::ConstantBuffer constantBuffer;
-	if (device.CreateConstantBuffer(constantBuffer, sizeof(ConstantBuffer)) == GUI::Result::FAIL)
+	auto result = device.CreateConstantBuffer
+	(
+		constantBuffer, 
+		sizeof(ConstantBuffer)
+	);
+
+	if (result == GUI::Result::FAIL)
 	{
 		return -1;
 	}
