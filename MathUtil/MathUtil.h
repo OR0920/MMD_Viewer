@@ -192,6 +192,7 @@ namespace MathUtil
 
 		static Matrix GenerateMatrixTranslation(const Vector& position);
 
+		// ’PˆÊ‚·‚×‚Äƒ‰ƒWƒAƒ“
 		static Matrix GenerateMatrixRotationX(const float angle);
 		static Matrix GenerateMatrixRotationY(const float angle);
 		static Matrix GenerateMatrixRotationZ(const float angle);

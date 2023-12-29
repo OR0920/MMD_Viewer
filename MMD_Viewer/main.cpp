@@ -114,7 +114,7 @@ int MAIN()
 		return -1;
 	}
 
-	// 頂点バッファ作成
+	// 頂点バッファ作成 インデックスバッファ作成
 	struct Vertex
 	{
 		MathUtil::float3 position;
@@ -154,6 +154,10 @@ int MAIN()
 	{
 		return -1;
 	}
+
+	// 定数バッファ作成
+	auto rotation = MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f));
+
 
 	// モデル作成
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
