@@ -434,6 +434,7 @@ Result Device::CreateIndexBuffer
 Result Device::CreateConstantBuffer
 (
 	ConstantBuffer& constantBuffer,
+	DescriptorHeapForShaderData& viewHeap,
 	unsigned int bufferStructSize
 )
 {
@@ -459,15 +460,44 @@ Result Device::CreateConstantBuffer
 		Device::CreateConstantBuffer()
 	);
 
+	D3D12_CONSTANT_BUFFER_VIEW_DESC viewDesc = {};
+	viewDesc.BufferLocation = constantBuffer.mResource->GetGPUVirtualAddress();
+	viewDesc.SizeInBytes = constantBuffer.mResource->GetDesc().Width;
+
+	auto handle = viewHeap.GetHandle();
+
+
+
 	return SUCCESS;
 }
 
 Result Device::CreateDescriptorHeap
 (
-	DescriptorHeapForShaderData& descHeap
+	DescriptorHeapForShaderData& heap,
+	const unsigned int descriptorCount
 )
 {
-	return FAIL;
+	auto type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	
+	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	desc.NodeMask = 0;
+	desc.NumDescriptors = descriptorCount;
+	desc.Type = type;
+	ReturnIfFailed
+	(
+		mDevice->CreateDescriptorHeap
+		(
+			&desc,
+			IID_PPV_ARGS(heap.mDescriptorHeap.ReleaseAndGetAddressOf())
+		),
+		Device::CreateDescriptorHeap()
+	);
+
+	heap.mIncrementSize = mDevice->GetDescriptorHandleIncrementSize(type);
+	heap.mDescriptorCount = descriptorCount;
+
+	return SUCCESS;
 }
 
 // スワップチェイン
@@ -1089,12 +1119,35 @@ ConstantBuffer::~ConstantBuffer()
 DescriptorHeapForShaderData::DescriptorHeapForShaderData()
 	:
 	mDescriptorHeap(nullptr),
-	mDesc({})
+	mDescriptorCount(0),
+	mIncrementSize(0),
+	mLastID(0)
 {
-	mDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 }
 
 DescriptorHeapForShaderData::~DescriptorHeapForShaderData()
 {
 
 }
+
+const D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeapForShaderData::GetHandle() 
+{
+	if (mDescriptorCount <= mLastID)
+	{
+		return {};
+	}
+
+	auto ret = mDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	ret.ptr += mLastID * mIncrementSize;
+	mLastID++;
+	return ret;
+}
+
+const D3D12_CPU_DESCRIPTOR_HANDLE 
+DescriptorHeapForShaderData::GetHandle(const int i) const
+{
+	auto ret = mDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	ret.ptr += mLastID * mIncrementSize;
+	return ret;
+}
+

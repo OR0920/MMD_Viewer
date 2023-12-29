@@ -194,12 +194,14 @@ namespace GUI
 			Result CreateConstantBuffer
 			(
 				ConstantBuffer& constantBuffer,
+				DescriptorHeapForShaderData& viewHeap,
 				const unsigned int bufferStructSize
 			);
 
 			Result CreateDescriptorHeap
 			(
-				DescriptorHeapForShaderData& descHeap
+				DescriptorHeapForShaderData& heap,
+				const unsigned int descriptorCount
 			);
 		private:
 			ComPtr<ID3D12Device> mDevice;
@@ -447,7 +449,9 @@ namespace GUI
 		{
 			friend Result Device::CreateConstantBuffer
 			(
-				ConstantBuffer&, unsigned int
+				ConstantBuffer&, 
+				DescriptorHeapForShaderData&,
+				unsigned int
 			);
 		public:
 			ConstantBuffer(); ~ConstantBuffer();
@@ -459,13 +463,24 @@ namespace GUI
 
 		class DescriptorHeapForShaderData
 		{
+			friend Result Device::CreateDescriptorHeap
+			(
+				DescriptorHeapForShaderData&,
+				const unsigned int
+			);
 		public:
 			DescriptorHeapForShaderData();
 			~DescriptorHeapForShaderData();
 
+			// ÉâÉCÉuÉâÉäÇ©ÇÁåƒÇ—èoÇ∑ä÷êî
+			const D3D12_CPU_DESCRIPTOR_HANDLE GetHandle();
+			const D3D12_CPU_DESCRIPTOR_HANDLE GetHandle(const int i) const;
+			
 		private:
 			ComPtr<ID3D12DescriptorHeap> mDescriptorHeap;
-			D3D12_DESCRIPTOR_HEAP_DESC mDesc;
+			int mDescriptorCount;
+			int mIncrementSize;
+			int mLastID;
 		};
 	}
 }

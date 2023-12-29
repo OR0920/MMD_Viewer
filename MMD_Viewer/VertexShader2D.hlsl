@@ -15,9 +15,9 @@ VS_Output main( VS_Input input)
 {
     VS_Output output;
     
-    //output.screenPos = mul(Rotation, input.position);
-    output.screenPos = input.position;
-    output.color = input.color;
+    output.screenPos = mul(Rotation, input.position);
+    //output.screenPos = input.position;
+    output.color = input.color; 
     
     return output;    
 }

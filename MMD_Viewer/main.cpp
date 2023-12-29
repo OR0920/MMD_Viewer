@@ -87,12 +87,6 @@ int MAIN()
 		return -1;
 	}
 
-	// ルートシグネチャ作成
-	GUI::Graphics::RootSignature rootSignature;
-	if (device.CreateRootSignature(rootSignature) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
 
 	// 入力レイアウト作成
 	GUI::Graphics::InputElementDesc inputElementDesc;
@@ -102,17 +96,6 @@ int MAIN()
 
 	inputElementDesc.DebugOutLayout();
 
-	// パイプラインステート
-	GUI::Graphics::GraphicsPipeline pipeline;
-	pipeline.SetInputLayout(inputElementDesc);
-	pipeline.SetRootSignature(rootSignature);
-	pipeline.SetVertexShader(VertexShader2D, _countof(VertexShader2D));
-	pipeline.SetPixelShader(PixelShader2D, _countof(PixelShader2D));
-
-	if (device.CreateGraphicsPipeline(pipeline) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
 
 	// 頂点バッファ作成 インデックスバッファ作成
 	struct Vertex
@@ -159,7 +142,7 @@ int MAIN()
 
 	GUI::Graphics::DescriptorHeapForShaderData descHeap;
 	{
-		auto result = device.CreateDescriptorHeap(descHeap);
+		auto result = device.CreateDescriptorHeap(descHeap, 1);
 		if (result == GUI::Result::FAIL)
 		{
 			return -1;
@@ -167,7 +150,7 @@ int MAIN()
 	}
 
 	// 定数バッファ作成
-	
+
 	auto rotation = MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f));
 
 	struct ConstantBuffer
@@ -180,6 +163,7 @@ int MAIN()
 		auto result = device.CreateConstantBuffer
 		(
 			constantBuffer,
+			descHeap,
 			sizeof(ConstantBuffer)
 		);
 
@@ -187,6 +171,25 @@ int MAIN()
 		{
 			return -1;
 		}
+	}
+
+	// ルートシグネチャ作成
+	GUI::Graphics::RootSignature rootSignature;
+	if (device.CreateRootSignature(rootSignature) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	// パイプラインステート
+	GUI::Graphics::GraphicsPipeline pipeline;
+	pipeline.SetInputLayout(inputElementDesc);
+	pipeline.SetRootSignature(rootSignature);
+	pipeline.SetVertexShader(VertexShader2D, _countof(VertexShader2D));
+	pipeline.SetPixelShader(PixelShader2D, _countof(PixelShader2D));
+
+	if (device.CreateGraphicsPipeline(pipeline) == GUI::Result::FAIL)
+	{
+		return -1;
 	}
 
 	// モデル作成
