@@ -128,15 +128,28 @@ int MAIN()
 		{ { -0.5f,  0.f, 0.f }, { 0.f, 0.f, 1.f, 1.f } }
 	};
 
+	int triangleIndex[] = { 0, 1, 2 };
+
 	auto triangleSize = sizeof(triangle);
 
 	GUI::Graphics::VertexBuffer vertexBuffer;
-	if (device.CreateVertexBuffer(vertexBuffer, sizeof(Vertex), 3) == GUI::Result::FAIL)
+	if (device.CreateVertexBuffer(vertexBuffer, sizeof(Vertex), _countof(triangle)) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
 
-	if (vertexBuffer.Copy(reinterpret_cast<unsigned char*>(triangle)) == GUI::Result::FAIL)
+	if (vertexBuffer.Copy(triangle) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	GUI::Graphics::IndexBuffer indexBuffer;
+	if (device.CreateIndexBuffer(indexBuffer, sizeof(int), _countof(triangleIndex)) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	if (indexBuffer.Copy(triangleIndex) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
@@ -159,7 +172,8 @@ int MAIN()
 		command.ClearRenderTarget(GUI::Graphics::Color(0.5f, 0.5f, 0.5f));
 		command.ClearDepthBuffer();
 
-		command.DrawTriangles(vertexBuffer);
+		//command.DrawTriangle(vertexBuffer);
+		command.DrawTriangleList(vertexBuffer, indexBuffer);
 
 		command.LockRenderTarget(renderTarget);
 

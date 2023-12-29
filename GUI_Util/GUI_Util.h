@@ -150,6 +150,7 @@ namespace GUI
 		class InputElementDesc;
 		class GraphicsPipeline;
 		class VertexBuffer;
+		class IndexBuffer;
 
 		class Device
 		{
@@ -177,8 +178,15 @@ namespace GUI
 			Result CreateVertexBuffer
 			(
 				VertexBuffer& vertexBuffer,
-				const unsigned int elementSize,
-				const unsigned int elementCount
+				const unsigned int vertexTypeSize,
+				const unsigned int vertexCount
+			);
+
+			Result CreateIndexBuffer
+			(
+				IndexBuffer& indexBuffer,
+				const unsigned int indexTypeSize,
+				const unsigned int indexCount
 			);
 		private:
 			ComPtr<ID3D12Device> mDevice;
@@ -240,7 +248,12 @@ namespace GUI
 
 			void SetGraphicsRootSignature(const RootSignature& rootSignature);
 
-			void DrawTriangles(const VertexBuffer& vertex);
+			void DrawTriangle(const VertexBuffer& vertex);
+			void DrawTriangleList
+			(
+				const VertexBuffer& vertex,
+				const IndexBuffer& index
+			);
 
 			void LockRenderTarget(const RenderTarget& renderTarget);
 
@@ -351,7 +364,7 @@ namespace GUI
 
 			void SetVertexShader(const unsigned char* const vertexShader, const int length);
 			void SetPixelShader(const unsigned char* const pixelShader, const int length);
-			
+
 			// ライブラリから呼び出す関数
 			const ComPtr<ID3D12PipelineState> GetPipelineState() const;
 		private:
@@ -370,7 +383,7 @@ namespace GUI
 		public:
 			VertexBuffer(); ~VertexBuffer();
 
-			Result Copy(const unsigned char* data);
+			Result Copy(const void* const data);
 
 			// ライブラリから呼び出す関数
 			const D3D12_VERTEX_BUFFER_VIEW* const GetView() const;
@@ -379,6 +392,29 @@ namespace GUI
 			ComPtr<ID3D12Resource> mResource;
 			D3D12_VERTEX_BUFFER_VIEW mView;
 			int mVertexCount = 0;
+		};
+
+		class IndexBuffer
+		{
+			friend Result Device::CreateIndexBuffer
+			(
+				IndexBuffer&,
+				unsigned int,
+				unsigned int
+			);
+		public:
+			IndexBuffer(); ~IndexBuffer();
+
+			Result Copy(const void* const data);
+			
+			// ライブラリから呼び出す関数
+			const D3D12_INDEX_BUFFER_VIEW* const GetView() const;
+			const int GetIndexCount() const;
+		private:
+			ComPtr<ID3D12Resource> mResource;
+			D3D12_INDEX_BUFFER_VIEW mView;
+			int mIndexCount;
+
 		};
 	}
 }

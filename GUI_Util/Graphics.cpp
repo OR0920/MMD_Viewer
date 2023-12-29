@@ -368,10 +368,13 @@ Result Device::CreateVertexBuffer
 {
 	DebugOutParam(elementSize);
 	DebugOutParam(elementCount);
+
 	auto bufferSize = elementSize * elementCount;
 	DebugOutParam(bufferSize);
+
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+
 	ReturnIfFailed
 	(
 		mDevice->CreateCommittedResource
@@ -386,12 +389,51 @@ Result Device::CreateVertexBuffer
 		Device::CreateVertexBuffer()
 	);
 
-	
+
 	vertexBuffer.mView.BufferLocation = vertexBuffer.mResource->GetGPUVirtualAddress();
 	vertexBuffer.mView.SizeInBytes = bufferSize;
 	vertexBuffer.mView.StrideInBytes = elementSize;
 
 	vertexBuffer.mVertexCount = elementCount;
+
+	return SUCCESS;
+}
+
+Result Device::CreateIndexBuffer
+(
+	IndexBuffer& indexBuffer,
+	const unsigned int indexTypeSize,
+	const unsigned int indexCount
+)
+{
+	DebugOutParam(indexTypeSize);
+	DebugOutParam(indexCount);
+
+	auto bufferSize = indexTypeSize * indexCount;
+	DebugOutParam(bufferSize);
+
+	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+
+	ReturnIfFailed
+	(
+		mDevice->CreateCommittedResource
+		(
+			&heapProp,
+			D3D12_HEAP_FLAG_NONE,
+			&resDesc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(indexBuffer.mResource.ReleaseAndGetAddressOf())
+		),
+		Device::CreateIndexBuffer()
+	);
+
+	indexBuffer.mView.BufferLocation = indexBuffer.mResource->GetGPUVirtualAddress();
+	indexBuffer.mView.Format = DXGI_FORMAT_R32_UINT;
+	indexBuffer.mView.SizeInBytes = bufferSize;
+
+	indexBuffer.mIndexCount = indexCount;
 
 	return SUCCESS;
 }
@@ -619,11 +661,23 @@ void GraphicsCommand::SetGraphicsRootSignature(const RootSignature& rootSignatur
 }
 
 
-void GraphicsCommand::DrawTriangles(const VertexBuffer& vertex)
+void GraphicsCommand::DrawTriangle(const VertexBuffer& vertex)
 {
 	mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mCommandList->IASetVertexBuffers(0, 1, vertex.GetView());
-	mCommandList->DrawInstanced(3, 1, 0, 0);
+	mCommandList->DrawInstanced(vertex.GetVertexCount(), 1, 0, 0);
+}
+
+void GraphicsCommand::DrawTriangleList
+(
+	const VertexBuffer& vertex,
+	const IndexBuffer& index
+)
+{
+	mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	mCommandList->IASetVertexBuffers(0, 1, vertex.GetView());
+	mCommandList->IASetIndexBuffer(index.GetView());
+	mCommandList->DrawIndexedInstanced(index.GetIndexCount(), 1, 0, 0, 0);
 }
 
 
@@ -907,7 +961,7 @@ VertexBuffer::~VertexBuffer()
 
 }
 
-Result VertexBuffer::Copy(const unsigned char* data)
+Result VertexBuffer::Copy(const void* const data)
 {
 	unsigned char* mappedVertex = nullptr;
 	auto range = CD3DX12_RANGE(0, 0);
@@ -920,12 +974,7 @@ Result VertexBuffer::Copy(const unsigned char* data)
 		VertexBuffer::Copy()
 	);
 
-	//std::memcpy(mappedVertex, data, mView.SizeInBytes);
-
-	for (unsigned int i = 0; i < mView.SizeInBytes; ++i)
-	{
-		mappedVertex[i] = data[i];
-	}
+	std::memcpy(mappedVertex, data, mView.SizeInBytes);
 
 	mResource->Unmap(0, nullptr);
 
@@ -942,3 +991,46 @@ const int VertexBuffer::GetVertexCount() const
 	return mVertexCount;
 }
 
+// インデックスバッファ
+
+IndexBuffer::IndexBuffer()
+	:
+	mResource(nullptr),
+	mView({}),
+	mIndexCount(0)
+{
+
+}
+
+IndexBuffer::~IndexBuffer()
+{
+
+}
+
+Result IndexBuffer::Copy(const void* const data)
+{
+	unsigned char* mappedIndex = nullptr;
+	
+	auto range = CD3DX12_RANGE(0, 0);
+	ReturnIfFailed
+	(
+		mResource->Map(0, &range, reinterpret_cast<void**>(&mappedIndex)),
+		IndexBuffer::Copy()
+	);
+
+	std::memcpy(mappedIndex, data, mView.SizeInBytes);
+
+	mResource->Unmap(0, nullptr);
+
+	return SUCCESS;
+}
+
+const D3D12_INDEX_BUFFER_VIEW* const IndexBuffer::GetView() const
+{
+	return &mView;
+}
+
+const int IndexBuffer::GetIndexCount() const
+{
+	return mIndexCount;
+}
