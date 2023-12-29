@@ -10,6 +10,9 @@
 #include"GUI_Util.h"
 using namespace std;
 
+#include"VertexShader2D.h"
+#include"PixelShader2D.h"
+
 int MAIN()
 {
 	// デバッグ表示を日本語に対応させる
@@ -93,6 +96,18 @@ int MAIN()
 	inputElementDesc.DefaultColor();
 
 	inputElementDesc.DebugOutLayout();
+
+	// パイプラインステート
+	GUI::Graphics::GraphicsPipeline pipeline;
+	pipeline.SetInputLayout(inputElementDesc);
+	pipeline.SetRootSignature(rootSignature);
+	pipeline.SetVertexShader(VertexShader2D, _countof(VertexShader2D));
+	pipeline.SetPixelShader(PixelShader2D, _countof(PixelShader2D));
+
+	if (device.CreateGraphicsPipeline(pipeline) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
 
 	// モデル作成
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)

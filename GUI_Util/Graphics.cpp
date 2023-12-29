@@ -344,6 +344,21 @@ Result Device::CreateRootSignature(RootSignature& rootSignature)
 	return SUCCESS;
 }
 
+Result Device::CreateGraphicsPipeline(GraphicsPipeline& pipeline)
+{
+	ReturnIfFailed
+	(
+		mDevice->CreateGraphicsPipelineState
+		(
+			&pipeline.psoDesc,
+			IID_PPV_ARGS(pipeline.mPipelineState.ReleaseAndGetAddressOf())
+		),
+		Device::CreateGraphicsPipeline()
+	);
+
+	return SUCCESS;
+}
+
 // スワップチェイン
 
 SwapChain::SwapChain()
@@ -631,7 +646,7 @@ const ComPtr<ID3D12Resource> RenderTarget::GetResource(const int bufferID) const
 	return mRT_Resource[bufferID];
 }
 
-D3D12_VIEWPORT RenderTarget::GetViewPort() const 
+D3D12_VIEWPORT RenderTarget::GetViewPort() const
 {
 	return mViewPort;
 }
@@ -674,6 +689,11 @@ RootSignature::~RootSignature()
 
 }
 
+const ComPtr<ID3D12RootSignature> RootSignature::GetRootSignature() const
+{
+	return mRootSignature;
+}
+
 // 入力レイアウト
 
 InputElementDesc::InputElementDesc()
@@ -701,15 +721,15 @@ void InputElementDesc::DefaultPosition(const char* const semantics)
 {
 	if (IsSizeOver() == true) return;
 
-	mInputElementDesc[mLastID] = 
-	{ 
-		semantics, 
-		0, 
-		DXGI_FORMAT_R32G32B32_FLOAT, 
-		0, 
-		0, 
-		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 
-		0 
+	mInputElementDesc[mLastID] =
+	{
+		semantics,
+		0,
+		DXGI_FORMAT_R32G32B32_FLOAT,
+		0,
+		0,
+		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+		0
 	};
 
 	mLastID++;
@@ -729,7 +749,7 @@ void InputElementDesc::DefaultColor(const char* const semantics)
 		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
 		0
 	};
-	
+
 	mLastID++;
 }
 
@@ -742,6 +762,17 @@ void InputElementDesc::DebugOutLayout() const
 	}
 }
 
+int InputElementDesc::GetDescCount() const
+{
+	return mCount;
+}
+
+const D3D12_INPUT_ELEMENT_DESC* const InputElementDesc::GetElementDesc() const
+{
+	return mInputElementDesc;
+}
+
+
 bool InputElementDesc::IsSizeOver() const
 {
 	if (mCount <= mLastID)
@@ -752,3 +783,70 @@ bool InputElementDesc::IsSizeOver() const
 
 	return false;
 }
+
+// パイプラインステート
+
+GraphicsPipeline::GraphicsPipeline()
+	:
+	mPipelineState(nullptr),
+	psoDesc({})
+{
+	//psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+	//psoDesc.pRootSignature = m_rootSignature.Get();
+	//psoDesc.VS = { reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
+	//psoDesc.PS = { reinterpret_cast<UINT8*>(pixelShader->GetBufferPointer()), pixelShader->GetBufferSize() };
+	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	psoDesc.DepthStencilState.DepthEnable = FALSE;
+	psoDesc.DepthStencilState.StencilEnable = FALSE;
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	psoDesc.SampleDesc.Count = 1;
+}
+
+GraphicsPipeline::~GraphicsPipeline()
+{
+
+}
+
+void GraphicsPipeline::SetInputLayout(const InputElementDesc& inputElementDesc)
+{
+	psoDesc.InputLayout.NumElements = inputElementDesc.GetDescCount();
+	psoDesc.InputLayout.pInputElementDescs = inputElementDesc.GetElementDesc();
+}
+
+void GraphicsPipeline::SetRootSignature(const RootSignature& rootSignatue)
+{
+	psoDesc.pRootSignature = rootSignatue.GetRootSignature().Get();
+}
+
+void GraphicsPipeline::SetVertexShader(const unsigned char* const vertexShader, const int length)
+{
+	psoDesc.VS.BytecodeLength = length;
+	psoDesc.VS.pShaderBytecode = vertexShader;
+}
+
+void GraphicsPipeline::SetPixelShader(const unsigned char* const pixelShader, const int length)
+{
+	psoDesc.PS.BytecodeLength = length;
+	psoDesc.PS.pShaderBytecode = pixelShader;
+}
+
+// 頂点バッファ
+
+VertexBuffer::VertexBuffer()
+	:
+	mResource(nullptr),
+	mView({})
+{
+
+}
+
+VertexBuffer::~VertexBuffer()
+{
+
+}
+
+

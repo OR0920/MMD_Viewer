@@ -147,7 +147,8 @@ namespace GUI
 		class RenderTarget;
 		class DepthStencilBuffer;
 		class RootSignature;
-
+		class InputElementDesc;
+		class GraphicsPipeline;
 
 		class Device
 		{
@@ -171,8 +172,7 @@ namespace GUI
 			);
 
 			Result CreateRootSignature(RootSignature& rootSignature);
-
-			
+			Result CreateGraphicsPipeline(GraphicsPipeline& pipeline);
 		private:
 			ComPtr<ID3D12Device> mDevice;
 		};
@@ -294,9 +294,11 @@ namespace GUI
 
 		class RootSignature
 		{
-			friend Result Device::CreateRootSignature(RootSignature& rootSignature);
+			friend Result Device::CreateRootSignature(RootSignature&);
 		public:
 			RootSignature(); ~RootSignature();
+
+			const ComPtr<ID3D12RootSignature> GetRootSignature() const;
 
 		private:
 			ComPtr<ID3D12RootSignature> mRootSignature;
@@ -313,6 +315,10 @@ namespace GUI
 			void DefaultColor(const char* const semantics = "COLOR");
 
 			void DebugOutLayout() const;
+			
+			// ÉâÉCÉuÉâÉäÇ™åƒÇ—èoÇ∑ä÷êî
+			int GetDescCount() const;
+			const D3D12_INPUT_ELEMENT_DESC* const GetElementDesc() const;
 		private:
 			bool IsSizeOver() const;
 
@@ -321,7 +327,35 @@ namespace GUI
 			D3D12_INPUT_ELEMENT_DESC* mInputElementDesc;
 		};
 
-		
+		class GraphicsPipeline
+		{
+			friend Result Device::CreateGraphicsPipeline(GraphicsPipeline&);
+		public:
+			GraphicsPipeline(); ~GraphicsPipeline();
+
+
+			void SetInputLayout(const InputElementDesc& inputElementDesc);
+			void SetRootSignature(const RootSignature& rootSignature);
+
+			void SetVertexShader(const unsigned char* const vertexShader, const int length);
+			void SetPixelShader(const unsigned char* const pixelShader, const int length);
+
+		private:
+			ComPtr<ID3D12PipelineState> mPipelineState;
+			D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
+		};
+
+		class VertexBuffer
+		{
+
+		public:
+			VertexBuffer(); ~VertexBuffer();
+
+
+		private:
+			ComPtr<ID3D12Resource> mResource;
+			D3D12_VERTEX_BUFFER_VIEW mView;
+		};
 	}
 }
 
