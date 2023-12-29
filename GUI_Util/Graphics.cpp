@@ -835,7 +835,7 @@ void InputElementDesc::SetElementCount(const int count)
 	mInputElementDesc = new D3D12_INPUT_ELEMENT_DESC[count]{};
 }
 
-void InputElementDesc::DefaultPosition(const char* const semantics)
+void InputElementDesc::SetDefaultPositionDesc(const char* const semantics)
 {
 	if (IsSizeOver() == true) return;
 
@@ -851,7 +851,7 @@ void InputElementDesc::DefaultPosition(const char* const semantics)
 	mLastID++;
 }
 
-void InputElementDesc::DefaultColor(const char* const semantics)
+void InputElementDesc::SetDefaultColorDesc(const char* const semantics)
 {
 	if (IsSizeOver() == true) return;
 
@@ -891,7 +891,7 @@ bool InputElementDesc::IsSizeOver() const
 {
 	if (mCount <= mLastID)
 	{
-		DebugMessage("ERROR: The Desc has Not Space. AT : " << ToString(InputElementDesc::DefaultPosition()));
+		DebugMessage("ERROR: The Desc has Not Space. AT : " << ToString(InputElementDesc::SetDefaultPositionDesc()));
 		return true;
 	}
 

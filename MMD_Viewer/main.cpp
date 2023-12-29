@@ -97,8 +97,8 @@ int MAIN()
 	// 入力レイアウト作成
 	GUI::Graphics::InputElementDesc inputElementDesc;
 	inputElementDesc.SetElementCount(2);
-	inputElementDesc.DefaultPosition();
-	inputElementDesc.DefaultColor();
+	inputElementDesc.SetDefaultPositionDesc();
+	inputElementDesc.SetDefaultColorDesc();
 
 	inputElementDesc.DebugOutLayout();
 

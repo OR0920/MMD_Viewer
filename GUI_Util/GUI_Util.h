@@ -342,8 +342,8 @@ namespace GUI
 
 			void SetElementCount(const int count);
 
-			void DefaultPosition(const char* const semantics = "POSITION");
-			void DefaultColor(const char* const semantics = "COLOR");
+			void SetDefaultPositionDesc(const char* const semantics = "POSITION");
+			void SetDefaultColorDesc(const char* const semantics = "COLOR");
 
 			void DebugOutLayout() const;
 
