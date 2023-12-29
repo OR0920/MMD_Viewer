@@ -123,12 +123,13 @@ int MAIN()
 
 	Vertex triangle[] =
 	{
-		{ {   0.f, 0.5f, 0.f }, { 1.f, 0.f, 0.f, 1.f } },
-		{ {  0.5f,  0.f, 0.f }, { 0.f, 1.f, 0.f, 1.f } },
-		{ { -0.5f,  0.f, 0.f }, { 0.f, 0.f, 1.f, 1.f } }
+		{ {  0.5f,  0.5f, 0.f }, { 1.f, 1.f, 0.f, 1.f } },
+		{ {  0.5f, -0.5f, 0.f }, { 0.f, 1.f, 1.f, 1.f } },
+		{ { -0.5f, -0.5f, 0.f }, { 1.f, 0.f, 1.f, 1.f } },
+		{ { -0.5f,  0.5f, 0.f }, { 0.f, 0.f, 0.f, 1.f } },
 	};
 
-	int triangleIndex[] = { 0, 1, 2 };
+	int triangleIndex[] = { 0, 1, 2, 2, 3, 0 };
 
 	auto triangleSize = sizeof(triangle);
 
