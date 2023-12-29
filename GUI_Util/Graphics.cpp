@@ -862,6 +862,15 @@ void RootSignature::SetParameterCount(const int count)
 	mDesc.pParameters = mRootParamter;
 }
 
+void RootSignature::SetConstantBufferView(const int paramID)
+{
+	auto& p = mRootParamter[paramID];
+	p.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	p.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	p.Descriptor.RegisterSpace = 0;
+	p.Descriptor.ShaderRegister = 0;
+}
+
 const ComPtr<ID3D12RootSignature> RootSignature::GetRootSignature() const
 {
 	return mRootSignature;

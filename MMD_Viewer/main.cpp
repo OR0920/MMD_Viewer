@@ -138,11 +138,11 @@ int MAIN()
 		return -1;
 	}
 
-	// ディスクリプタヒープ作成
-
+	// 定数バッファ用のディスクリプタヒープ作成
+	const int descriptorCount = 1;
 	GUI::Graphics::DescriptorHeapForShaderData descHeap;
 	{
-		auto result = device.CreateDescriptorHeap(descHeap, 1);
+		auto result = device.CreateDescriptorHeap(descHeap, descriptorCount);
 		if (result == GUI::Result::FAIL)
 		{
 			return -1;
@@ -151,7 +151,7 @@ int MAIN()
 
 	// 定数バッファ作成
 
-	auto rotation = MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f));
+	auto rotation = MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(45.f));
 
 	struct ConstantBuffer
 	{
@@ -175,6 +175,8 @@ int MAIN()
 
 	// ルートシグネチャ作成
 	GUI::Graphics::RootSignature rootSignature;
+	rootSignature.SetParameterCount(1);
+	rootSignature.SetConstantBufferView(0);
 	if (device.CreateRootSignature(rootSignature) == GUI::Result::FAIL)
 	{
 		return -1;
@@ -192,7 +194,6 @@ int MAIN()
 		return -1;
 	}
 
-	// モデル作成
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
 	{
 		if (fc.Update() == true)

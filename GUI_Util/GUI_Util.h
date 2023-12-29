@@ -347,6 +347,7 @@ namespace GUI
 
 			// À‘•’†
 			void SetParameterCount(const int count);
+			void SetConstantBufferView(const int paramID);
 
 			// ƒ‰ƒCƒuƒ‰ƒŠ‚©‚çŒÄ‚Ño‚·ŠÖ”
 			const ComPtr<ID3D12RootSignature> GetRootSignature() const;
