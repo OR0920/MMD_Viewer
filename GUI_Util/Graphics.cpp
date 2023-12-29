@@ -359,6 +359,37 @@ Result Device::CreateGraphicsPipeline(GraphicsPipeline& pipeline)
 	return SUCCESS;
 }
 
+Result Device::CreateVertexBuffer
+(
+	VertexBuffer& vertexBuffer,
+	const unsigned int bufferSize,
+	const unsigned int elementSize
+)
+{
+	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+	ReturnIfFailed
+	(
+		mDevice->CreateCommittedResource
+		(
+			&heapProp,
+			D3D12_HEAP_FLAG_NONE,
+			&resDesc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(vertexBuffer.mResource.ReleaseAndGetAddressOf())
+		),
+		Device::CreateVertexBuffer()
+	);
+
+	auto& view = vertexBuffer.mView;
+	view.BufferLocation = vertexBuffer.mResource->GetGPUVirtualAddress();
+	view.SizeInBytes = bufferSize;
+	view.StrideInBytes = elementSize;
+
+	return SUCCESS;
+}
+
 // スワップチェイン
 
 SwapChain::SwapChain()
@@ -573,6 +604,13 @@ void GraphicsCommand::ClearDepthBuffer()
 
 
 
+void GraphicsCommand::DrawTriangles(const VertexBuffer& vertex)
+{
+	mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	mCommandList->IASetVertexBuffers(0, 1, vertex.GetView());
+}
+
+
 void GraphicsCommand::LockRenderTarget(const RenderTarget& renderTarget)
 {
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition
@@ -698,6 +736,8 @@ const ComPtr<ID3D12RootSignature> RootSignature::GetRootSignature() const
 
 InputElementDesc::InputElementDesc()
 	:
+	mCount(0),
+	mLastID(0),
 	mInputElementDesc(nullptr)
 {
 
@@ -796,6 +836,8 @@ GraphicsPipeline::GraphicsPipeline()
 	//psoDesc.VS = { reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
 	//psoDesc.PS = { reinterpret_cast<UINT8*>(pixelShader->GetBufferPointer()), pixelShader->GetBufferSize() };
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	psoDesc.DepthStencilState.DepthEnable = FALSE;
 	psoDesc.DepthStencilState.StencilEnable = FALSE;
@@ -804,6 +846,7 @@ GraphicsPipeline::GraphicsPipeline()
 	psoDesc.NumRenderTargets = 1;
 	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	psoDesc.SampleDesc.Count = 1;
+
 }
 
 GraphicsPipeline::~GraphicsPipeline()
@@ -847,6 +890,28 @@ VertexBuffer::VertexBuffer()
 VertexBuffer::~VertexBuffer()
 {
 
+}
+
+Result VertexBuffer::Copy(const unsigned char* data)
+{
+	unsigned char* mappedVertex = nullptr;
+	auto range = CD3DX12_RANGE(0, 0);
+	ReturnIfFailed
+	(
+		mResource->Map
+		(
+			0, &range, reinterpret_cast<void**>(&mappedVertex)
+		),
+		VertexBuffer::Copy()
+	);
+
+	std::memcpy(mappedVertex, data, mView.SizeInBytes);
+	mResource->Unmap(0, nullptr);
+}
+
+const D3D12_VERTEX_BUFFER_VIEW* const VertexBuffer::GetView() const
+{
+	return &mView;
 }
 
 

@@ -149,6 +149,7 @@ namespace GUI
 		class RootSignature;
 		class InputElementDesc;
 		class GraphicsPipeline;
+		class VertexBuffer;
 
 		class Device
 		{
@@ -173,6 +174,12 @@ namespace GUI
 
 			Result CreateRootSignature(RootSignature& rootSignature);
 			Result CreateGraphicsPipeline(GraphicsPipeline& pipeline);
+			Result CreateVertexBuffer
+			(
+				VertexBuffer& vertexBuffer,
+				const unsigned int bufferSize,
+				const unsigned int elementSize
+			);
 		private:
 			ComPtr<ID3D12Device> mDevice;
 		};
@@ -229,6 +236,8 @@ namespace GUI
 			);
 
 			void ClearDepthBuffer();
+
+			void DrawTriangles(const VertexBuffer& vertex);
 
 			void LockRenderTarget(const RenderTarget& renderTarget);
 
@@ -315,7 +324,7 @@ namespace GUI
 			void DefaultColor(const char* const semantics = "COLOR");
 
 			void DebugOutLayout() const;
-			
+
 			// ライブラリが呼び出す関数
 			int GetDescCount() const;
 			const D3D12_INPUT_ELEMENT_DESC* const GetElementDesc() const;
@@ -347,11 +356,19 @@ namespace GUI
 
 		class VertexBuffer
 		{
-
+			friend Result Device::CreateVertexBuffer
+			(
+				VertexBuffer&,
+				const unsigned int,
+				const unsigned int
+			);
 		public:
 			VertexBuffer(); ~VertexBuffer();
 
+			Result Copy(const unsigned char* data);
 
+			// ライブラリから呼び出す関数
+			const D3D12_VERTEX_BUFFER_VIEW* const GetView() const;
 		private:
 			ComPtr<ID3D12Resource> mResource;
 			D3D12_VERTEX_BUFFER_VIEW mView;

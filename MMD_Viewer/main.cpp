@@ -39,7 +39,7 @@ int MAIN()
 	}
 
 	// 描画エンジン初期化
-	
+
 	// デバッグモード　有効化
 	if (GUI::Graphics::EnalbleDebugLayer() == GUI::Result::FAIL)
 	{
@@ -59,7 +59,7 @@ int MAIN()
 	{
 		return -1;
 	}
-	
+
 	// スワップチェイン作成
 
 	GUI::Graphics::SwapChain swapChain;
@@ -109,6 +109,33 @@ int MAIN()
 		return -1;
 	}
 
+	// 頂点バッファ作成
+	struct Vertex
+	{
+		MathUtil::float3 position;
+		MathUtil::float4 color;
+	};
+
+	Vertex triangle[] =
+	{
+		{ {   0.f, 0.5f, 0.f }, { 1.f, 0.f, 0.f, 1.f } },
+		{ {  0.5f,  0.f, 0.f }, { 0.f, 1.f, 0.f, 1.f } },
+		{ { -0.5f,  0.f, 0.f }, { 0.f, 0.f, 1.f, 1.f } },
+	};
+
+	auto triangleSize = sizeof(triangle);
+
+	GUI::Graphics::VertexBuffer vertexBuffer;
+	if (device.CreateVertexBuffer(vertexBuffer, triangleSize, sizeof(Vertex)))
+	{
+		return -1;
+	}
+
+	if (vertexBuffer.Copy(reinterpret_cast<unsigned char*>(triangle)) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
 	// モデル作成
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
 	{
@@ -118,13 +145,15 @@ int MAIN()
 		}
 
 		command.BeginDraw();
-		
+
 		command.UnlockRenderTarget(renderTarget);
 
 		command.SetRenderTarget(&renderTarget, &depthStencil);
 
 		command.ClearRenderTarget(GUI::Graphics::Color(0.f, 0.f, 0.5f));
 		command.ClearDepthBuffer();
+
+		command.DrawTriangles(vertexBuffer);
 
 		command.LockRenderTarget(renderTarget);
 
