@@ -213,9 +213,7 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 	{
 		auto result = swapChain.GetBuffer
 		(
-			i,
-			reinterpret_cast<void**>
-			(renderTarget.mRT_Resource[i].ReleaseAndGetAddressOf())
+			i, renderTarget.mRT_Resource[i].ReleaseAndGetAddressOf()
 		);
 
 		if (result == Result::FAIL)
@@ -444,22 +442,22 @@ void SwapChain::Present()
 	mSwapChain->Present(1, 0);
 }
 
-Result SwapChain::GetDesc(void* desc) const
+Result SwapChain::GetDesc(DXGI_SWAP_CHAIN_DESC* desc) const
 {
 	ReturnIfFailed
 	(
-		mSwapChain->GetDesc(reinterpret_cast<DXGI_SWAP_CHAIN_DESC*>(desc)),
+		mSwapChain->GetDesc(desc),
 		SwapChain::GetDesc()
 	);
 
 	return SUCCESS;
 }
 
-Result SwapChain::GetBuffer(const unsigned int bufferID, void** resource) const
+Result SwapChain::GetBuffer(const unsigned int bufferID, ID3D12Resource** resource) const
 {
 	ReturnIfFailed
 	(
-		mSwapChain->GetBuffer(bufferID, IID_PPV_ARGS(reinterpret_cast<ID3D12Resource**>(resource))),
+		mSwapChain->GetBuffer(bufferID, IID_PPV_ARGS(resource)),
 		SwapChain::GetBuffer()
 	);
 	return SUCCESS;
@@ -676,3 +674,81 @@ RootSignature::~RootSignature()
 
 }
 
+// 入力レイアウト
+
+InputElementDesc::InputElementDesc()
+	:
+	mInputElementDesc(nullptr)
+{
+
+}
+
+InputElementDesc::~InputElementDesc()
+{
+	System::SafeDeleteArray(&mInputElementDesc);
+}
+
+void InputElementDesc::SetElementCount(const int count)
+{
+	System::SafeDeleteArray(&mInputElementDesc);
+
+	mCount = count;
+	mLastID = 0;
+	mInputElementDesc = new D3D12_INPUT_ELEMENT_DESC[count]{};
+}
+
+void InputElementDesc::DefaultPosition(const char* const semantics)
+{
+	if (IsSizeOver() == true) return;
+
+	mInputElementDesc[mLastID] = 
+	{ 
+		semantics, 
+		0, 
+		DXGI_FORMAT_R32G32B32_FLOAT, 
+		0, 
+		0, 
+		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 
+		0 
+	};
+
+	mLastID++;
+}
+
+void InputElementDesc::DefaultColor(const char* const semantics)
+{
+	if (IsSizeOver() == true) return;
+
+	mInputElementDesc[mLastID] =
+	{
+		semantics,
+		0,
+		DXGI_FORMAT_R32G32B32A32_FLOAT,
+		0,
+		0,
+		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+		0
+	};
+	
+	mLastID++;
+}
+
+void InputElementDesc::DebugOutLayout() const
+{
+	for (int i = 0; i < mCount; ++i)
+	{
+		auto& ied = mInputElementDesc[i];
+		DebugMessage(" { " << ied.SemanticName << " } ");
+	}
+}
+
+bool InputElementDesc::IsSizeOver() const
+{
+	if (mCount <= mLastID)
+	{
+		DebugMessage("ERROR: It Cannot add Desc over the Desc Size. AT : " << ToString(InputElementDesc::DefaultPosition()));
+		return true;
+	}
+
+	return false;
+}

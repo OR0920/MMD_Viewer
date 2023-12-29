@@ -21,5 +21,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="ShaderStructs2D.hlsli" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="VertexShader2D.hlsl" />
+    <FxCompile Include="PixelShader2D.hlsl" />
   </ItemGroup>
 </Project>

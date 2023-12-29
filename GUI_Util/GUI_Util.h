@@ -171,6 +171,8 @@ namespace GUI
 			);
 
 			Result CreateRootSignature(RootSignature& rootSignature);
+
+			
 		private:
 			ComPtr<ID3D12Device> mDevice;
 		};
@@ -189,11 +191,11 @@ namespace GUI
 
 			int GetCurrentBackBufferIndex() const;
 
-			void Present() ;
+			void Present();
 
 			// ÉâÉCÉuÉâÉäÇ©ÇÁåƒÇ—èoÇ∑ä÷êî
-			Result GetDesc(void* desc) const;
-			Result GetBuffer(const unsigned int bufferID, void** resource) const;
+			Result GetDesc(DXGI_SWAP_CHAIN_DESC* desc) const;
+			Result GetBuffer(const unsigned int bufferID, ID3D12Resource** resource) const;
 		private:
 			ComPtr<IDXGISwapChain4> mSwapChain;
 
@@ -299,6 +301,27 @@ namespace GUI
 		private:
 			ComPtr<ID3D12RootSignature> mRootSignature;
 		};
+
+		class InputElementDesc
+		{
+		public:
+			InputElementDesc(); ~InputElementDesc();
+
+			void SetElementCount(const int count);
+
+			void DefaultPosition(const char* const semantics = "POSITION");
+			void DefaultColor(const char* const semantics = "COLOR");
+
+			void DebugOutLayout() const;
+		private:
+			bool IsSizeOver() const;
+
+			int mCount;
+			int mLastID;
+			D3D12_INPUT_ELEMENT_DESC* mInputElementDesc;
+		};
+
+		
 	}
 }
 

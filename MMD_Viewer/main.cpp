@@ -86,6 +86,13 @@ int MAIN()
 		return -1;
 	}
 
+	// 入力レイアウト作成
+	GUI::Graphics::InputElementDesc inputElementDesc;
+	inputElementDesc.SetElementCount(2);
+	inputElementDesc.DefaultPosition();
+	inputElementDesc.DefaultColor();
+
+	inputElementDesc.DebugOutLayout();
 
 	// モデル作成
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
