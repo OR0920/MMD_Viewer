@@ -617,20 +617,16 @@ void GraphicsCommand::SetRenderTarget
 	mCommandList->OMSetRenderTargets(1, &mRTV_Handle, 1, &mDSV_Handle);
 }
 
-
 void GraphicsCommand::ClearRenderTarget(const Color& color)
 {
 	float col[] = { color.r, color.g, color.b, color.a };
 	mCommandList->ClearRenderTargetView(mRTV_Handle, col, 0, nullptr);
 }
 
-
-
 void GraphicsCommand::ClearDepthBuffer()
 {
 	mCommandList->ClearDepthStencilView(mDSV_Handle, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 }
-
 
 void GraphicsCommand::SetGraphicsRootSignature(const RootSignature& rootSignature)
 {
