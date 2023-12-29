@@ -829,7 +829,7 @@ bool InputElementDesc::IsSizeOver() const
 {
 	if (mCount <= mLastID)
 	{
-		DebugMessage("ERROR: It Cannot add Desc over the Desc Size. AT : " << ToString(InputElementDesc::DefaultPosition()));
+		DebugMessage("ERROR: The Desc has Not Space. AT : " << ToString(InputElementDesc::DefaultPosition()));
 		return true;
 	}
 

@@ -13,6 +13,11 @@ using namespace std;
 #include"VertexShader2D.h"
 #include"PixelShader2D.h"
 
+static const int HD = 720;
+static const int FHD = 1080;
+static const int windowHeight = HD;
+static const int windowWidth = windowHeight / 9 * 16;
+
 int MAIN()
 {
 	// デバッグ表示を日本語に対応させる
@@ -25,7 +30,7 @@ int MAIN()
 	auto& mainWindow = GUI::MainWindow::Instance();
 
 	// ウィンドウを作成
-	if (mainWindow.Create(1280, 720) == GUI::Result::FAIL)
+	if (mainWindow.Create(windowWidth, windowHeight) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
@@ -124,7 +129,6 @@ int MAIN()
 	};
 
 	auto triangleSize = sizeof(triangle);
-	DebugOutParam(triangleSize);
 
 	GUI::Graphics::VertexBuffer vertexBuffer;
 	if (device.CreateVertexBuffer(vertexBuffer, sizeof(Vertex), 3) == GUI::Result::FAIL)
