@@ -155,6 +155,17 @@ int MAIN()
 		return -1;
 	}
 
+	// ディスクリプタヒープ作成
+
+	GUI::Graphics::DescriptorHeapForShaderData descHeap;
+	{
+		auto result = device.CreateDescriptorHeap(descHeap);
+		if (result == GUI::Result::FAIL)
+		{
+			return -1;
+		}
+	}
+
 	// 定数バッファ作成
 	
 	auto rotation = MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f));
@@ -165,15 +176,17 @@ int MAIN()
 	};
 
 	GUI::Graphics::ConstantBuffer constantBuffer;
-	auto result = device.CreateConstantBuffer
-	(
-		constantBuffer, 
-		sizeof(ConstantBuffer)
-	);
-
-	if (result == GUI::Result::FAIL)
 	{
-		return -1;
+		auto result = device.CreateConstantBuffer
+		(
+			constantBuffer,
+			sizeof(ConstantBuffer)
+		);
+
+		if (result == GUI::Result::FAIL)
+		{
+			return -1;
+		}
 	}
 
 	// モデル作成

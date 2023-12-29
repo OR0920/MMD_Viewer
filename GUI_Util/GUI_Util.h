@@ -152,6 +152,7 @@ namespace GUI
 		class VertexBuffer;
 		class IndexBuffer;
 		class ConstantBuffer;
+		class DescriptorHeapForShaderData;
 
 		class Device
 		{
@@ -194,6 +195,11 @@ namespace GUI
 			(
 				ConstantBuffer& constantBuffer,
 				const unsigned int bufferStructSize
+			);
+
+			Result CreateDescriptorHeap
+			(
+				DescriptorHeapForShaderData& descHeap
 			);
 		private:
 			ComPtr<ID3D12Device> mDevice;
@@ -449,6 +455,17 @@ namespace GUI
 
 		private:
 			ComPtr<ID3D12Resource> mResource;
+		};
+
+		class DescriptorHeapForShaderData
+		{
+		public:
+			DescriptorHeapForShaderData();
+			~DescriptorHeapForShaderData();
+
+		private:
+			ComPtr<ID3D12DescriptorHeap> mDescriptorHeap;
+			D3D12_DESCRIPTOR_HEAP_DESC mDesc;
 		};
 	}
 }

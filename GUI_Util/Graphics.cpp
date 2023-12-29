@@ -462,6 +462,14 @@ Result Device::CreateConstantBuffer
 	return SUCCESS;
 }
 
+Result Device::CreateDescriptorHeap
+(
+	DescriptorHeapForShaderData& descHeap
+)
+{
+	return FAIL;
+}
+
 // スワップチェイン
 
 SwapChain::SwapChain()
@@ -1072,6 +1080,21 @@ ConstantBuffer::ConstantBuffer()
 }
 
 ConstantBuffer::~ConstantBuffer()
+{
+
+}
+
+// ディスクリプタヒープ
+
+DescriptorHeapForShaderData::DescriptorHeapForShaderData()
+	:
+	mDescriptorHeap(nullptr),
+	mDesc({})
+{
+	mDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+}
+
+DescriptorHeapForShaderData::~DescriptorHeapForShaderData()
 {
 
 }
