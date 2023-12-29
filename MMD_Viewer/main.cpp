@@ -79,6 +79,13 @@ int MAIN()
 		return -1;
 	}
 
+	// ルートシグネチャ作成
+	GUI::Graphics::RootSignature rootSignature;
+	if (device.CreateRootSignature(rootSignature) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
 
 	// モデル作成
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
@@ -94,7 +101,7 @@ int MAIN()
 
 		command.SetRenderTarget(&renderTarget, &depthStencil);
 
-		command.ClearRenderTarget();
+		command.ClearRenderTarget(GUI::Graphics::Color(0.f, 0.f, 0.5f));
 		command.ClearDepthBuffer();
 
 		command.LockRenderTarget(renderTarget);

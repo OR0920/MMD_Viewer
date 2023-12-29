@@ -146,7 +146,8 @@ namespace GUI
 		class SwapChain;
 		class RenderTarget;
 		class DepthStencilBuffer;
-		class Fence;
+		class RootSignature;
+
 
 		class Device
 		{
@@ -169,7 +170,7 @@ namespace GUI
 				const SwapChain& swapChain
 			);
 
-			Result CreateFence(Fence& fence);
+			Result CreateRootSignature(RootSignature& rootSignature);
 		private:
 			ComPtr<ID3D12Device> mDevice;
 		};
@@ -289,7 +290,15 @@ namespace GUI
 
 		};
 
-		
+		class RootSignature
+		{
+			friend Result Device::CreateRootSignature(RootSignature& rootSignature);
+		public:
+			RootSignature(); ~RootSignature();
+
+		private:
+			ComPtr<ID3D12RootSignature> mRootSignature;
+		};
 	}
 }
 

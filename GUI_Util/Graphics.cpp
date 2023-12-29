@@ -311,6 +311,161 @@ Result Device::CreateDepthBuffer
 	return SUCCESS;
 }
 
+Result Device::CreateRootSignature(RootSignature& rootSignature)
+{
+	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	rootSignatureDesc.NumParameters = 0;
+	rootSignatureDesc.pParameters = nullptr;
+	rootSignatureDesc.NumStaticSamplers = 0;
+	rootSignatureDesc.pStaticSamplers = nullptr;
+
+	ComPtr<ID3DBlob> signature;
+	ComPtr<ID3DBlob> error;
+
+	ReturnIfFailed
+	(
+		D3D12SerializeRootSignature
+		(
+			&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1,
+			signature.ReleaseAndGetAddressOf(), error.ReleaseAndGetAddressOf()
+		),
+		Device::CreateRootSignature()
+	);
+
+	ReturnIfFailed
+	(
+		mDevice->CreateRootSignature
+		(
+			0, signature->GetBufferPointer(), signature->GetBufferSize(),
+			IID_PPV_ARGS(rootSignature.mRootSignature.ReleaseAndGetAddressOf())
+		),
+		Device::CreateRootSignature()
+	);
+
+	return SUCCESS;
+}
+
+// スワップチェイン
+
+SwapChain::SwapChain()
+	:
+	mSwapChain(nullptr)
+{
+
+}
+
+SwapChain::~SwapChain()
+{
+
+}
+
+Result SwapChain::Create
+(
+	GraphicsCommand& device,
+	const ParentWindow& targetWindow,
+	const int frameCount
+)
+{
+	if (targetWindow.GetHandle() == 0)
+	{
+		DebugMessage("The Target Window Is not Exist !");
+
+		return FAIL;
+	}
+
+	ComPtr<IDXGIFactory> tFactory;
+	ReturnIfFailed
+	(
+		CreateDXGIFactory2
+		(
+			DXGI_CREATE_FACTORY_DEBUG,
+			IID_PPV_ARGS(tFactory.ReleaseAndGetAddressOf())
+		),
+		SwapChain::Create();
+	);
+
+	ComPtr<IDXGIFactory4> factory4;
+
+	ReturnIfFailed
+	(
+		tFactory->QueryInterface(IID_PPV_ARGS(factory4.ReleaseAndGetAddressOf())),
+		SwapChain::Create()
+	);
+
+	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
+	swapChainDesc.Width = targetWindow.GetWindowWidth();
+	swapChainDesc.Height = targetWindow.GetWindowHeight();
+	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDesc.Stereo = false;
+	swapChainDesc.SampleDesc.Count = 1;
+	swapChainDesc.SampleDesc.Quality = 0;
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swapChainDesc.BufferCount = frameCount;
+	swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+	ComPtr<IDXGISwapChain1> tSwCh1;
+
+	ReturnIfFailed
+	(
+		factory4->CreateSwapChainForHwnd
+		(
+			device.mCommandQueue.Get(),
+			targetWindow.GetHandle(),
+			&swapChainDesc,
+			nullptr,
+			nullptr,
+			tSwCh1.ReleaseAndGetAddressOf()
+		),
+		SwapChain::Create()
+	);
+
+	ReturnIfFailed
+	(
+		tSwCh1->QueryInterface(mSwapChain.ReleaseAndGetAddressOf()),
+		SwapChain::Create()
+	);
+
+	device.mSwapChain = mSwapChain.Get();
+
+	return SUCCESS;
+}
+
+int SwapChain::GetCurrentBackBufferIndex() const
+{
+	return mSwapChain->GetCurrentBackBufferIndex();
+}
+
+void SwapChain::Present()
+{
+	mSwapChain->Present(1, 0);
+}
+
+Result SwapChain::GetDesc(void* desc) const
+{
+	ReturnIfFailed
+	(
+		mSwapChain->GetDesc(reinterpret_cast<DXGI_SWAP_CHAIN_DESC*>(desc)),
+		SwapChain::GetDesc()
+	);
+
+	return SUCCESS;
+}
+
+Result SwapChain::GetBuffer(const unsigned int bufferID, void** resource) const
+{
+	ReturnIfFailed
+	(
+		mSwapChain->GetBuffer(bufferID, IID_PPV_ARGS(reinterpret_cast<ID3D12Resource**>(resource))),
+		SwapChain::GetBuffer()
+	);
+	return SUCCESS;
+}
+
+
 // コマンド
 GraphicsCommand::GraphicsCommand()
 	:
@@ -433,124 +588,6 @@ void GraphicsCommand::EndDraw()
 
 }
 
-// スワップチェイン
-
-SwapChain::SwapChain()
-	:
-	mSwapChain(nullptr)
-{
-
-}
-
-SwapChain::~SwapChain()
-{
-
-}
-
-Result SwapChain::Create
-(
-	GraphicsCommand& device,
-	const ParentWindow& targetWindow,
-	const int frameCount
-)
-{
-	if (targetWindow.GetHandle() == 0)
-	{
-		DebugMessage("The Target Window Is not Exist !");
-
-		return FAIL;
-	}
-
-	ComPtr<IDXGIFactory> tFactory;
-	ReturnIfFailed
-	(
-		CreateDXGIFactory2
-		(
-			DXGI_CREATE_FACTORY_DEBUG,
-			IID_PPV_ARGS(tFactory.ReleaseAndGetAddressOf())
-		),
-		SwapChain::Create();
-	);
-
-	ComPtr<IDXGIFactory4> factory4;
-
-	ReturnIfFailed
-	(
-		tFactory->QueryInterface(IID_PPV_ARGS(factory4.ReleaseAndGetAddressOf())),
-		SwapChain::Create()
-	);
-
-	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-	swapChainDesc.Width = targetWindow.GetWindowWidth();
-	swapChainDesc.Height = targetWindow.GetWindowHeight();
-	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	swapChainDesc.Stereo = false;
-	swapChainDesc.SampleDesc.Count = 1;
-	swapChainDesc.SampleDesc.Quality = 0;
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.BufferCount = frameCount;
-	swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-	ComPtr<IDXGISwapChain1> tSwCh1;
-
-	ReturnIfFailed
-	(
-		factory4->CreateSwapChainForHwnd
-		(
-			device.mCommandQueue.Get(),
-			targetWindow.GetHandle(),
-			&swapChainDesc,
-			nullptr,
-			nullptr,
-			tSwCh1.ReleaseAndGetAddressOf()
-		),
-		SwapChain::Create()
-	);
-
-	ReturnIfFailed
-	(
-		tSwCh1->QueryInterface(mSwapChain.ReleaseAndGetAddressOf()),
-		SwapChain::Create()
-	);
-
-	device.mSwapChain = mSwapChain.Get();
-
-	return SUCCESS;
-}
-
-int SwapChain::GetCurrentBackBufferIndex() const
-{
-	return mSwapChain->GetCurrentBackBufferIndex();
-}
-
-void SwapChain::Present()
-{
-	mSwapChain->Present(1, 0);
-}
-
-Result SwapChain::GetDesc(void* desc) const
-{
-	ReturnIfFailed
-	(
-		mSwapChain->GetDesc(reinterpret_cast<DXGI_SWAP_CHAIN_DESC*>(desc)),
-		SwapChain::GetDesc()
-	);
-
-	return SUCCESS;
-}
-
-Result SwapChain::GetBuffer(const unsigned int bufferID, void** resource) const
-{
-	ReturnIfFailed
-	(
-		mSwapChain->GetBuffer(bufferID, IID_PPV_ARGS(reinterpret_cast<ID3D12Resource**>(resource))),
-		SwapChain::GetBuffer()
-	);
-	return SUCCESS;
-}
 
 //　レンダーターゲット
 
@@ -625,4 +662,17 @@ void DepthStencilBuffer::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle
 	handle = mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
 }
 
+
+// ルートシグネチャ
+RootSignature::RootSignature()
+	:
+	mRootSignature(nullptr)
+{
+
+}
+
+RootSignature::~RootSignature()
+{
+
+}
 
