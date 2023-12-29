@@ -120,13 +120,14 @@ int MAIN()
 	{
 		{ {   0.f, 0.5f, 0.f }, { 1.f, 0.f, 0.f, 1.f } },
 		{ {  0.5f,  0.f, 0.f }, { 0.f, 1.f, 0.f, 1.f } },
-		{ { -0.5f,  0.f, 0.f }, { 0.f, 0.f, 1.f, 1.f } },
+		{ { -0.5f,  0.f, 0.f }, { 0.f, 0.f, 1.f, 1.f } }
 	};
 
 	auto triangleSize = sizeof(triangle);
+	DebugOutParam(triangleSize);
 
 	GUI::Graphics::VertexBuffer vertexBuffer;
-	if (device.CreateVertexBuffer(vertexBuffer, triangleSize, sizeof(Vertex)))
+	if (device.CreateVertexBuffer(vertexBuffer, sizeof(Vertex), 3) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
@@ -144,13 +145,14 @@ int MAIN()
 			DebugOutString(fc.GetPath());
 		}
 
-		command.BeginDraw();
+		command.BeginDraw(pipeline);
 
 		command.UnlockRenderTarget(renderTarget);
 
 		command.SetRenderTarget(&renderTarget, &depthStencil);
+		command.SetGraphicsRootSignature(rootSignature);
 
-		command.ClearRenderTarget(GUI::Graphics::Color(0.f, 0.f, 0.5f));
+		command.ClearRenderTarget(GUI::Graphics::Color(0.5f, 0.5f, 0.5f));
 		command.ClearDepthBuffer();
 
 		command.DrawTriangles(vertexBuffer);

@@ -177,8 +177,8 @@ namespace GUI
 			Result CreateVertexBuffer
 			(
 				VertexBuffer& vertexBuffer,
-				const unsigned int bufferSize,
-				const unsigned int elementSize
+				const unsigned int elementSize,
+				const unsigned int elementCount
 			);
 		private:
 			ComPtr<ID3D12Device> mDevice;
@@ -221,6 +221,7 @@ namespace GUI
 			GraphicsCommand(); ~GraphicsCommand();
 
 			void BeginDraw();
+			void BeginDraw(const GraphicsPipeline& pipeline);
 
 			void UnlockRenderTarget(const RenderTarget& renderTarget);
 
@@ -236,6 +237,8 @@ namespace GUI
 			);
 
 			void ClearDepthBuffer();
+
+			void SetGraphicsRootSignature(const RootSignature& rootSignature);
 
 			void DrawTriangles(const VertexBuffer& vertex);
 
@@ -348,7 +351,9 @@ namespace GUI
 
 			void SetVertexShader(const unsigned char* const vertexShader, const int length);
 			void SetPixelShader(const unsigned char* const pixelShader, const int length);
-
+			
+			// ライブラリから呼び出す関数
+			const ComPtr<ID3D12PipelineState> GetPipelineState() const;
 		private:
 			ComPtr<ID3D12PipelineState> mPipelineState;
 			D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
@@ -369,9 +374,11 @@ namespace GUI
 
 			// ライブラリから呼び出す関数
 			const D3D12_VERTEX_BUFFER_VIEW* const GetView() const;
+			const int GetVertexCount() const;
 		private:
 			ComPtr<ID3D12Resource> mResource;
 			D3D12_VERTEX_BUFFER_VIEW mView;
+			int mVertexCount = 0;
 		};
 	}
 }

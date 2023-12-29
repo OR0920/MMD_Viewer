@@ -362,10 +362,14 @@ Result Device::CreateGraphicsPipeline(GraphicsPipeline& pipeline)
 Result Device::CreateVertexBuffer
 (
 	VertexBuffer& vertexBuffer,
-	const unsigned int bufferSize,
-	const unsigned int elementSize
+	const unsigned int elementSize,
+	const unsigned int elementCount
 )
 {
+	DebugOutParam(elementSize);
+	DebugOutParam(elementCount);
+	auto bufferSize = elementSize * elementCount;
+	DebugOutParam(bufferSize);
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 	ReturnIfFailed
@@ -382,10 +386,12 @@ Result Device::CreateVertexBuffer
 		Device::CreateVertexBuffer()
 	);
 
-	auto& view = vertexBuffer.mView;
-	view.BufferLocation = vertexBuffer.mResource->GetGPUVirtualAddress();
-	view.SizeInBytes = bufferSize;
-	view.StrideInBytes = elementSize;
+	
+	vertexBuffer.mView.BufferLocation = vertexBuffer.mResource->GetGPUVirtualAddress();
+	vertexBuffer.mView.SizeInBytes = bufferSize;
+	vertexBuffer.mView.StrideInBytes = elementSize;
+
+	vertexBuffer.mVertexCount = elementCount;
 
 	return SUCCESS;
 }
@@ -538,7 +544,11 @@ void GraphicsCommand::BeginDraw()
 
 }
 
-
+void GraphicsCommand::BeginDraw(const GraphicsPipeline& pipeline)
+{
+	mCommandAllocator->Reset();
+	mCommandList->Reset(mCommandAllocator.Get(), pipeline.GetPipelineState().Get());
+}
 
 void GraphicsCommand::UnlockRenderTarget(const RenderTarget& renderTarget)
 {
@@ -603,11 +613,17 @@ void GraphicsCommand::ClearDepthBuffer()
 }
 
 
+void GraphicsCommand::SetGraphicsRootSignature(const RootSignature& rootSignature)
+{
+	mCommandList->SetGraphicsRootSignature(rootSignature.GetRootSignature().Get());
+}
+
 
 void GraphicsCommand::DrawTriangles(const VertexBuffer& vertex)
 {
 	mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mCommandList->IASetVertexBuffers(0, 1, vertex.GetView());
+	mCommandList->DrawInstanced(3, 1, 0, 0);
 }
 
 
@@ -761,16 +777,14 @@ void InputElementDesc::DefaultPosition(const char* const semantics)
 {
 	if (IsSizeOver() == true) return;
 
-	mInputElementDesc[mLastID] =
-	{
-		semantics,
-		0,
-		DXGI_FORMAT_R32G32B32_FLOAT,
-		0,
-		0,
-		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
-		0
-	};
+	auto& desc = mInputElementDesc[mLastID];
+	desc.SemanticName = semantics;
+	desc.SemanticIndex = 0;
+	desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	desc.InputSlot = 0;
+	desc.AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+	desc.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+	desc.InstanceDataStepRate = 0;
 
 	mLastID++;
 }
@@ -779,16 +793,14 @@ void InputElementDesc::DefaultColor(const char* const semantics)
 {
 	if (IsSizeOver() == true) return;
 
-	mInputElementDesc[mLastID] =
-	{
-		semantics,
-		0,
-		DXGI_FORMAT_R32G32B32A32_FLOAT,
-		0,
-		0,
-		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
-		0
-	};
+	auto& desc = mInputElementDesc[mLastID];
+	desc.SemanticName = semantics;
+	desc.SemanticIndex = 0;
+	desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	desc.InputSlot = 0;
+	desc.AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+	desc.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+	desc.InstanceDataStepRate = 0;
 
 	mLastID++;
 }
@@ -836,8 +848,6 @@ GraphicsPipeline::GraphicsPipeline()
 	//psoDesc.VS = { reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
 	//psoDesc.PS = { reinterpret_cast<UINT8*>(pixelShader->GetBufferPointer()), pixelShader->GetBufferSize() };
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	psoDesc.DepthStencilState.DepthEnable = FALSE;
 	psoDesc.DepthStencilState.StencilEnable = FALSE;
@@ -877,6 +887,11 @@ void GraphicsPipeline::SetPixelShader(const unsigned char* const pixelShader, co
 	psoDesc.PS.pShaderBytecode = pixelShader;
 }
 
+const ComPtr<ID3D12PipelineState> GraphicsPipeline::GetPipelineState() const
+{
+	return mPipelineState;
+}
+
 // 頂点バッファ
 
 VertexBuffer::VertexBuffer()
@@ -905,8 +920,16 @@ Result VertexBuffer::Copy(const unsigned char* data)
 		VertexBuffer::Copy()
 	);
 
-	std::memcpy(mappedVertex, data, mView.SizeInBytes);
+	//std::memcpy(mappedVertex, data, mView.SizeInBytes);
+
+	for (unsigned int i = 0; i < mView.SizeInBytes; ++i)
+	{
+		mappedVertex[i] = data[i];
+	}
+
 	mResource->Unmap(0, nullptr);
+
+	return SUCCESS;
 }
 
 const D3D12_VERTEX_BUFFER_VIEW* const VertexBuffer::GetView() const
@@ -914,4 +937,8 @@ const D3D12_VERTEX_BUFFER_VIEW* const VertexBuffer::GetView() const
 	return &mView;
 }
 
+const int VertexBuffer::GetVertexCount() const
+{
+	return mVertexCount;
+}
 
