@@ -235,8 +235,13 @@ namespace GUI
 
 			void SetRenderTarget
 			(
-				const RenderTarget* const renderTarget,
-				const DepthStencilBuffer* const depthStencilBuffer = nullptr
+				const RenderTarget& renderTarget
+			);
+
+			void SetRenderTarget
+			(
+				const RenderTarget& renderTarget,
+				const DepthStencilBuffer& depthStenilBuffer
 			);
 
 			void ClearRenderTarget
@@ -259,6 +264,8 @@ namespace GUI
 
 			void EndDraw();
 		private:
+			void SetViewportAndRect(const RenderTarget& renderTarget);
+
 			ID3D12Device* mDevice;
 			IDXGISwapChain4* mSwapChain;
 
@@ -266,8 +273,8 @@ namespace GUI
 			ComPtr<ID3D12CommandAllocator> mCommandAllocator;
 			ComPtr<ID3D12GraphicsCommandList> mCommandList;
 
-			D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle;
-			D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+			D3D12_CPU_DESCRIPTOR_HANDLE mRTV_Handle;
+			D3D12_CPU_DESCRIPTOR_HANDLE mDSV_Handle;
 
 			ComPtr<ID3D12Fence> mFence;
 			UINT64 mFenceValue;

@@ -202,7 +202,7 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 
 	renderTarget.mRT_Resource = new ComPtr<ID3D12Resource>[bufferCount] {nullptr};
 
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle
+	D3D12_CPU_DESCRIPTOR_HANDLE mRTV_Handle
 		= renderTarget.mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
 
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
@@ -222,8 +222,8 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 		}
 
 		rtvDesc.Format = renderTarget.mRT_Resource[i]->GetDesc().Format;
-		mDevice->CreateRenderTargetView(renderTarget.mRT_Resource[i].Get(), &rtvDesc, rtvHandle);
-		rtvHandle.ptr +=
+		mDevice->CreateRenderTargetView(renderTarget.mRT_Resource[i].Get(), &rtvDesc, mRTV_Handle);
+		mRTV_Handle.ptr +=
 			mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	}
 
@@ -559,8 +559,8 @@ GraphicsCommand::GraphicsCommand()
 	mCommandQueue(nullptr),
 	mCommandAllocator(nullptr),
 	mCommandList(),
-	rtvHandle({}),
-	dsvHandle({}),
+	mRTV_Handle({}),
+	mDSV_Handle({}),
 	mFence(nullptr),
 	mFenceValue(0)
 {
@@ -597,54 +597,38 @@ void GraphicsCommand::UnlockRenderTarget(const RenderTarget& renderTarget)
 	mCommandList->ResourceBarrier(1, &barrier);
 }
 
-
+void GraphicsCommand::SetRenderTarget
+(
+	const RenderTarget& renderTarget
+)
+{
+	this->SetViewportAndRect(renderTarget);
+	mCommandList->OMSetRenderTargets(1, &mRTV_Handle, 0, nullptr);
+}
 
 void GraphicsCommand::SetRenderTarget
 (
-	const RenderTarget* const renderTarget,
-	const DepthStencilBuffer* const depthStencilBuffer
+	const RenderTarget& renderTarget,
+	const DepthStencilBuffer& depthStencilBuffer
 )
 {
-	if (renderTarget == nullptr)
-	{
-		DebugMessage
-		(
-			"ERROR: Render Target is nullptr ! \n at: "
-			<< ToString(GraphicsCommand::SetRenderTarget())
-		);
-		return;
-	}
-
-	auto viewport = renderTarget->GetViewPort();
-	auto rect = renderTarget->GetRect();
-	mCommandList->RSSetViewports(1, &viewport);
-	mCommandList->RSSetScissorRects(1, &rect);
-
-	renderTarget->GetDescriptorHandle(rtvHandle, mSwapChain->GetCurrentBackBufferIndex());
-
-	if (depthStencilBuffer == nullptr)
-	{
-		mCommandList->OMSetRenderTargets(1, &rtvHandle, 0, nullptr);
-		return;
-	}
-
-	depthStencilBuffer->GetDescriptorHandle(dsvHandle);
-	mCommandList->OMSetRenderTargets(1, &rtvHandle, 1, &dsvHandle);
+	this->SetViewportAndRect(renderTarget);
+	depthStencilBuffer.GetDescriptorHandle(mDSV_Handle);
+	mCommandList->OMSetRenderTargets(1, &mRTV_Handle, 1, &mDSV_Handle);
 }
-
 
 
 void GraphicsCommand::ClearRenderTarget(const Color& color)
 {
 	float col[] = { color.r, color.g, color.b, color.a };
-	mCommandList->ClearRenderTargetView(rtvHandle, col, 0, nullptr);
+	mCommandList->ClearRenderTargetView(mRTV_Handle, col, 0, nullptr);
 }
 
 
 
 void GraphicsCommand::ClearDepthBuffer()
 {
-	mCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+	mCommandList->ClearDepthStencilView(mDSV_Handle, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 }
 
 
@@ -698,8 +682,16 @@ void GraphicsCommand::EndDraw()
 	{
 
 	} while (mFence->GetCompletedValue() < mFenceValue);
+}
 
+void GraphicsCommand::SetViewportAndRect(const RenderTarget& renderTarget)
+{
+	auto viewport = renderTarget.GetViewPort();
+	mCommandList->RSSetViewports(1, &viewport);
+	auto rect = renderTarget.GetRect();
+	mCommandList->RSSetScissorRects(1, &rect);
 
+	renderTarget.GetDescriptorHandle(mRTV_Handle, mSwapChain->GetCurrentBackBufferIndex());
 }
 
 

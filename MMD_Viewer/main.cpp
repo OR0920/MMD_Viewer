@@ -167,7 +167,7 @@ int MAIN()
 
 		command.UnlockRenderTarget(renderTarget);
 
-		command.SetRenderTarget(&renderTarget, &depthStencil);
+		command.SetRenderTarget(renderTarget, depthStencil);
 		command.SetGraphicsRootSignature(rootSignature);
 
 		command.ClearRenderTarget(GUI::Graphics::Color(0.5f, 0.5f, 0.5f));
