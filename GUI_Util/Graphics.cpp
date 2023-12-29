@@ -702,6 +702,23 @@ void GraphicsCommand::SetGraphicsRootSignature(const RootSignature& rootSignatur
 	mCommandList->SetGraphicsRootSignature(rootSignature.GetRootSignature().Get());
 }
 
+void GraphicsCommand::SetDescriptorHeap(const DescriptorHeapForShaderData& descHeap)
+{
+	mCommandList->SetDescriptorHeaps(1, descHeap.GetDescriptorHeap().GetAddressOf());
+}
+
+void GraphicsCommand::SetDescriptor
+(
+	const ConstantBuffer& constBuffer,
+	const int paramID
+)
+{
+	mCommandList->SetGraphicsRootConstantBufferView
+	(
+		paramID,
+		constBuffer.GetResource()->GetGPUVirtualAddress()
+	);
+}
 
 void GraphicsCommand::DrawTriangle(const VertexBuffer& vertex)
 {
@@ -849,7 +866,7 @@ RootSignature::RootSignature()
 
 RootSignature::~RootSignature()
 {
-
+	System::SafeDeleteArray(&mRootParamter);
 }
 
 void RootSignature::SetParameterCount(const int count)
@@ -862,7 +879,7 @@ void RootSignature::SetParameterCount(const int count)
 	mDesc.pParameters = mRootParamter;
 }
 
-void RootSignature::SetConstantBufferView(const int paramID)
+void RootSignature::SetParamForCBV(const int paramID)
 {
 	auto& p = mRootParamter[paramID];
 	p.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
@@ -1123,6 +1140,25 @@ ConstantBuffer::~ConstantBuffer()
 
 }
 
+Result ConstantBuffer::Map(void** ptr)
+{
+	ReturnIfFailed
+	(
+		mResource->Map
+		(
+			0, nullptr, ptr
+		),
+		ConstantBuffer::Map()
+	);
+
+	return SUCCESS;
+}
+
+const ComPtr<ID3D12Resource> ConstantBuffer::GetResource() const
+{
+	return mResource;
+}
+
 // ディスクリプタヒープ
 
 DescriptorHeapForShaderData::DescriptorHeapForShaderData()
@@ -1152,11 +1188,7 @@ const D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeapForShaderData::GetHandle()
 	return ret;
 }
 
-const D3D12_CPU_DESCRIPTOR_HANDLE 
-DescriptorHeapForShaderData::GetHandle(const int i) const
+const ComPtr<ID3D12DescriptorHeap> DescriptorHeapForShaderData::GetDescriptorHeap() const
 {
-	auto ret = mDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-	ret.ptr += mLastID * mIncrementSize;
-	return ret;
+	return mDescriptorHeap;
 }
-

@@ -268,6 +268,13 @@ namespace GUI
 
 			void SetGraphicsRootSignature(const RootSignature& rootSignature);
 
+			void SetDescriptorHeap(const DescriptorHeapForShaderData& descHeap);
+			void SetDescriptor
+			(
+				const ConstantBuffer& constBuffer, 
+				const int paramID
+			);
+
 			void DrawTriangle(const VertexBuffer& vertex);
 			void DrawTriangleList
 			(
@@ -347,7 +354,7 @@ namespace GUI
 
 			// 実装中
 			void SetParameterCount(const int count);
-			void SetConstantBufferView(const int paramID);
+			void SetParamForCBV(const int paramID);
 
 			// ライブラリから呼び出す関数
 			const ComPtr<ID3D12RootSignature> GetRootSignature() const;
@@ -457,6 +464,10 @@ namespace GUI
 		public:
 			ConstantBuffer(); ~ConstantBuffer();
 
+			Result Map(void** ptr);
+
+			//
+			const ComPtr<ID3D12Resource> GetResource() const;
 
 		private:
 			ComPtr<ID3D12Resource> mResource;
@@ -475,8 +486,8 @@ namespace GUI
 
 			// ライブラリから呼び出す関数
 			const D3D12_CPU_DESCRIPTOR_HANDLE GetHandle();
-			const D3D12_CPU_DESCRIPTOR_HANDLE GetHandle(const int i) const;
-			
+
+			const ComPtr<ID3D12DescriptorHeap> GetDescriptorHeap() const;
 		private:
 			ComPtr<ID3D12DescriptorHeap> mDescriptorHeap;
 			int mDescriptorCount;

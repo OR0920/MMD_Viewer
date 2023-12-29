@@ -173,10 +173,16 @@ int MAIN()
 		}
 	}
 
+	ConstantBuffer* cb = nullptr;
+	if (constantBuffer.Map(reinterpret_cast<void**>(&cb)) == GUI::Result::SUCCESS)
+	{
+		cb->rotation = rotation;
+	}
+
 	// ルートシグネチャ作成
 	GUI::Graphics::RootSignature rootSignature;
 	rootSignature.SetParameterCount(1);
-	rootSignature.SetConstantBufferView(0);
+	rootSignature.SetParamForCBV(0);
 	if (device.CreateRootSignature(rootSignature) == GUI::Result::FAIL)
 	{
 		return -1;
@@ -210,6 +216,9 @@ int MAIN()
 
 		command.ClearRenderTarget(GUI::Graphics::Color(0.5f, 0.5f, 0.5f));
 		command.ClearDepthBuffer();
+
+		command.SetDescriptorHeap(descHeap);
+		command.SetDescriptor(constantBuffer, 0);
 
 		//command.DrawTriangle(vertexBuffer);
 		command.DrawTriangleList(vertexBuffer, indexBuffer);
