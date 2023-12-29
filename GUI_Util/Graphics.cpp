@@ -311,13 +311,6 @@ Result Device::CreateDepthBuffer
 
 Result Device::CreateRootSignature(RootSignature& rootSignature)
 {
-	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-	rootSignatureDesc.NumParameters = 0;
-	rootSignatureDesc.pParameters = nullptr;
-	rootSignatureDesc.NumStaticSamplers = 0;
-	rootSignatureDesc.pStaticSamplers = nullptr;
-
 	ComPtr<ID3DBlob> signature;
 	ComPtr<ID3DBlob> error;
 
@@ -325,7 +318,7 @@ Result Device::CreateRootSignature(RootSignature& rootSignature)
 	(
 		D3D12SerializeRootSignature
 		(
-			&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1,
+			&rootSignature.mDesc, D3D_ROOT_SIGNATURE_VERSION_1,
 			signature.ReleaseAndGetAddressOf(), error.ReleaseAndGetAddressOf()
 		),
 		Device::CreateRootSignature()
@@ -787,14 +780,29 @@ void DepthStencilBuffer::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle
 // ルートシグネチャ
 RootSignature::RootSignature()
 	:
-	mRootSignature(nullptr)
+	mRootSignature(nullptr),
+	mDesc({})
 {
-
+	mDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	mDesc.NumParameters = 0;
+	mDesc.pParameters = nullptr;
+	mDesc.NumStaticSamplers = 0;
+	mDesc.pStaticSamplers = nullptr;
 }
 
 RootSignature::~RootSignature()
 {
 
+}
+
+void RootSignature::SetParameterCount(const int count)
+{
+	mDesc.NumParameters = count;
+
+	System::SafeDeleteArray(&mRootParamter);
+	mRootParamter = new D3D12_ROOT_PARAMETER[count]{};
+	mDesc.NumParameters = count;
+	mDesc.pParameters = mRootParamter;
 }
 
 const ComPtr<ID3D12RootSignature> RootSignature::GetRootSignature() const

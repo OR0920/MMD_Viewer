@@ -323,10 +323,16 @@ namespace GUI
 		public:
 			RootSignature(); ~RootSignature();
 
-			const ComPtr<ID3D12RootSignature> GetRootSignature() const;
+			// À‘•’†
+			void SetParameterCount(const int count);
 
+			// ƒ‰ƒCƒuƒ‰ƒŠ‚©‚çŒÄ‚Ño‚·ŠÖ”
+			const ComPtr<ID3D12RootSignature> GetRootSignature() const;
 		private:
 			ComPtr<ID3D12RootSignature> mRootSignature;
+			D3D12_ROOT_SIGNATURE_DESC mDesc;
+			D3D12_ROOT_PARAMETER* mRootParamter;
+			
 		};
 
 		class InputElementDesc
