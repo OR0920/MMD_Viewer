@@ -89,7 +89,6 @@ int MAIN()
 
 	// ルートシグネチャ作成
 	GUI::Graphics::RootSignature rootSignature;
-	//rootSignature.SetParameterCount(1);
 	if (device.CreateRootSignature(rootSignature) == GUI::Result::FAIL)
 	{
 		return -1;
