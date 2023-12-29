@@ -164,9 +164,6 @@ int MAIN()
 		MathUtil::Matrix rotation;
 	};
 
-	ConstantBuffer buffer{};
-	buffer.rotation = rotation;
-
 	GUI::Graphics::ConstantBuffer constantBuffer;
 	auto result = device.CreateConstantBuffer
 	(
