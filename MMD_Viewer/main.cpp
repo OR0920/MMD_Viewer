@@ -156,10 +156,19 @@ int MAIN()
 	}
 
 	// 定数バッファ作成
+	
 	auto rotation = MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(90.f));
 
+	struct ConstantBuffer
+	{
+		MathUtil::Matrix rotation;
+	};
+
+	ConstantBuffer buffer{};
+	buffer.rotation = rotation;
+
 	GUI::Graphics::ConstantBuffer constantBuffer;
-	if (device.CreateConstantBuffer(constantBuffer) == GUI::Result::FAIL)
+	if (device.CreateConstantBuffer(constantBuffer, sizeof(ConstantBuffer)) == GUI::Result::FAIL)
 	{
 		return -1;
 	}

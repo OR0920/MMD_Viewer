@@ -431,9 +431,33 @@ Result Device::CreateIndexBuffer
 	return SUCCESS;
 }
 
-Result Device::CreateConstantBuffer(ConstantBuffer& constantBuffer)
+Result Device::CreateConstantBuffer
+(
+	ConstantBuffer& constantBuffer,
+	unsigned int bufferStructSize
+)
 {
-	
+	DebugMessage(ToString(Device::CreateConstantBuffer()));
+	DebugMessage(bufferStructSize);
+	auto bufferSize = D3D12Allignment(bufferStructSize);
+	DebugMessage(bufferSize);
+
+	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+
+	ReturnIfFailed
+	(
+		mDevice->CreateCommittedResource
+		(
+			&heapProp,
+			D3D12_HEAP_FLAG_NONE,
+			&resDesc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(constantBuffer.mResource.ReleaseAndGetAddressOf())
+		),
+		Device::CreateConstantBuffer()
+	);
 
 	return SUCCESS;
 }

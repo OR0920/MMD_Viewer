@@ -190,7 +190,11 @@ namespace GUI
 				const unsigned int indexCount
 			);
 
-			Result CreateConstantBuffer(ConstantBuffer& constantBuffer);
+			Result CreateConstantBuffer
+			(
+				ConstantBuffer& constantBuffer,
+				const unsigned int bufferStructSize
+			);
 		private:
 			ComPtr<ID3D12Device> mDevice;
 		};
@@ -437,7 +441,7 @@ namespace GUI
 		{
 			friend Result Device::CreateConstantBuffer
 			(
-				ConstantBuffer& constantBuffer
+				ConstantBuffer&, unsigned int
 			);
 		public:
 			ConstantBuffer(); ~ConstantBuffer();
