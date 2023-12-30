@@ -10,8 +10,8 @@
 #include"GUI_Util.h"
 using namespace std;
 
-#include"VertexShader2D.h"
-#include"PixelShader2D.h"
+#include"VertexShader.h"
+#include"PixelShader.h"
 
 static const int HD = 720;
 static const int FHD = 1080;
@@ -106,8 +106,8 @@ int MAIN()
 
 	Vertex triangle[] =
 	{
-		{ {  1.f, 1.f, 0.f }, { 1.f, 1.f, 0.f, 1.f } },
-		{ {  1.f, -1.f, 0.f }, { 0.f, 1.f, 1.f, 1.f } },
+		{ {  1.f,  1.f, 0.f }, { 1.f, 1.f, 0.f, 1.f } },
+		{ {  1.f, -1.f, 0.f }, { 1.f, 1.f, 1.f, 1.f } },
 		{ { -1.f, -1.f, 0.f }, { 1.f, 0.f, 1.f, 1.f } },
 		{ { -1.f,  1.f, 0.f }, { 1.f, 1.f, 1.f, 1.f } },
 	};
@@ -224,8 +224,8 @@ int MAIN()
 	GUI::Graphics::GraphicsPipeline pipeline;
 	pipeline.SetInputLayout(inputElementDesc);
 	pipeline.SetRootSignature(rootSignature);
-	pipeline.SetVertexShader(VertexShader2D, _countof(VertexShader2D));
-	pipeline.SetPixelShader(PixelShader2D, _countof(PixelShader2D));
+	pipeline.SetVertexShader(VertexShader, _countof(VertexShader));
+	pipeline.SetPixelShader(PixelShader, _countof(PixelShader));
 
 	if (device.CreateGraphicsPipeline(pipeline) == GUI::Result::FAIL)
 	{

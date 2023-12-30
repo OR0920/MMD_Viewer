@@ -438,7 +438,7 @@ Result Device::CreateConstantBuffer
 	unsigned int bufferStructSize
 )
 {
-	DebugMessage(ToString(Device::CreateConstantBuffer()));
+		DebugMessage(ToString(Device::CreateConstantBuffer()));
 	DebugMessage(bufferStructSize);
 	auto bufferSize = D3D12Allignment(bufferStructSize);
 	DebugMessage(bufferSize);

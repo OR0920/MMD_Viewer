@@ -1,4 +1,4 @@
-#include "ShaderStructs2D.hlsli"
+#include "ShaderStructs.hlsli"
 
 cbuffer Color : register(b1)
 {
