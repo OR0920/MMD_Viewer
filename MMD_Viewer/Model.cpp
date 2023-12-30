@@ -196,10 +196,53 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 
 		System::SafeDeleteArray(&index);
 
+
+
+		auto mtCount = file.GetMaterialCount();
+
+		auto descriptorCount = 1 + mtCount;
+		if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
+		{
+			return GUI::Result::FAIL;
+		}
+
+		if (mDevice.CreateConstantBuffer(mTransformBuffer, mHeap, sizeof(ModelTransform), 1) == GUI::Result::FAIL)
+		{
+			return GUI::Result::FAIL;
+		}
+
+		if (mDevice.CreateConstantBuffer(mMaterialBuffer, mHeap, sizeof(Material), mtCount) == GUI::Result::FAIL)
+		{
+			return GUI::Result::FAIL;
+		};
+
+		Material* mappedMaterial = nullptr;
+		if (mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)) == GUI::Result::SUCCESS)
+		{
+			for (int i = 0; i < mtCount; ++i)
+			{
+				auto& mt = mappedMaterial[i];
+				auto& mtf = file.GetMaterial(i);
+				mt.diffuse = System::strong_cast<MathUtil::float4>(mtf.diffuse);
+				mt.specular = System::strong_cast<MathUtil::float3>(mtf.specular);
+				mt.specularity = mtf.specularity;
+				mt.ambient = System::strong_cast<MathUtil::float3>(mtf.ambient);
+			}
+			mMaterialBuffer.Unmap();
+		}
+		else
+		{
+			return GUI::Result::FAIL;
+		}
+
 		return GUI::Result::SUCCESS;
+
+
 	}
 	else
 	{
 		return GUI::Result::FAIL;
 	}
+
+
 }

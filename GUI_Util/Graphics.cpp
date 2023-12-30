@@ -512,6 +512,7 @@ Result Device::CreateDescriptorHeap
 
 	heap.mIncrementSize = mDevice->GetDescriptorHandleIncrementSize(type);
 	heap.mDescriptorCount = descriptorCount;
+	heap.mLastID = 0;
 
 	return SUCCESS;
 }
