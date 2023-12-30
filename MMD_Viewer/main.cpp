@@ -190,14 +190,14 @@ int MAIN()
 			0.1f,
 			1000.f
 		);
-		
+
 	}
 
 	struct Color
 	{
 		GUI::Graphics::Color color;
 	};
-	
+
 	GUI::Graphics::ConstantBuffer color;
 	if (device.CreateConstantBuffer(color, descHeap, sizeof(Color)) == GUI::Result::FAIL)
 	{
@@ -209,7 +209,7 @@ int MAIN()
 	{
 		mappedColor->color = GUI::Graphics::Color(1.f, 0.f, 0.f);
 	}
-	
+
 	// ルートシグネチャ作成
 	GUI::Graphics::RootSignature rootSignature;
 	rootSignature.SetParameterCount(2);
