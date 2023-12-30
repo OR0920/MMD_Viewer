@@ -15,14 +15,12 @@ cbuffer Material : register(b2)
 
 float4 main(VS_Output input) : SV_TARGET
 {
-    return diffuse;
-
     float4 color;
         
     float blightness = -dot(input.normal.xyz, lightDir);
-    color.rgb = float3(blightness, blightness, blightness);
-    color.a = 1.f;
-     
+    color.xyz = diffuse.xyz * blightness;
+    color.w = diffuse.w;
+    
     return color;
     
     //return input.normal;

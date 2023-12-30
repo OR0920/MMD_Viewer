@@ -448,14 +448,14 @@ Result Device::CreateConstantBuffer
 
 	DebugOutParam(bufferCount);
 	DebugOutParam(bufferStructSize);
-	auto bufferDataSize = bufferStructSize * bufferCount;
+	auto bufferDataSize = bufferStructSize ;
 
 	DebugOutParam(bufferDataSize)
 	auto bufferSize = D3D12Allignment(bufferDataSize);
 	DebugOutParam(bufferSize);
 
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize * bufferCount);
 
 	ReturnIfFailed
 	(
@@ -473,7 +473,7 @@ Result Device::CreateConstantBuffer
 
 	auto& viewDesc = constantBuffer.mViewDesc;
 	viewDesc.BufferLocation = constantBuffer.mResource->GetGPUVirtualAddress();
-	viewDesc.SizeInBytes = constantBuffer.mResource->GetDesc().Width;
+	viewDesc.SizeInBytes = bufferSize;
 
 	mDevice->CreateConstantBufferView
 	(
@@ -754,7 +754,7 @@ void GraphicsCommand::SetDescriptorTable
 {
 	
 	mCommandList->SetGraphicsRootDescriptorTable(paramID, constBuffer.GetGPU_Handle(bufferID));
-
+	
 }
 
 void GraphicsCommand::DrawTriangle(const VertexBuffer& vertex)
@@ -1290,7 +1290,8 @@ ConstantBuffer::ConstantBuffer()
 	mResource(nullptr),
 	mViewDesc({}),
 	mCPU_Handle({}),
-	mGPU_Handle({})
+	mGPU_Handle({}),
+	mIncrementSize(0)
 {
 
 }

@@ -52,7 +52,6 @@ private:
 	GUI::Graphics::DescriptorHeapForShaderData mHeap;
 	GUI::Graphics::ConstantBuffer mTransformBuffer;
 	GUI::Graphics::ConstantBuffer mPS_DataBuffer;
-	int mMaterialCount = 0;
 	GUI::Graphics::ConstantBuffer mMaterialBuffer;
 
 	GUI::Graphics::InputElementDesc inputLayout;
