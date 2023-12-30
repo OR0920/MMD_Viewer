@@ -718,7 +718,7 @@ void GraphicsCommand::SetDescriptorHeap(const DescriptorHeapForShaderData& descH
 	mCommandList->SetDescriptorHeaps(1, descHeap.GetDescriptorHeap().GetAddressOf());
 }
 
-void GraphicsCommand::SetDescriptor
+void GraphicsCommand::SetConstantBuffer
 (
 	const ConstantBuffer& constBuffer,
 	const int paramID

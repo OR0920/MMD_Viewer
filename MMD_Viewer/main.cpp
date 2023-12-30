@@ -139,7 +139,7 @@ int MAIN()
 	}
 
 	// 定数バッファ用のディスクリプタヒープ作成
-	const int descriptorCount = 1;
+	const int descriptorCount = 2;
 	GUI::Graphics::DescriptorHeapForShaderData descHeap;
 	{
 		auto result = device.CreateDescriptorHeap(descHeap, descriptorCount);
@@ -153,6 +153,7 @@ int MAIN()
 
 	struct Transform
 	{
+		MathUtil::Matrix translation;
 		MathUtil::Matrix rotation;
 	};
 
@@ -174,14 +175,32 @@ int MAIN()
 	Transform* mappedTransform = nullptr;
 	if (transform.Map(reinterpret_cast<void**>(&mappedTransform)) == GUI::Result::SUCCESS)
 	{
+		mappedTransform->translation = MathUtil::Matrix::GenerateMatrixTranslation(MathUtil::Vector(0.5f, 0.f, 0.f));
 		mappedTransform->rotation = MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(45.f));
 	}
 
+	struct Color
+	{
+		GUI::Graphics::Color color;
+	};
+	
+	GUI::Graphics::ConstantBuffer color;
+	if (device.CreateConstantBuffer(color, descHeap, sizeof(Color)) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	Color* mappedColor;
+	if (color.Map(reinterpret_cast<void**>(&mappedColor)) == GUI::Result::SUCCESS)
+	{
+		mappedColor->color = GUI::Graphics::Color(1.f, 0.f, 0.f);
+	}
 	
 	// ルートシグネチャ作成
 	GUI::Graphics::RootSignature rootSignature;
-	rootSignature.SetParameterCount(1);
+	rootSignature.SetParameterCount(2);
 	rootSignature.SetParamForCBV(0, 0);
+	rootSignature.SetParamForCBV(1, 1);
 	if (device.CreateRootSignature(rootSignature) == GUI::Result::FAIL)
 	{
 		return -1;
@@ -219,7 +238,8 @@ int MAIN()
 		command.ClearDepthBuffer();
 
 		command.SetDescriptorHeap(descHeap);
-		command.SetDescriptor(transform, 0);
+		command.SetConstantBuffer(transform, 0);
+		command.SetConstantBuffer(color, 1);
 
 		//command.DrawTriangle(vertexBuffer);
 		command.DrawTriangleList(vertexBuffer, indexBuffer);

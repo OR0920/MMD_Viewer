@@ -271,7 +271,7 @@ namespace GUI
 			void SetGraphicsRootSignature(const RootSignature& rootSignature);
 
 			void SetDescriptorHeap(const DescriptorHeapForShaderData& descHeap);
-			void SetDescriptor
+			void SetConstantBuffer
 			(
 				const ConstantBuffer& constBuffer, 
 				const int rootParamID
