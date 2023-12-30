@@ -1041,6 +1041,9 @@ GraphicsPipeline::~GraphicsPipeline()
 void GraphicsPipeline::SetDepthEnable()
 {
 	psoDesc.DepthStencilState.DepthEnable = true;
+	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 }
 
 void GraphicsPipeline::SetInputLayout(const InputElementDesc& inputElementDesc)

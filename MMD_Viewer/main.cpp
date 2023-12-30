@@ -21,6 +21,7 @@ static const int FHD = 1080;
 static const int windowHeight = HD;
 static const int windowWidth = windowHeight / 9 * 16;
 
+
 int MAIN()
 {
 	// デバッグ表示を日本語に対応させる
@@ -256,7 +257,7 @@ int MAIN()
 	}
 
 	GUI::Graphics::GraphicsPipeline mmdPipeline;
-	//mmdPipeline.SetDepthEnable();
+	mmdPipeline.SetDepthEnable();
 	mmdPipeline.SetInputLayout(mmdInputLayout);
 	mmdPipeline.SetRootSignature(mmdRootSignature);
 	mmdPipeline.SetVertexShader(gMMD_VS, _countof(gMMD_VS));
