@@ -109,7 +109,7 @@ int MAIN()
 		{ {  0.5f,  0.5f, 0.f }, { 1.f, 1.f, 0.f, 1.f } },
 		{ {  0.5f, -0.5f, 0.f }, { 0.f, 1.f, 1.f, 1.f } },
 		{ { -0.5f, -0.5f, 0.f }, { 1.f, 0.f, 1.f, 1.f } },
-		{ { -0.5f,  0.5f, 0.f }, { 0.f, 0.f, 0.f, 1.f } },
+		{ { -0.5f,  0.5f, 0.f }, { 1.f, 1.f, 1.f, 1.f } },
 	};
 
 	int triangleIndex[] = { 0, 1, 2, 2, 3, 0 };
@@ -151,20 +151,18 @@ int MAIN()
 
 	// 定数バッファ作成
 
-	auto rotation = MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(45.f));
-
-	struct ConstantBuffer
+	struct Transform
 	{
 		MathUtil::Matrix rotation;
 	};
 
-	GUI::Graphics::ConstantBuffer constantBuffer;
+	GUI::Graphics::ConstantBuffer transform;
 	{
 		auto result = device.CreateConstantBuffer
 		(
-			constantBuffer,
+			transform,
 			descHeap,
-			sizeof(ConstantBuffer)
+			sizeof(Transform)
 		);
 
 		if (result == GUI::Result::FAIL)
@@ -173,16 +171,17 @@ int MAIN()
 		}
 	}
 
-	ConstantBuffer* cb = nullptr;
-	if (constantBuffer.Map(reinterpret_cast<void**>(&cb)) == GUI::Result::SUCCESS)
+	Transform* mappedTransform = nullptr;
+	if (transform.Map(reinterpret_cast<void**>(&mappedTransform)) == GUI::Result::SUCCESS)
 	{
-		cb->rotation = rotation;
+		mappedTransform->rotation = MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(45.f));
 	}
 
+	
 	// ルートシグネチャ作成
 	GUI::Graphics::RootSignature rootSignature;
 	rootSignature.SetParameterCount(1);
-	rootSignature.SetParamForCBV(0);
+	rootSignature.SetParamForCBV(0, 0);
 	if (device.CreateRootSignature(rootSignature) == GUI::Result::FAIL)
 	{
 		return -1;
@@ -207,7 +206,9 @@ int MAIN()
 			DebugOutString(fc.GetPath());
 		}
 
-		command.BeginDraw(pipeline);
+		command.BeginDraw();
+
+		command.SetGraphicsPipeline(pipeline);
 
 		command.UnlockRenderTarget(renderTarget);
 
@@ -218,7 +219,7 @@ int MAIN()
 		command.ClearDepthBuffer();
 
 		command.SetDescriptorHeap(descHeap);
-		command.SetDescriptor(constantBuffer, 0);
+		command.SetDescriptor(transform, 0);
 
 		//command.DrawTriangle(vertexBuffer);
 		command.DrawTriangleList(vertexBuffer, indexBuffer);

@@ -180,7 +180,7 @@ const int MainWindow::GetWindowHeight() const
 }
 
 
-const HWND MainWindow::GetHandle() const
+const HWND MainWindow::GetCPU_Handle() const
 {
 	return mWindowHandle;
 }
@@ -271,7 +271,7 @@ Result FileCatcher::Create(const ParentWindow& parent)
 		DebugMessage("Error at " << ToString(FileCatcher::Create()) " : The " << ToString(FileCatcher) << " is already Created !");
 		return FAIL;
 	}
-	auto parentHwnd = parent.GetHandle();
+	auto parentHwnd = parent.GetCPU_Handle();
 
 	auto& wc = mWindowClass;
 	wc.cbSize = sizeof(WNDCLASSEX);

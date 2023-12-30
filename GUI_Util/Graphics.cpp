@@ -460,13 +460,19 @@ Result Device::CreateConstantBuffer
 		Device::CreateConstantBuffer()
 	);
 
-	D3D12_CONSTANT_BUFFER_VIEW_DESC viewDesc = {};
+	auto& viewDesc = constantBuffer.mViewDesc;
 	viewDesc.BufferLocation = constantBuffer.mResource->GetGPUVirtualAddress();
 	viewDesc.SizeInBytes = constantBuffer.mResource->GetDesc().Width;
 
-	auto handle = viewHeap.GetHandle();
+	mDevice->CreateConstantBufferView
+	(
+		&viewDesc, viewHeap.GetCPU_Handle()
+	);
 
+	constantBuffer.mCPU_View = viewHeap.GetCPU_Handle();
+	constantBuffer.mGPU_View = viewHeap.GetGPU_Handle();
 
+	viewHeap.MoveToNextHeap();
 
 	return SUCCESS;
 }
@@ -478,7 +484,7 @@ Result Device::CreateDescriptorHeap
 )
 {
 	auto type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	
+
 	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.NodeMask = 0;
@@ -521,7 +527,7 @@ Result SwapChain::Create
 	const int frameCount
 )
 {
-	if (targetWindow.GetHandle() == 0)
+	if (targetWindow.GetCPU_Handle() == 0)
 	{
 		DebugMessage("The Target Window Is not Exist !");
 
@@ -568,7 +574,7 @@ Result SwapChain::Create
 		factory4->CreateSwapChainForHwnd
 		(
 			device.mCommandQueue.Get(),
-			targetWindow.GetHandle(),
+			targetWindow.GetCPU_Handle(),
 			&swapChainDesc,
 			nullptr,
 			nullptr,
@@ -654,11 +660,16 @@ void GraphicsCommand::BeginDraw(const GraphicsPipeline& pipeline)
 	mCommandList->Reset(mCommandAllocator.Get(), pipeline.GetPipelineState().Get());
 }
 
+void GraphicsCommand::SetGraphicsPipeline(const GraphicsPipeline& pipeline)
+{
+	mCommandList->SetPipelineState(pipeline.GetPipelineState().Get());
+}
+
 void GraphicsCommand::UnlockRenderTarget(const RenderTarget& renderTarget)
 {
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition
 	(
-		renderTarget.GetResource(mSwapChain->GetCurrentBackBufferIndex()).Get(),
+		renderTarget.GetGPU_Address(mSwapChain->GetCurrentBackBufferIndex()).Get(),
 		D3D12_RESOURCE_STATE_PRESENT,
 		D3D12_RESOURCE_STATE_RENDER_TARGET
 	);
@@ -716,7 +727,7 @@ void GraphicsCommand::SetDescriptor
 	mCommandList->SetGraphicsRootConstantBufferView
 	(
 		paramID,
-		constBuffer.GetResource()->GetGPUVirtualAddress()
+		constBuffer.GetGPU_Address()
 	);
 }
 
@@ -744,7 +755,7 @@ void GraphicsCommand::LockRenderTarget(const RenderTarget& renderTarget)
 {
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition
 	(
-		renderTarget.GetResource(mSwapChain->GetCurrentBackBufferIndex()).Get(),
+		renderTarget.GetGPU_Address(mSwapChain->GetCurrentBackBufferIndex()).Get(),
 		D3D12_RESOURCE_STATE_RENDER_TARGET,
 		D3D12_RESOURCE_STATE_PRESENT
 	);
@@ -811,7 +822,7 @@ void RenderTarget::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, cons
 	handle.ptr += mIncrementSize * bufferID;
 }
 
-const ComPtr<ID3D12Resource> RenderTarget::GetResource(const int bufferID) const
+const ComPtr<ID3D12Resource> RenderTarget::GetGPU_Address(const int bufferID) const
 {
 	if (bufferID < 0 || mBufferCount <= bufferID)
 	{
@@ -879,13 +890,13 @@ void RootSignature::SetParameterCount(const int count)
 	mDesc.pParameters = mRootParamter;
 }
 
-void RootSignature::SetParamForCBV(const int paramID)
+void RootSignature::SetParamForCBV(const int paramID, const int registerID)
 {
 	auto& p = mRootParamter[paramID];
 	p.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	p.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 	p.Descriptor.RegisterSpace = 0;
-	p.Descriptor.ShaderRegister = 0;
+	p.Descriptor.ShaderRegister = registerID;
 }
 
 const ComPtr<ID3D12RootSignature> RootSignature::GetRootSignature() const
@@ -1101,7 +1112,7 @@ IndexBuffer::~IndexBuffer()
 Result IndexBuffer::Copy(const void* const data)
 {
 	unsigned char* mappedIndex = nullptr;
-	
+
 	auto range = CD3DX12_RANGE(0, 0);
 	ReturnIfFailed
 	(
@@ -1154,9 +1165,9 @@ Result ConstantBuffer::Map(void** ptr)
 	return SUCCESS;
 }
 
-const ComPtr<ID3D12Resource> ConstantBuffer::GetResource() const
+const D3D12_GPU_VIRTUAL_ADDRESS ConstantBuffer::GetGPU_Address() const
 {
-	return mResource;
+	return mViewDesc.BufferLocation;
 }
 
 // ディスクリプタヒープ
@@ -1175,7 +1186,7 @@ DescriptorHeapForShaderData::~DescriptorHeapForShaderData()
 
 }
 
-const D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeapForShaderData::GetHandle() 
+const D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeapForShaderData::GetCPU_Handle()
 {
 	if (mDescriptorCount <= mLastID)
 	{
@@ -1184,8 +1195,24 @@ const D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeapForShaderData::GetHandle()
 
 	auto ret = mDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	ret.ptr += mLastID * mIncrementSize;
-	mLastID++;
 	return ret;
+}
+
+const D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeapForShaderData::GetGPU_Handle()
+{
+	if (mDescriptorCount <= mLastID)
+	{
+		return {};
+	}
+
+	auto ret = mDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
+	ret.ptr += mLastID * mIncrementSize;
+	return ret;
+}
+
+void DescriptorHeapForShaderData::MoveToNextHeap()
+{
+	mLastID++;
 }
 
 const ComPtr<ID3D12DescriptorHeap> DescriptorHeapForShaderData::GetDescriptorHeap() const

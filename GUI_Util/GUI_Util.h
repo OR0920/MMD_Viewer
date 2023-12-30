@@ -37,7 +37,7 @@ namespace GUI
 	{
 	public:
 		virtual ~ParentWindow();
-		virtual const HWND GetHandle() const = 0;
+		virtual const HWND GetCPU_Handle() const = 0;
 		virtual const int GetWindowWidth() const = 0;
 		virtual const int GetWindowHeight() const = 0;
 	protected:
@@ -60,7 +60,7 @@ namespace GUI
 		const int GetWindowHeight() const;
 
 		// ライブラリ側から呼び出す関数
-		const HWND GetHandle() const;
+		const HWND GetCPU_Handle() const;
 	private:
 		MainWindow();
 		~MainWindow();
@@ -246,6 +246,8 @@ namespace GUI
 			void BeginDraw();
 			void BeginDraw(const GraphicsPipeline& pipeline);
 
+			void SetGraphicsPipeline(const GraphicsPipeline& pipeline);
+
 			void UnlockRenderTarget(const RenderTarget& renderTarget);
 
 			void SetRenderTarget
@@ -272,7 +274,7 @@ namespace GUI
 			void SetDescriptor
 			(
 				const ConstantBuffer& constBuffer, 
-				const int paramID
+				const int rootParamID
 			);
 
 			void DrawTriangle(const VertexBuffer& vertex);
@@ -313,7 +315,7 @@ namespace GUI
 
 			// ライブラリから呼び出す関数
 			void GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, const int bufferID) const;
-			const ComPtr<ID3D12Resource> GetResource(const int bufferID) const;
+			const ComPtr<ID3D12Resource> GetGPU_Address(const int bufferID) const;
 
 			D3D12_VIEWPORT GetViewPort() const;
 			D3D12_RECT GetRect() const;
@@ -354,7 +356,7 @@ namespace GUI
 
 			// 実装中
 			void SetParameterCount(const int count);
-			void SetParamForCBV(const int paramID);
+			void SetParamForCBV(const int paramID, const int registerID);
 
 			// ライブラリから呼び出す関数
 			const ComPtr<ID3D12RootSignature> GetRootSignature() const;
@@ -466,11 +468,14 @@ namespace GUI
 
 			Result Map(void** ptr);
 
-			//
-			const ComPtr<ID3D12Resource> GetResource() const;
+			//ライブラリから呼び出す関数
+			const D3D12_GPU_VIRTUAL_ADDRESS GetGPU_Address() const;
 
 		private:
 			ComPtr<ID3D12Resource> mResource;
+			D3D12_CONSTANT_BUFFER_VIEW_DESC mViewDesc;
+			D3D12_CPU_DESCRIPTOR_HANDLE mCPU_View;
+			D3D12_GPU_DESCRIPTOR_HANDLE mGPU_View;
 		};
 
 		class DescriptorHeapForShaderData
@@ -485,7 +490,9 @@ namespace GUI
 			~DescriptorHeapForShaderData();
 
 			// ライブラリから呼び出す関数
-			const D3D12_CPU_DESCRIPTOR_HANDLE GetHandle();
+			const D3D12_CPU_DESCRIPTOR_HANDLE GetCPU_Handle();
+			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle();
+			void MoveToNextHeap();
 
 			const ComPtr<ID3D12DescriptorHeap> GetDescriptorHeap() const;
 		private:
@@ -493,6 +500,7 @@ namespace GUI
 			int mDescriptorCount;
 			int mIncrementSize;
 			int mLastID;
+
 		};
 	}
 }
