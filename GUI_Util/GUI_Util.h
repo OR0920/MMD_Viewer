@@ -284,12 +284,21 @@ namespace GUI
 				const int rootParamID
 			);
 
+			void SetVertexBuffer
+			(
+				const VertexBuffer& vertex
+			);
+
+			void SetVertexBuffer
+			(
+				const VertexBuffer& vertex,
+				const IndexBuffer& intdex
+			);
 						
 			void DrawTriangle(const VertexBuffer& vertex);
 			void DrawTriangleList
 			(
-				const VertexBuffer& vertex,
-				const IndexBuffer& index
+				const int indexCount, const int offs
 			);
 
 			void LockRenderTarget(const RenderTarget& renderTarget);
@@ -438,6 +447,8 @@ namespace GUI
 
 			void SetAlphaEnable();
 
+			void SetCullDisable();
+
 			void SetInputLayout(const InputElementDesc& inputElementDesc);
 			void SetRootSignature(const RootSignature& rootSignature);
 
@@ -537,7 +548,7 @@ namespace GUI
 			const D3D12_CPU_DESCRIPTOR_HANDLE GetCPU_Handle();
 			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle();
 			void MoveToNextHeapPos();
-
+				
 			const ComPtr<ID3D12DescriptorHeap> GetDescriptorHeap() const;
 		private:
 			ComPtr<ID3D12DescriptorHeap> mDescriptorHeap;

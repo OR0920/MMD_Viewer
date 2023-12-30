@@ -9,10 +9,17 @@
 Model::Model(GUI::Graphics::Device& device)
 	:
 	mDevice(device),
-	mHeap(),
 	mVB(),
 	mIB(),
+	mHeap(),
+	mTransformBuffer(),
+	mPS_DataBuffer(),
 	mMaterialBuffer(),
+	mMaterialIndexCounts(nullptr),
+	mMaterialCount(0),
+	inputLayout({}),
+	mPipeline({}),
+	mRootSignature({}),
 	isSuccessLoad(GUI::Result::FAIL)
 {
 	inputLayout.SetElementCount(2);
@@ -31,7 +38,8 @@ Model::Model(GUI::Graphics::Device& device)
 	mDevice.CreateRootSignature(mRootSignature);
 
 	mPipeline.SetRootSignature(mRootSignature);
-	mPipeline.SetAlphaEnable();
+	//mPipeline.SetAlphaEnable();
+	mPipeline.SetCullDisable();
 	mPipeline.SetDepthEnable();
 	mPipeline.SetInputLayout(inputLayout);
 	mPipeline.SetVertexShader(gMMD_VS, _countof(gMMD_VS));
@@ -40,7 +48,10 @@ Model::Model(GUI::Graphics::Device& device)
 }
 
 
-Model::~Model() {}
+Model::~Model()
+{
+	System::SafeDeleteArray(&mMaterialIndexCounts);
+}
 
 
 GUI::Result Model::Load(const char* const filepath)
@@ -82,9 +93,19 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 	command.SetDescriptorHeap(mHeap);
 	command.SetConstantBuffer(mTransformBuffer, 0);
 	command.SetConstantBuffer(mPS_DataBuffer, 1);
-	command.SetDescriptorTable(mMaterialBuffer, 0, 2);
+	
+	command.SetVertexBuffer(mVB, mIB);
 
-	command.DrawTriangleList(mVB, mIB);
+	int indexOffs = 0;
+	for (int i = 0; i < mMaterialCount; ++i)
+	{
+		command.SetDescriptorTable(mMaterialBuffer, i, 2);
+		command.DrawTriangleList(mMaterialIndexCounts[i], indexOffs);
+		indexOffs += mMaterialIndexCounts[i];
+	}
+
+
+
 }
 
 GUI::Result Model::LoadPMD(const char* const filepath)
@@ -138,9 +159,8 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 
 
-		auto mtCount = file.GetMaterialCount();
-
-		auto descriptorCount = 1 + 1 + mtCount;
+		mMaterialCount = file.GetMaterialCount();
+		auto descriptorCount = 1 + 1 + mMaterialCount;
 		if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
 		{
 			return GUI::Result::FAIL;
@@ -151,45 +171,22 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			return GUI::Result::FAIL;
 		}
 
-		ModelTransform* mappedTransform = nullptr;
-		if (mTransformBuffer.Map(reinterpret_cast<void**>(&mappedTransform)) == GUI::Result::SUCCESS)
-		{
-			mappedTransform->world = MathUtil::Matrix::GenerateMatrixIdentity();
-			mappedTransform->view = MathUtil::Matrix::GenerateMatrixLookToLH
-			(
-				MathUtil::Vector(0.f, 10.f, -50.f),
-				MathUtil::Vector::basicZ,
-				MathUtil::Vector::basicY
-			);
-			mappedTransform->proj = MathUtil::Matrix::GenerateMatrixPerspectiveFovLH
-			(
-				DirectX::XM_PIDIV4,
-				static_cast<float>(1280) / static_cast<float>(720),
-				0.1f,
-				1000.f
-			);
-		}
-		
 		if (mDevice.CreateConstantBuffer(mPS_DataBuffer, mHeap, sizeof(PixelShaderData)) == GUI::Result::FAIL)
 		{
 			return GUI::Result::FAIL;
 		}
 
-		PixelShaderData* mappedPS_Data = nullptr;
-		if (mPS_DataBuffer.Map(reinterpret_cast<void**>(&mappedPS_Data)) == GUI::Result::SUCCESS)
-		{
-			mappedPS_Data->lightDir = { -1.f, -1.f, 1.f };
-		}
-
-		if (mDevice.CreateConstantBuffer(mMaterialBuffer, mHeap, sizeof(Material), mtCount) == GUI::Result::FAIL)
+		if (mDevice.CreateConstantBuffer(mMaterialBuffer, mHeap, sizeof(Material), mMaterialCount) == GUI::Result::FAIL)
 		{
 			return GUI::Result::FAIL;
 		};
 
 		Material* mappedMaterial = nullptr;
+		System::SafeDeleteArray(&mMaterialIndexCounts);
 		if (mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)) == GUI::Result::SUCCESS)
 		{
-			for (int i = 0; i < mtCount; ++i)
+			mMaterialIndexCounts = new int[mMaterialCount] {};
+			for (int i = 0; i < mMaterialCount; ++i)
 			{
 				auto& mt = mappedMaterial[i];
 				auto& mtf = file.GetMaterial(i);
@@ -197,6 +194,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 				mt.specular = System::strong_cast<MathUtil::float3>(mtf.specular);
 				mt.specularity = mtf.specularity;
 				mt.ambient = System::strong_cast<MathUtil::float3>(mtf.ambient);
+				mMaterialIndexCounts[i] = mtf.vertexCount;
 			}
 			mMaterialBuffer.Unmap();
 		}
@@ -263,9 +261,9 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 
 		System::SafeDeleteArray(&index);
 
-		auto mtCount = file.GetMaterialCount();
 
-		auto descriptorCount = 1 + 1 + mtCount;
+		mMaterialCount = file.GetMaterialCount();
+		auto descriptorCount = 1 + 1 + mMaterialCount;
 		if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
 		{
 			return GUI::Result::FAIL;
@@ -276,37 +274,12 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			return GUI::Result::FAIL;
 		}
 
-		ModelTransform* mappedTransform = nullptr;
-		if (mTransformBuffer.Map(reinterpret_cast<void**>(&mappedTransform)) == GUI::Result::SUCCESS)
-		{
-			mappedTransform->world = MathUtil::Matrix::GenerateMatrixIdentity();
-			mappedTransform->view = MathUtil::Matrix::GenerateMatrixLookToLH
-			(
-				MathUtil::Vector(0.f, 10.f, -50.f),
-				MathUtil::Vector::basicZ,
-				MathUtil::Vector::basicY
-			);
-			mappedTransform->proj = MathUtil::Matrix::GenerateMatrixPerspectiveFovLH
-			(
-				DirectX::XM_PIDIV4,
-				static_cast<float>(1280) / static_cast<float>(720),
-				0.1f,
-				1000.f
-			);
-		}
-
 		if (mDevice.CreateConstantBuffer(mPS_DataBuffer, mHeap, sizeof(PixelShaderData)) == GUI::Result::FAIL)
 		{
 			return GUI::Result::FAIL;
 		}
 
-		PixelShaderData* mappedPS_Data = nullptr;
-		if (mPS_DataBuffer.Map(reinterpret_cast<void**>(&mappedPS_Data)) == GUI::Result::SUCCESS)
-		{
-			mappedPS_Data->lightDir = { -1.f, -1.f, 1.f };
-		}
-
-		if (mDevice.CreateConstantBuffer(mMaterialBuffer, mHeap, sizeof(Material), mtCount) == GUI::Result::FAIL)
+		if (mDevice.CreateConstantBuffer(mMaterialBuffer, mHeap, sizeof(Material), mMaterialCount) == GUI::Result::FAIL)
 		{
 			return GUI::Result::FAIL;
 		};
@@ -314,7 +287,8 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 		Material* mappedMaterial = nullptr;
 		if (mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)) == GUI::Result::SUCCESS)
 		{
-			for (int i = 0; i < mtCount; ++i)
+			mMaterialIndexCounts = new int[mMaterialCount] {};
+			for (int i = 0; i < mMaterialCount; ++i)
 			{
 				auto& mt = mappedMaterial[i];
 				auto& mtf = file.GetMaterial(i);
@@ -322,6 +296,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 				mt.specular = System::strong_cast<MathUtil::float3>(mtf.specular);
 				mt.specularity = mtf.specularity;
 				mt.ambient = System::strong_cast<MathUtil::float3>(mtf.ambient);
+				mMaterialIndexCounts[i] = mtf.vertexCount;
 			}
 			mMaterialBuffer.Unmap();
 		}
@@ -340,4 +315,46 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 	}
 
 
+}
+
+GUI::Result Model::SetDefaultSceneData()
+{
+	ModelTransform* mappedTransform = nullptr;
+	if (mTransformBuffer.Map(reinterpret_cast<void**>(&mappedTransform)) == GUI::Result::SUCCESS)
+	{
+		mappedTransform->world = MathUtil::Matrix::GenerateMatrixIdentity();
+		mappedTransform->view = MathUtil::Matrix::GenerateMatrixLookToLH
+		(
+			MathUtil::Vector(0.f, 10.f, -50.f),
+			MathUtil::Vector::basicZ,
+			MathUtil::Vector::basicY
+		);
+		mappedTransform->proj = MathUtil::Matrix::GenerateMatrixPerspectiveFovLH
+		(
+			DirectX::XM_PIDIV4,
+			static_cast<float>(1280) / static_cast<float>(720),
+			0.1f,
+			1000.f
+		);
+		mTransformBuffer.Unmap();
+	}
+	else
+	{
+		return GUI::Result::FAIL;
+	}
+
+	PixelShaderData* mappedPS_Data = nullptr;
+	if (mPS_DataBuffer.Map(reinterpret_cast<void**>(&mappedPS_Data)) == GUI::Result::SUCCESS)
+	{
+		mappedPS_Data->lightDir = MathUtil::Vector(-1.f, -1.f, 1.f).GetFloat3();
+		mappedPS_Data->testCol = MathUtil::Vector(1.f, 0.f, 0.f, 1.f).GetFloat4();
+		mPS_DataBuffer.Unmap();
+	}
+	else
+	{
+		return GUI::Result::FAIL;
+	}
+
+	return GUI::Result::SUCCESS;
+	
 }

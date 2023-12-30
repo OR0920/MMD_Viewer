@@ -759,33 +759,48 @@ void GraphicsCommand::SetConstantBuffer
 void GraphicsCommand::SetDescriptorTable
 (
 	const ConstantBuffer& constBuffer, 
-	const int bufferID, const int paramID
+	const int bufferID, 
+	const int paramID
 )
 {
-	
-	mCommandList->SetGraphicsRootDescriptorTable(paramID, constBuffer.GetGPU_Handle(bufferID));
-	DebugOutParam(constBuffer.GetGPU_Handle(bufferID).ptr);
+	mCommandList->SetGraphicsRootDescriptorTable
+	(
+		paramID, constBuffer.GetGPU_Handle(bufferID)
+	);
 }
 
-void GraphicsCommand::DrawTriangle(const VertexBuffer& vertex)
+void GraphicsCommand::SetVertexBuffer
+(
+	const VertexBuffer& vertex
+)
 {
 	mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mCommandList->IASetVertexBuffers(0, 1, vertex.GetView());
-	mCommandList->DrawInstanced(vertex.GetVertexCount(), 1, 0, 0);
 }
 
-void GraphicsCommand::DrawTriangleList
+void GraphicsCommand::SetVertexBuffer
 (
 	const VertexBuffer& vertex,
 	const IndexBuffer& index
 )
 {
-	if (vertex.GetVertexCount() == 0 || index.GetIndexCount() == 0) return;
-
 	mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mCommandList->IASetVertexBuffers(0, 1, vertex.GetView());
 	mCommandList->IASetIndexBuffer(index.GetView());
-	mCommandList->DrawIndexedInstanced(index.GetIndexCount(), 1, 0, 0, 0);
+}
+
+void GraphicsCommand::DrawTriangle(const VertexBuffer& vertex)
+{
+	mCommandList->DrawInstanced(vertex.GetVertexCount(), 1, 0, 0);
+}
+
+void GraphicsCommand::DrawTriangleList
+(
+	const int indexCount,
+	const int offs
+)
+{
+	mCommandList->DrawIndexedInstanced(indexCount, 1, offs, 0, 0);
 }
 
 
@@ -1171,6 +1186,11 @@ void GraphicsPipeline::SetDepthEnable()
 void GraphicsPipeline::SetAlphaEnable()
 {
 	psoDesc.BlendState.AlphaToCoverageEnable = true;
+}
+
+void GraphicsPipeline::SetCullDisable()
+{
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 }
 
 void GraphicsPipeline::SetInputLayout(const InputElementDesc& inputElementDesc)

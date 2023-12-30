@@ -10,7 +10,7 @@ cbuffer Transform : register(b0)
 {
     matrix world;
     matrix view;
-    matrix proj;
+    matrix proj; 
 }
 
 VS_Output main(VS_Input input) 

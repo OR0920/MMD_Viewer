@@ -23,6 +23,8 @@ public:
 	struct PixelShaderData
 	{
 		MathUtil::float3 lightDir;
+		float dammy;
+		MathUtil::float4 testCol;
 	};
 
 	struct Material
@@ -42,6 +44,8 @@ public:
 	const GUI::Graphics::VertexBuffer& GetVB() const;
 	const GUI::Graphics::IndexBuffer& GetIB() const;
 
+	GUI::Result SetDefaultSceneData();
+
 	void Draw(GUI::Graphics::GraphicsCommand& command) const;
 private:
 	GUI::Graphics::Device& mDevice;
@@ -52,7 +56,10 @@ private:
 	GUI::Graphics::DescriptorHeapForShaderData mHeap;
 	GUI::Graphics::ConstantBuffer mTransformBuffer;
 	GUI::Graphics::ConstantBuffer mPS_DataBuffer;
+
 	GUI::Graphics::ConstantBuffer mMaterialBuffer;
+	int* mMaterialIndexCounts;
+	int mMaterialCount;
 
 	GUI::Graphics::InputElementDesc inputLayout;
 	GUI::Graphics::GraphicsPipeline mPipeline;

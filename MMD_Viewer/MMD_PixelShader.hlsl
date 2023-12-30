@@ -3,6 +3,7 @@
 cbuffer PS_Data : register(b1)
 {
     float3 lightDir;
+    float4 testCol;
 }
 
 cbuffer Material : register(b2)
@@ -14,14 +15,15 @@ cbuffer Material : register(b2)
 
 float4 main(VS_Output input) : SV_TARGET
 {
+    //return testCol;
     return diffuse;
-    float4 color;
+    //float4 color;
         
-    float blightness = -dot(input.normal.xyz, lightDir);
-    color.xyz = diffuse.xyz * blightness;
-    color.w = diffuse.w;
+    //float blightness = -dot(input.normal.xyz, lightDir);
+    //color.xyz = diffuse.xyz * blightness;
+    //color.w = diffuse.w;
     
-    return color;
+    //return color;
     
     //return input.normal;
 }

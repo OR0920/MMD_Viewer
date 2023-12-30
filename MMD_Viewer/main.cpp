@@ -104,6 +104,7 @@ int MAIN()
 			DebugOutString(fc.GetPath());
 
 			model.Load(fc.GetPath());
+			
 		}
 
 		command.BeginDraw();
@@ -118,6 +119,7 @@ int MAIN()
 
 		if (model.IsSuccessLoad() == GUI::Result::SUCCESS)
 		{
+			model.SetDefaultSceneData();
 			model.Draw(command);
 		}
 
