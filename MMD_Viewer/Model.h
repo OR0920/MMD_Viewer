@@ -18,13 +18,12 @@ public:
 		MathUtil::Matrix world;
 		MathUtil::Matrix view;
 		MathUtil::Matrix proj;
+		MathUtil::float3 eye;
 	};
 
 	struct PixelShaderData
 	{
 		MathUtil::float3 lightDir;
-		float dammy;
-		MathUtil::float4 testCol;
 	};
 
 	struct Material

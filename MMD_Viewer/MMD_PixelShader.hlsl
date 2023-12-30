@@ -3,7 +3,6 @@
 cbuffer PS_Data : register(b1)
 {
     float3 lightDir;
-    float4 testCol;
 }
 
 cbuffer Material : register(b2)
@@ -15,15 +14,23 @@ cbuffer Material : register(b2)
 
 float4 main(VS_Output input) : SV_TARGET
 {
-    //return testCol;
-    return diffuse;
-    //float4 color;
-        
-    //float blightness = -dot(input.normal.xyz, lightDir);
-    //color.xyz = diffuse.xyz * blightness;
-    //color.w = diffuse.w;
+    float3 light = normalize(float3(-1.f, -1.f, 1.f));
     
-    //return color;
+    float diffuseB = -dot(input.normal.xyz, light);
+
+    float4 diffuseLight = float4(diffuse.rgb * diffuseB, diffuse.a);
+
+    float3 ref = reflect(light, input.normal.xyz);
+    float3 toEye = normalize(input.ray);
+    float specularB = dot(ref, toEye);
+
+    specularB = pow(specularB, 5.f);
+
+    float4 specularLight = float4(specular.rgb * specularB, 0.f);
     
-    //return input.normal;
+    float4 ambientLight = float4(ambient, 0.f) * 0.2;
+    
+    float4 finalLight = diffuseLight + specularLight + ambientLight;
+    
+    return finalLight;
 }

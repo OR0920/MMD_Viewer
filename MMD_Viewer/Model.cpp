@@ -34,11 +34,11 @@ Model::Model(GUI::Graphics::Device& device)
 	range.SetRangeCount(1);
 	range.SetRangeForCBV(0, 2, 1);
 	mRootSignature.SetParamForDescriptorTable(2, range);
-	
+
 	mDevice.CreateRootSignature(mRootSignature);
 
 	mPipeline.SetRootSignature(mRootSignature);
-	//mPipeline.SetAlphaEnable();
+	mPipeline.SetAlphaEnable();
 	mPipeline.SetCullDisable();
 	mPipeline.SetDepthEnable();
 	mPipeline.SetInputLayout(inputLayout);
@@ -93,7 +93,7 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 	command.SetDescriptorHeap(mHeap);
 	command.SetConstantBuffer(mTransformBuffer, 0);
 	command.SetConstantBuffer(mPS_DataBuffer, 1);
-	
+
 	command.SetVertexBuffer(mVB, mIB);
 
 	int indexOffs = 0;
@@ -181,20 +181,28 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			return GUI::Result::FAIL;
 		};
 
-		Material* mappedMaterial = nullptr;
+		unsigned char* mappedMaterial = nullptr;
 		System::SafeDeleteArray(&mMaterialIndexCounts);
 		if (mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)) == GUI::Result::SUCCESS)
 		{
 			mMaterialIndexCounts = new int[mMaterialCount] {};
 			for (int i = 0; i < mMaterialCount; ++i)
 			{
-				auto& mt = mappedMaterial[i];
-				auto& mtf = file.GetMaterial(i);
-				mt.diffuse = System::strong_cast<MathUtil::float4>(mtf.diffuse);
-				mt.specular = System::strong_cast<MathUtil::float3>(mtf.specular);
-				mt.specularity = mtf.specularity;
-				mt.ambient = System::strong_cast<MathUtil::float3>(mtf.ambient);
-				mMaterialIndexCounts[i] = mtf.vertexCount;
+				//auto& mt = mappedMaterial[i];
+				//auto& mtf = file.GetMaterial(i);
+				//mt.diffuse = System::strong_cast<MathUtil::float4>(mtf.diffuse);
+				//mt.specular = System::strong_cast<MathUtil::float3>(mtf.specular);
+				//mt.specularity = mtf.specularity;
+				//mt.ambient = System::strong_cast<MathUtil::float3>(mtf.ambient);
+				//mMaterialIndexCounts[i] = mtf.vertexCount;
+				Material mat = {};
+				mat.diffuse = System::strong_cast<MathUtil::float4>(file.GetMaterial(i).diffuse);
+				mat.specular = System::strong_cast<MathUtil::float3>(file.GetMaterial(i).specular);
+				mat.specularity = file.GetMaterial(i).specularity;
+				mat.ambient = System::strong_cast<MathUtil::float3>(file.GetMaterial(i).ambient);
+				mMaterialIndexCounts[i] = file.GetMaterial(i).vertexCount;
+				*reinterpret_cast<Material*>(mappedMaterial) = mat;
+				mappedMaterial += 256;
 			}
 			mMaterialBuffer.Unmap();
 		}
@@ -284,19 +292,21 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			return GUI::Result::FAIL;
 		};
 
-		Material* mappedMaterial = nullptr;
+		unsigned char* mappedMaterial = nullptr;
+		System::SafeDeleteArray(&mMaterialIndexCounts);
 		if (mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)) == GUI::Result::SUCCESS)
 		{
 			mMaterialIndexCounts = new int[mMaterialCount] {};
 			for (int i = 0; i < mMaterialCount; ++i)
 			{
-				auto& mt = mappedMaterial[i];
-				auto& mtf = file.GetMaterial(i);
-				mt.diffuse = System::strong_cast<MathUtil::float4>(mtf.diffuse);
-				mt.specular = System::strong_cast<MathUtil::float3>(mtf.specular);
-				mt.specularity = mtf.specularity;
-				mt.ambient = System::strong_cast<MathUtil::float3>(mtf.ambient);
-				mMaterialIndexCounts[i] = mtf.vertexCount;
+				Material mat = {};
+				mat.diffuse = System::strong_cast<MathUtil::float4>(file.GetMaterial(i).diffuse);
+				mat.specular = System::strong_cast<MathUtil::float3>(file.GetMaterial(i).specular);
+				mat.specularity = file.GetMaterial(i).specularity;
+				mat.ambient = System::strong_cast<MathUtil::float3>(file.GetMaterial(i).ambient);
+				mMaterialIndexCounts[i] = file.GetMaterial(i).vertexCount;
+				*reinterpret_cast<Material*>(mappedMaterial) = mat;
+				mappedMaterial += 256;
 			}
 			mMaterialBuffer.Unmap();
 		}
@@ -322,10 +332,11 @@ GUI::Result Model::SetDefaultSceneData()
 	ModelTransform* mappedTransform = nullptr;
 	if (mTransformBuffer.Map(reinterpret_cast<void**>(&mappedTransform)) == GUI::Result::SUCCESS)
 	{
+		auto eye = MathUtil::Vector(0.f, 10.f, -50.f);
 		mappedTransform->world = MathUtil::Matrix::GenerateMatrixIdentity();
 		mappedTransform->view = MathUtil::Matrix::GenerateMatrixLookToLH
 		(
-			MathUtil::Vector(0.f, 10.f, -50.f),
+			eye,
 			MathUtil::Vector::basicZ,
 			MathUtil::Vector::basicY
 		);
@@ -336,6 +347,7 @@ GUI::Result Model::SetDefaultSceneData()
 			0.1f,
 			1000.f
 		);
+		mappedTransform->eye = eye.GetFloat3();
 		mTransformBuffer.Unmap();
 	}
 	else
@@ -347,7 +359,6 @@ GUI::Result Model::SetDefaultSceneData()
 	if (mPS_DataBuffer.Map(reinterpret_cast<void**>(&mappedPS_Data)) == GUI::Result::SUCCESS)
 	{
 		mappedPS_Data->lightDir = MathUtil::Vector(-1.f, -1.f, 1.f).GetFloat3();
-		mappedPS_Data->testCol = MathUtil::Vector(1.f, 0.f, 0.f, 1.f).GetFloat4();
 		mPS_DataBuffer.Unmap();
 	}
 	else
@@ -356,5 +367,5 @@ GUI::Result Model::SetDefaultSceneData()
 	}
 
 	return GUI::Result::SUCCESS;
-	
+
 }
