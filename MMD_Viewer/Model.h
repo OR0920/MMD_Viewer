@@ -20,6 +20,11 @@ public:
 		MathUtil::Matrix proj;
 	};
 
+	struct PixelShaderData
+	{
+		MathUtil::float3 lightDir;
+	};
+
 	struct Material
 	{
 		MathUtil::float4 diffuse;
@@ -27,15 +32,17 @@ public:
 		float specularity;
 		MathUtil::float3 ambient;
 	};
-	
+
 	Model(GUI::Graphics::Device& device);
-	
+
 	~Model();
 
 	GUI::Result	Load(const char* const filepath);
 	GUI::Result IsSuccessLoad() const;
 	const GUI::Graphics::VertexBuffer& GetVB() const;
 	const GUI::Graphics::IndexBuffer& GetIB() const;
+
+	void Draw(GUI::Graphics::GraphicsCommand& command) const;
 private:
 	GUI::Graphics::Device& mDevice;
 
@@ -45,6 +52,11 @@ private:
 	GUI::Graphics::DescriptorHeapForShaderData mHeap;
 	GUI::Graphics::ConstantBuffer mTransformBuffer;
 	GUI::Graphics::ConstantBuffer mMaterialBuffer;
+	GUI::Graphics::ConstantBuffer mPS_DataBuffer;
+
+	GUI::Graphics::InputElementDesc inputLayout;
+	GUI::Graphics::GraphicsPipeline mPipeline;
+	GUI::Graphics::RootSignature mRootSignature;
 
 	GUI::Result LoadPMD(const char* const filepath);
 	GUI::Result LoadPMX(const char* const filepath);

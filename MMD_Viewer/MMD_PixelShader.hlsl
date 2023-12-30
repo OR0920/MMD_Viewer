@@ -15,7 +15,7 @@ cbuffer Material : register(b2)
 
 float4 main(VS_Output input) : SV_TARGET
 {
-    //return diffuse;
+    return diffuse;
 
     float4 color;
         

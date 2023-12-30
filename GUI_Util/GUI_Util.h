@@ -277,7 +277,7 @@ namespace GUI
 				const ConstantBuffer& constBuffer, 
 				const int rootParamID
 			);
-			
+						
 			void DrawTriangle(const VertexBuffer& vertex);
 			void DrawTriangleList
 			(

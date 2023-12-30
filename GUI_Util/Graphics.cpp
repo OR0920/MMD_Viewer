@@ -1,6 +1,7 @@
 #include"GUI_Util.h"
 
 // std
+#include<cassert>
 
 // windows
 #pragma comment(lib, "dxgi.lib")
@@ -907,6 +908,12 @@ void RootSignature::SetParameterCount(const int count)
 
 void RootSignature::SetParamForCBV(const int paramID, const int registerID)
 {
+	if (mDesc.NumParameters <= paramID)
+	{
+		DebugMessage("The id " << paramID << " is over Size !");
+		assert(false);
+		return;
+	}
 	auto& p = mRootParamter[paramID];
 	p.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	p.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
