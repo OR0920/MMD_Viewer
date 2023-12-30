@@ -103,7 +103,13 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 		auto mtCount = file.GetMaterialCount();
 
-		if (mDevice.CreateDescriptorHeap(mHeap, mtCount) == GUI::Result::FAIL)
+		auto descriptorCount = 1 + mtCount;
+		if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
+		{
+			return GUI::Result::FAIL;
+		}
+
+		if (mDevice.CreateConstantBuffer(mTransformBuffer, mHeap, sizeof(ModelTransform), 1) == GUI::Result::FAIL)
 		{
 			return GUI::Result::FAIL;
 		}
@@ -112,7 +118,6 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		{
 			return GUI::Result::FAIL;
 		};
-
 
 		Material* mappedMaterial = nullptr;
 		if (mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)) == GUI::Result::SUCCESS)
@@ -126,6 +131,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 				mt.specularity = mtf.specularity;
 				mt.ambient = System::strong_cast<MathUtil::float3>(mtf.ambient);
 			}
+			mMaterialBuffer.Unmap();
 		}
 		else
 		{

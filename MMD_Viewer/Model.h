@@ -13,6 +13,13 @@ public:
 		MathUtil::float3 normal;
 	};
 
+	struct ModelTransform
+	{
+		MathUtil::Matrix world;
+		MathUtil::Matrix view;
+		MathUtil::Matrix proj;
+	};
+
 	struct Material
 	{
 		MathUtil::float4 diffuse;
@@ -36,6 +43,7 @@ private:
 	GUI::Graphics::IndexBuffer mIB;
 
 	GUI::Graphics::DescriptorHeapForShaderData mHeap;
+	GUI::Graphics::ConstantBuffer mTransformBuffer;
 	GUI::Graphics::ConstantBuffer mMaterialBuffer;
 
 	GUI::Result LoadPMD(const char* const filepath);

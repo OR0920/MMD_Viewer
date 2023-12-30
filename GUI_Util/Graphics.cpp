@@ -1215,6 +1215,11 @@ Result ConstantBuffer::Map(void** ptr)
 	return SUCCESS;
 }
 
+void ConstantBuffer::Unmap()
+{
+	mResource->Unmap(0, nullptr);
+}
+
 const D3D12_GPU_VIRTUAL_ADDRESS ConstantBuffer::GetGPU_Address() const
 {
 	return mViewDesc.BufferLocation;

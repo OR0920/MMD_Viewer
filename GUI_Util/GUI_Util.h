@@ -475,6 +475,7 @@ namespace GUI
 			ConstantBuffer(); ~ConstantBuffer();
 
 			Result Map(void** ptr);
+			void Unmap();
 
 			//ƒ‰ƒCƒuƒ‰ƒŠ‚©‚çŒÄ‚Ño‚·ŠÖ”
 			const D3D12_GPU_VIRTUAL_ADDRESS GetGPU_Address() const;

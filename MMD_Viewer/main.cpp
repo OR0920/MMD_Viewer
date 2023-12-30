@@ -107,48 +107,6 @@ int MAIN()
 	mmdInputLayout.SetDefaultPositionDesc();
 	mmdInputLayout.SetDefaultNormalDesc();
 
-	// 頂点バッファ作成 インデックスバッファ作成
-	struct Vertex
-	{
-		MathUtil::float3 position;
-		MathUtil::float4 color;
-	};
-
-	Vertex triangle[] =
-	{
-		{ {  1.f,  1.f, 0.f }, { 1.f, 1.f, 0.f, 1.f } },
-		{ {  1.f, -1.f, 0.f }, { 1.f, 1.f, 1.f, 1.f } },
-		{ { -1.f, -1.f, 0.f }, { 1.f, 0.f, 1.f, 1.f } },
-		{ { -1.f,  1.f, 0.f }, { 1.f, 1.f, 1.f, 1.f } },
-	};
-
-	int triangleIndex[] = { 0, 1, 2, 2, 3, 0 };
-
-	auto triangleSize = sizeof(triangle);
-
-	GUI::Graphics::VertexBuffer vertexBuffer;
-	if (device.CreateVertexBuffer(vertexBuffer, sizeof(Vertex), _countof(triangle)) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
-
-	if (vertexBuffer.Copy(triangle) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
-
-	GUI::Graphics::IndexBuffer indexBuffer;
-	if (device.CreateIndexBuffer(indexBuffer, sizeof(int), _countof(triangleIndex)) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
-
-	if (indexBuffer.Copy(triangleIndex) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
-
-
 	// 定数バッファ用のディスクリプタヒープ作成
 	const int descriptorCount = 2;
 	GUI::Graphics::DescriptorHeapForShaderData descHeap;
