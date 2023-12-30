@@ -8,7 +8,8 @@ cbuffer PS_Data : register(b1)
 cbuffer Material : register(b2)
 {
     float4 diffuse;
-    float4 specular;
+    float3 specular;
+    float specularity;
     float3 ambient;
 };
 

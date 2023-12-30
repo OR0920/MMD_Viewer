@@ -195,7 +195,8 @@ namespace GUI
 			(
 				ConstantBuffer& constantBuffer,
 				DescriptorHeapForShaderData& viewHeap,
-				const unsigned int bufferStructSize
+				const unsigned int bufferStructSize,
+				const unsigned int bufferCount = 1
 			);
 
 			Result CreateDescriptorHeap
@@ -468,7 +469,7 @@ namespace GUI
 			(
 				ConstantBuffer&, 
 				DescriptorHeapForShaderData&,
-				unsigned int
+				unsigned int, unsigned int
 			);
 		public:
 			ConstantBuffer(); ~ConstantBuffer();

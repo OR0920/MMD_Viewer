@@ -13,7 +13,17 @@ public:
 		MathUtil::float3 normal;
 	};
 
-	Model(GUI::Graphics::Device& device); ~Model();
+	struct Material
+	{
+		MathUtil::float4 diffuse;
+		MathUtil::float3 specular;
+		float specularity;
+		MathUtil::float3 ambient;
+	};
+	
+	Model(GUI::Graphics::Device& device);
+	
+	~Model();
 
 	GUI::Result	Load(const char* const filepath);
 	GUI::Result IsSuccessLoad() const;
@@ -21,8 +31,12 @@ public:
 	const GUI::Graphics::IndexBuffer& GetIB() const;
 private:
 	GUI::Graphics::Device& mDevice;
+
 	GUI::Graphics::VertexBuffer mVB;
 	GUI::Graphics::IndexBuffer mIB;
+
+	GUI::Graphics::DescriptorHeapForShaderData mHeap;
+	GUI::Graphics::ConstantBuffer mMaterialBuffer;
 
 	GUI::Result LoadPMD(const char* const filepath);
 	GUI::Result LoadPMX(const char* const filepath);

@@ -439,13 +439,19 @@ Result Device::CreateConstantBuffer
 (
 	ConstantBuffer& constantBuffer,
 	DescriptorHeapForShaderData& viewHeap,
-	unsigned int bufferStructSize
+	unsigned int bufferStructSize,
+	unsigned int bufferCount
 )
 {
-		DebugMessage(ToString(Device::CreateConstantBuffer()));
-	DebugMessage(bufferStructSize);
-	auto bufferSize = D3D12Allignment(bufferStructSize);
-	DebugMessage(bufferSize);
+	DebugMessage(ToString(Device::CreateConstantBuffer()));
+
+	DebugOutParam(bufferCount);
+	DebugOutParam(bufferStructSize);
+	auto bufferDataSize = bufferStructSize * bufferCount;
+
+	DebugOutParam(bufferDataSize)
+	auto bufferSize = D3D12Allignment(bufferDataSize);
+	DebugOutParam(bufferSize);
 
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
