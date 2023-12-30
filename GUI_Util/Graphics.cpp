@@ -472,19 +472,28 @@ Result Device::CreateConstantBuffer
 		Device::CreateConstantBuffer()
 	);
 
-	auto& viewDesc = constantBuffer.mViewDesc;
+	D3D12_CONSTANT_BUFFER_VIEW_DESC viewDesc = {};
 	viewDesc.BufferLocation = constantBuffer.mResource->GetGPUVirtualAddress();
-	viewDesc.SizeInBytes = bufferSize;
+	viewDesc.SizeInBytes = bufferStructSizeAllignmented;
 
-	mDevice->CreateConstantBufferView
-	(
-		&viewDesc, viewHeap.GetCPU_Handle()
-	);
+	constantBuffer.mViewDesc = viewDesc;
 
 	constantBuffer.mCPU_Handle = viewHeap.GetCPU_Handle();
 	constantBuffer.mGPU_Handle = viewHeap.GetGPU_Handle();
 
-	viewHeap.MoveToNextHeapPos(bufferCount);
+
+	for (unsigned int i = 0; i < bufferCount; ++i)
+	{
+		mDevice->CreateConstantBufferView
+		(
+			&viewDesc, viewHeap.GetCPU_Handle()
+		);
+
+		viewDesc.BufferLocation += bufferStructSizeAllignmented;
+
+		viewHeap.MoveToNextHeapPos();
+	}
+
 
 	constantBuffer.mIncrementSize = 
 		mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -1354,7 +1363,7 @@ const D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeapForShaderData::GetCPU_Handle()
 {
 	if (mDescriptorCount <= mLastID)
 	{
-		return {};
+		assert(false);
 	}
 
 	auto ret = mDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
@@ -1366,7 +1375,7 @@ const D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeapForShaderData::GetGPU_Handle()
 {
 	if (mDescriptorCount <= mLastID)
 	{
-		return {};
+		assert(false);
 	}
 
 	auto ret = mDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
@@ -1374,9 +1383,9 @@ const D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeapForShaderData::GetGPU_Handle()
 	return ret;
 }
 
-void DescriptorHeapForShaderData::MoveToNextHeapPos(const int offset)
+void DescriptorHeapForShaderData::MoveToNextHeapPos()
 {
-	mLastID += offset;
+	mLastID++;
 }
 
 const ComPtr<ID3D12DescriptorHeap> DescriptorHeapForShaderData::GetDescriptorHeap() const
