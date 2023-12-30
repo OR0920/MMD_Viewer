@@ -501,7 +501,7 @@ namespace GUI
 			// ƒ‰ƒCƒuƒ‰ƒŠ‚©‚çŒÄ‚Ño‚·ŠÖ”
 			const D3D12_CPU_DESCRIPTOR_HANDLE GetCPU_Handle();
 			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle();
-			void MoveToNextHeap();
+			void MoveToNextHeapPos(const int offset);
 
 			const ComPtr<ID3D12DescriptorHeap> GetDescriptorHeap() const;
 		private:

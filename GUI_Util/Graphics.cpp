@@ -482,7 +482,7 @@ Result Device::CreateConstantBuffer
 	constantBuffer.mCPU_Handle = viewHeap.GetCPU_Handle();
 	constantBuffer.mGPU_Handle = viewHeap.GetGPU_Handle();
 
-	viewHeap.MoveToNextHeap();
+	viewHeap.MoveToNextHeapPos(bufferCount);
 
 	return SUCCESS;
 }
@@ -1265,9 +1265,9 @@ const D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeapForShaderData::GetGPU_Handle()
 	return ret;
 }
 
-void DescriptorHeapForShaderData::MoveToNextHeap()
+void DescriptorHeapForShaderData::MoveToNextHeapPos(const int offset)
 {
-	mLastID++;
+	mLastID += offset;
 }
 
 const ComPtr<ID3D12DescriptorHeap> DescriptorHeapForShaderData::GetDescriptorHeap() const
