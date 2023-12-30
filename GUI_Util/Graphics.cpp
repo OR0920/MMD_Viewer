@@ -359,6 +359,8 @@ Result Device::CreateVertexBuffer
 	const unsigned int elementCount
 )
 {
+	if (elementCount == 0) return FAIL;
+
 	DebugOutParam(elementSize);
 	DebugOutParam(elementCount);
 
@@ -399,6 +401,8 @@ Result Device::CreateIndexBuffer
 	const unsigned int indexCount
 )
 {
+	if (indexCount == 0) return FAIL;
+
 	DebugOutParam(indexTypeSize);
 	DebugOutParam(indexCount);
 
@@ -1091,6 +1095,8 @@ VertexBuffer::~VertexBuffer()
 
 Result VertexBuffer::Copy(const void* const data)
 {
+	if (mResource == nullptr) return FAIL;
+
 	unsigned char* mappedVertex = nullptr;
 	auto range = CD3DX12_RANGE(0, 0);
 	ReturnIfFailed
@@ -1137,6 +1143,8 @@ IndexBuffer::~IndexBuffer()
 
 Result IndexBuffer::Copy(const void* const data)
 {
+	if (mResource == nullptr) return FAIL;
+
 	unsigned char* mappedIndex = nullptr;
 
 	auto range = CD3DX12_RANGE(0, 0);
