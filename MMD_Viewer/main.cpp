@@ -108,24 +108,17 @@ int MAIN()
 
 		command.BeginDraw();
 
-		//command.SetGraphicsPipeline(mmdPipeline);
-
 		command.UnlockRenderTarget(renderTarget);
 
 		command.SetRenderTarget(renderTarget, depthStencil);
-		//command.SetGraphicsRootSignature(mmdRootSignature);
 
 		command.ClearRenderTarget(GUI::Graphics::Color(0.5f, 0.5f, 0.5f));
 		command.ClearDepthBuffer();
 
-		//command.SetDescriptorHeap(descHeap);
-		//command.SetConstantBuffer(transform, 0);
-		//command.SetConstantBuffer(psData, 1);
 
 		if (model.IsSuccessLoad() == GUI::Result::SUCCESS)
 		{
 			model.Draw(command);
-			//command.DrawTriangleList(model.GetVB(), model.GetIB());
 		}
 
 		command.LockRenderTarget(renderTarget);

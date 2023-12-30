@@ -8,13 +8,13 @@ cbuffer PS_Data : register(b1)
 cbuffer Material : register(b2)
 {
     float4 diffuse;
-    float3 specular;
-    float specularity;
+    float4 specular;
     float3 ambient;
 };
 
 float4 main(VS_Output input) : SV_TARGET
 {
+    return diffuse;
     float4 color;
         
     float blightness = -dot(input.normal.xyz, lightDir);

@@ -448,14 +448,15 @@ Result Device::CreateConstantBuffer
 
 	DebugOutParam(bufferCount);
 	DebugOutParam(bufferStructSize);
-	auto bufferDataSize = bufferStructSize ;
 
-	DebugOutParam(bufferDataSize)
-	auto bufferSize = D3D12Allignment(bufferDataSize);
+	auto bufferStructSizeAllignmented = D3D12Allignment(bufferStructSize);
+	DebugOutParam(bufferStructSizeAllignmented);
+
+	auto bufferSize = bufferStructSizeAllignmented * bufferCount;
 	DebugOutParam(bufferSize);
 
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize * bufferCount);
+	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 
 	ReturnIfFailed
 	(
@@ -754,7 +755,7 @@ void GraphicsCommand::SetDescriptorTable
 {
 	
 	mCommandList->SetGraphicsRootDescriptorTable(paramID, constBuffer.GetGPU_Handle(bufferID));
-	
+	DebugOutParam(constBuffer.GetGPU_Handle(bufferID).ptr);
 }
 
 void GraphicsCommand::DrawTriangle(const VertexBuffer& vertex)
@@ -910,8 +911,7 @@ void DescriptorRange::SetRangeCount(const int rangeCount)
 {
 	mRangeCount = rangeCount;
 	mRange = new D3D12_DESCRIPTOR_RANGE[rangeCount];
-	mRange->OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-	mRange->RegisterSpace = 0;
+
 }
 
 void DescriptorRange::SetRangeForCBV
@@ -930,6 +930,8 @@ void DescriptorRange::SetRangeForCBV
 	r.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 	r.BaseShaderRegister = registerID;
 	r.NumDescriptors = descriptorCount;
+	r.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	r.RegisterSpace = 0;
 }
 
 int DescriptorRange::GetRangeCount() const
