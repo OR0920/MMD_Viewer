@@ -8,16 +8,18 @@ struct VS_Input
 
 cbuffer TransForm : register(b0)
 {
-    matrix Translation;
-    matrix Rotation;
+    matrix world;
+    matrix view;
+    matrix proj;
 }
 
 VS_Output main( VS_Input input) 
 {
     VS_Output output;
     
-    output.screenPos = mul(Rotation, input.position);
-    output.screenPos = mul(Translation, output.screenPos);
+    output.screenPos = mul(world, input.position);
+    output.screenPos = mul(view, output.screenPos);
+    output.screenPos = mul(proj, output.screenPos);
     //output.screenPos = input.position;
     output.color = input.color; 
     

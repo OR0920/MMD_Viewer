@@ -106,10 +106,10 @@ int MAIN()
 
 	Vertex triangle[] =
 	{
-		{ {  0.5f,  0.5f, 0.f }, { 1.f, 1.f, 0.f, 1.f } },
-		{ {  0.5f, -0.5f, 0.f }, { 0.f, 1.f, 1.f, 1.f } },
-		{ { -0.5f, -0.5f, 0.f }, { 1.f, 0.f, 1.f, 1.f } },
-		{ { -0.5f,  0.5f, 0.f }, { 1.f, 1.f, 1.f, 1.f } },
+		{ {  1.f, 1.f, 0.f }, { 1.f, 1.f, 0.f, 1.f } },
+		{ {  1.f, -1.f, 0.f }, { 0.f, 1.f, 1.f, 1.f } },
+		{ { -1.f, -1.f, 0.f }, { 1.f, 0.f, 1.f, 1.f } },
+		{ { -1.f,  1.f, 0.f }, { 1.f, 1.f, 1.f, 1.f } },
 	};
 
 	int triangleIndex[] = { 0, 1, 2, 2, 3, 0 };
@@ -153,8 +153,9 @@ int MAIN()
 
 	struct Transform
 	{
-		MathUtil::Matrix translation;
-		MathUtil::Matrix rotation;
+		MathUtil::Matrix world;
+		MathUtil::Matrix view;
+		MathUtil::Matrix proj;
 	};
 
 	GUI::Graphics::ConstantBuffer transform;
@@ -175,8 +176,21 @@ int MAIN()
 	Transform* mappedTransform = nullptr;
 	if (transform.Map(reinterpret_cast<void**>(&mappedTransform)) == GUI::Result::SUCCESS)
 	{
-		mappedTransform->translation = MathUtil::Matrix::GenerateMatrixTranslation(MathUtil::Vector(0.5f, 0.f, 0.f));
-		mappedTransform->rotation = MathUtil::Matrix::GenerateMatrixRotationZ(MathUtil::DegreeToRadian(45.f));
+		mappedTransform->world = MathUtil::Matrix::GenerateMatrixIdentity();
+		mappedTransform->view = MathUtil::Matrix::GenerateMatrixLookToLH
+		(
+			MathUtil::Vector(0.f, 0.f, -5.f),
+			MathUtil::Vector::basicZ,
+			MathUtil::Vector::basicY
+		);
+		mappedTransform->proj = MathUtil::Matrix::GenerateMatrixPerspectiveFovLH
+		(
+			DirectX::XM_PIDIV4,
+			static_cast<float>(windowWidth) / static_cast<float>(windowHeight),
+			0.1f,
+			1000.f
+		);
+		
 	}
 
 	struct Color
