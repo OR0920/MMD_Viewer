@@ -1374,7 +1374,7 @@ void PMDActor::Update()
 	}
 }
 
-void PMDActor::Clear()
+void PMDActor::Draw()
 {
 	const auto& cmdl = mDx12.GetCommandList();
 

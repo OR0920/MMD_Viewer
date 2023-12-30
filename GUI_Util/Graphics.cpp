@@ -485,6 +485,9 @@ Result Device::CreateConstantBuffer
 
 	viewHeap.MoveToNextHeapPos(bufferCount);
 
+	constantBuffer.mIncrementSize = 
+		mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
 	return SUCCESS;
 }
 
@@ -743,6 +746,17 @@ void GraphicsCommand::SetConstantBuffer
 	);
 }
 
+void GraphicsCommand::SetDescriptorTable
+(
+	const ConstantBuffer& constBuffer, 
+	const int bufferID, const int paramID
+)
+{
+	
+	mCommandList->SetGraphicsRootDescriptorTable(paramID, constBuffer.GetGPU_Handle(bufferID));
+
+}
+
 void GraphicsCommand::DrawTriangle(const VertexBuffer& vertex)
 {
 	mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -877,6 +891,59 @@ void DepthStencilBuffer::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle
 }
 
 
+// ディスクリプタレンジ
+DescriptorRange::DescriptorRange()
+	:
+	mRange(nullptr),
+	mRangeCount(0)
+{
+
+}
+
+DescriptorRange::~DescriptorRange()
+{
+	System::SafeDeleteArray(&mRange);
+}
+
+
+void DescriptorRange::SetRangeCount(const int rangeCount)
+{
+	mRangeCount = rangeCount;
+	mRange = new D3D12_DESCRIPTOR_RANGE[rangeCount];
+	mRange->OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	mRange->RegisterSpace = 0;
+}
+
+void DescriptorRange::SetRangeForCBV
+(
+	const int rangeID,
+	const int registerID, 
+	const int descriptorCount
+)
+{
+	if (mRangeCount <= rangeID)
+	{
+		assert(false);
+	}
+
+	auto& r = mRange[rangeID];
+	r.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+	r.BaseShaderRegister = registerID;
+	r.NumDescriptors = descriptorCount;
+}
+
+int DescriptorRange::GetRangeCount() const
+{
+	return mRangeCount;
+}
+
+const D3D12_DESCRIPTOR_RANGE* const DescriptorRange::GetRange() const
+{
+	return mRange;
+}
+
+
+
 // ルートシグネチャ
 RootSignature::RootSignature()
 	:
@@ -908,12 +975,8 @@ void RootSignature::SetParameterCount(const int count)
 
 void RootSignature::SetParamForCBV(const int paramID, const int registerID)
 {
-	if (mDesc.NumParameters <= paramID)
-	{
-		DebugMessage("The id " << paramID << " is over Size !");
-		assert(false);
-		return;
-	}
+	if (IsSizeOver(paramID)) return;
+
 	auto& p = mRootParamter[paramID];
 	p.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	p.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
@@ -921,9 +984,37 @@ void RootSignature::SetParamForCBV(const int paramID, const int registerID)
 	p.Descriptor.ShaderRegister = registerID;
 }
 
+void RootSignature::SetParamForDescriptorTable
+(
+	const int paramID,
+	const DescriptorRange& range
+)
+{
+	if (IsSizeOver(paramID)) return;
+
+	auto& p = mRootParamter[paramID];
+	p.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	p.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	
+	p.DescriptorTable.NumDescriptorRanges = range.GetRangeCount();
+	p.DescriptorTable.pDescriptorRanges = range.GetRange();
+
+}
+
 const ComPtr<ID3D12RootSignature> RootSignature::GetRootSignature() const
 {
 	return mRootSignature;
+}
+
+bool RootSignature::IsSizeOver(const int i) const
+{
+	if (i < 0 || mDesc.NumParameters <= i)
+	{
+		DebugMessage("The id " << i << " is over Size !");
+		assert(false);
+		return true;
+	}
+	return false;
 }
 
 // 入力レイアウト
@@ -1231,6 +1322,13 @@ void ConstantBuffer::Unmap()
 const D3D12_GPU_VIRTUAL_ADDRESS ConstantBuffer::GetGPU_Address() const
 {
 	return mViewDesc.BufferLocation;
+}
+
+const D3D12_GPU_DESCRIPTOR_HANDLE ConstantBuffer::GetGPU_Handle(const int i) const
+{
+	auto ret = mGPU_Handle;
+	ret.ptr += i * mIncrementSize;
+	return ret;
 }
 
 // ディスクリプタヒープ

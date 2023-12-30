@@ -277,6 +277,13 @@ namespace GUI
 				const ConstantBuffer& constBuffer, 
 				const int rootParamID
 			);
+			void SetDescriptorTable
+			(
+				const ConstantBuffer& constBuffer,
+				const int bufferID,
+				const int rootParamID
+			);
+
 						
 			void DrawTriangle(const VertexBuffer& vertex);
 			void DrawTriangleList
@@ -349,6 +356,25 @@ namespace GUI
 
 		};
 
+		class DescriptorRange
+		{
+		public:
+			DescriptorRange(); ~DescriptorRange();
+
+
+			void SetRangeCount(const int rangeCount);
+			void SetRangeForCBV(const int rangeID, const int registerID, const int descriptorCount);
+			//void SetRangeForSRV(const int registerID, const int descriptorCount);
+
+
+			// ライブラリから呼び出す関数
+			int GetRangeCount() const;
+			const D3D12_DESCRIPTOR_RANGE* const GetRange() const;
+		private:
+			D3D12_DESCRIPTOR_RANGE* mRange;
+			int mRangeCount;
+		};
+
 		class RootSignature
 		{
 			friend Result Device::CreateRootSignature(RootSignature&);
@@ -358,6 +384,12 @@ namespace GUI
 			// 実装中
 			void SetParameterCount(const int count);
 			void SetParamForCBV(const int paramID, const int registerID);
+			void SetParamForDescriptorTable
+			(
+				const int paramID,
+				const DescriptorRange& range
+			);
+
 
 			// ライブラリから呼び出す関数
 			const ComPtr<ID3D12RootSignature> GetRootSignature() const;
@@ -366,6 +398,7 @@ namespace GUI
 			D3D12_ROOT_SIGNATURE_DESC mDesc;
 			D3D12_ROOT_PARAMETER* mRootParamter;
 			
+			bool IsSizeOver(const int i) const;
 		};
 
 		class InputElementDesc
@@ -479,12 +512,14 @@ namespace GUI
 
 			//ライブラリから呼び出す関数
 			const D3D12_GPU_VIRTUAL_ADDRESS GetGPU_Address() const;
-
+			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle(const int i) const;
 		private:
 			ComPtr<ID3D12Resource> mResource;
 			D3D12_CONSTANT_BUFFER_VIEW_DESC mViewDesc;
 			D3D12_CPU_DESCRIPTOR_HANDLE mCPU_Handle;
 			D3D12_GPU_DESCRIPTOR_HANDLE mGPU_Handle;
+
+			int mIncrementSize;
 		};
 
 		class DescriptorHeapForShaderData

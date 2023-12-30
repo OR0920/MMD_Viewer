@@ -23,7 +23,7 @@ public:
 
 	//PMDActor* Clone();
 	void Update();
-	void Clear();
+	void Draw();
 
 
 	struct MaterialOnShader

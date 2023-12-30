@@ -22,7 +22,12 @@ Model::Model(GUI::Graphics::Device& device)
 	mRootSignature.SetParameterCount(3);
 	mRootSignature.SetParamForCBV(0, 0);
 	mRootSignature.SetParamForCBV(1, 1);
-	mRootSignature.SetParamForCBV(2, 2);
+
+	GUI::Graphics::DescriptorRange range;
+	range.SetRangeCount(1);
+	range.SetRangeForCBV(0, 2, 1);
+	mRootSignature.SetParamForDescriptorTable(2, range);
+	
 	mDevice.CreateRootSignature(mRootSignature);
 
 	mPipeline.SetRootSignature(mRootSignature);
@@ -71,13 +76,17 @@ const GUI::Graphics::IndexBuffer& Model::GetIB() const
 
 void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 {
+	static int i = 0;
+	i++;
+	i %= mMaterialCount * 50;
+	DebugOutParam(i);
 	command.SetGraphicsPipeline(mPipeline);
 	command.SetGraphicsRootSignature(mRootSignature);
 
 	command.SetDescriptorHeap(mHeap);
 	command.SetConstantBuffer(mTransformBuffer, 0);
 	command.SetConstantBuffer(mPS_DataBuffer, 1);
-	command.SetConstantBuffer(mMaterialBuffer, 2);
+	command.SetDescriptorTable(mMaterialBuffer, i/50, 2);
 
 	command.DrawTriangleList(mVB, mIB);
 }
@@ -134,6 +143,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 
 		auto mtCount = file.GetMaterialCount();
+		mMaterialCount += mtCount;
 
 		auto descriptorCount = 1 + 1 + mtCount;
 		if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
