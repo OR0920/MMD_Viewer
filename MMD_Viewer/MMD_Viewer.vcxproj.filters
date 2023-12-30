@@ -22,9 +22,12 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="ShaderStructs.hlsli" />
+    <None Include="MMD_ShaderStructs.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl" />
     <FxCompile Include="PixelShader.hlsl" />
+    <FxCompile Include="MMD_VertexShader.hlsl" />
+    <FxCompile Include="MMD_PixelShader.hlsl" />
   </ItemGroup>
 </Project>

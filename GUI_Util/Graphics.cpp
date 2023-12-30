@@ -744,6 +744,8 @@ void GraphicsCommand::DrawTriangleList
 	const IndexBuffer& index
 )
 {
+	if (vertex.GetVertexCount() == 0 || index.GetIndexCount() == 0) return;
+
 	mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mCommandList->IASetVertexBuffers(0, 1, vertex.GetView());
 	mCommandList->IASetIndexBuffer(index.GetView());
@@ -961,6 +963,22 @@ void InputElementDesc::SetDefaultColorDesc(const char* const semantics)
 	mLastID++;
 }
 
+void InputElementDesc::SetDefaultNormalDesc(const char* const semantics)
+{
+	if (IsSizeOver() == true) return;
+
+	auto& desc = mInputElementDesc[mLastID];
+	desc.SemanticName = semantics;
+	desc.SemanticIndex = 0;
+	desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	desc.InputSlot = 0;
+	desc.AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+	desc.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+	desc.InstanceDataStepRate = 0;
+
+	mLastID++;
+}
+
 void InputElementDesc::DebugOutLayout() const
 {
 	for (int i = 0; i < mCount; ++i)
@@ -1005,8 +1023,8 @@ GraphicsPipeline::GraphicsPipeline()
 	//psoDesc.PS = { reinterpret_cast<UINT8*>(pixelShader->GetBufferPointer()), pixelShader->GetBufferSize() };
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	psoDesc.DepthStencilState.DepthEnable = FALSE;
-	psoDesc.DepthStencilState.StencilEnable = FALSE;
+	psoDesc.DepthStencilState.DepthEnable = false;
+	psoDesc.DepthStencilState.StencilEnable = false;
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	psoDesc.NumRenderTargets = 1;
@@ -1018,6 +1036,11 @@ GraphicsPipeline::GraphicsPipeline()
 GraphicsPipeline::~GraphicsPipeline()
 {
 
+}
+
+void GraphicsPipeline::SetDepthEnable()
+{
+	psoDesc.DepthStencilState.DepthEnable = true;
 }
 
 void GraphicsPipeline::SetInputLayout(const InputElementDesc& inputElementDesc)

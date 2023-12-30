@@ -376,6 +376,7 @@ namespace GUI
 
 			void SetDefaultPositionDesc(const char* const semantics = "POSITION");
 			void SetDefaultColorDesc(const char* const semantics = "COLOR");
+			void SetDefaultNormalDesc(const char* const semantics = "NORMAL");
 
 			void DebugOutLayout() const;
 
@@ -396,6 +397,10 @@ namespace GUI
 		public:
 			GraphicsPipeline(); ~GraphicsPipeline();
 
+			// 深度バッファ有効化
+			void SetDepthEnable();
+			// ステンシルも使う場合。　現在使う予定はないため未実装
+			void SetDepthStencilEnable();
 
 			void SetInputLayout(const InputElementDesc& inputElementDesc);
 			void SetRootSignature(const RootSignature& rootSignature);

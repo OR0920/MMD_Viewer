@@ -13,6 +13,9 @@ using namespace std;
 #include"VertexShader.h"
 #include"PixelShader.h"
 
+#include"MMD_VertexShasder.h";
+#include"MMD_PixelShader.h"
+
 static const int HD = 720;
 static const int FHD = 1080;
 static const int windowHeight = HD;
@@ -95,7 +98,11 @@ int MAIN()
 	inputElementDesc.SetDefaultColorDesc();
 
 	inputElementDesc.DebugOutLayout();
-
+	
+	GUI::Graphics::InputElementDesc mmdInputLayout;
+	mmdInputLayout.SetElementCount(2);
+	mmdInputLayout.SetDefaultPositionDesc();
+	mmdInputLayout.SetDefaultNormalDesc();
 
 	// 頂点バッファ作成 インデックスバッファ作成
 	struct Vertex
@@ -138,6 +145,14 @@ int MAIN()
 		return -1;
 	}
 
+	struct MMD_Vertex
+	{
+		MathUtil::float3 position;
+		MathUtil::float3 normal;
+	};
+	GUI::Graphics::VertexBuffer mmdVB;
+	GUI::Graphics::IndexBuffer mmdIB;
+
 	// 定数バッファ用のディスクリプタヒープ作成
 	const int descriptorCount = 2;
 	GUI::Graphics::DescriptorHeapForShaderData descHeap;
@@ -179,7 +194,7 @@ int MAIN()
 		mappedTransform->world = MathUtil::Matrix::GenerateMatrixIdentity();
 		mappedTransform->view = MathUtil::Matrix::GenerateMatrixLookToLH
 		(
-			MathUtil::Vector(0.f, 0.f, -5.f),
+			MathUtil::Vector(0.f, 10.f, -50.f),
 			MathUtil::Vector::basicZ,
 			MathUtil::Vector::basicY
 		);
@@ -220,6 +235,14 @@ int MAIN()
 		return -1;
 	}
 
+	GUI::Graphics::RootSignature mmdRootSignature;
+	mmdRootSignature.SetParameterCount(1);
+	mmdRootSignature.SetParamForCBV(0, 0);
+	if (device.CreateRootSignature(mmdRootSignature) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
 	// パイプラインステート
 	GUI::Graphics::GraphicsPipeline pipeline;
 	pipeline.SetInputLayout(inputElementDesc);
@@ -232,31 +255,87 @@ int MAIN()
 		return -1;
 	}
 
+	GUI::Graphics::GraphicsPipeline mmdPipeline;
+	//mmdPipeline.SetDepthEnable();
+	mmdPipeline.SetInputLayout(mmdInputLayout);
+	mmdPipeline.SetRootSignature(mmdRootSignature);
+	mmdPipeline.SetVertexShader(gMMD_VS, _countof(gMMD_VS));
+	mmdPipeline.SetPixelShader(gMMD_PS, _countof(gMMD_PS));
+	if (device.CreateGraphicsPipeline(mmdPipeline) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+
 	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
 	{
 		if (fc.Update() == true)
 		{
 			DebugOutString(fc.GetPath());
+
+			MMDsdk::PmdFile file(fc.GetPath());
+			if (file.IsSuccessLoad() == true)
+			{
+				auto vCount = file.GetVertexCount();
+				MMD_Vertex* mesh = new MMD_Vertex[vCount];
+				for (int i = 0; i < vCount; ++i)
+				{
+					auto& v = file.GetVertex(i);
+					mesh[i].position = System::strong_cast<MathUtil::float3>(v.position);
+					mesh[i].normal = System::strong_cast<MathUtil::float3>(v.normal);
+				}
+
+				if (device.CreateVertexBuffer(mmdVB, sizeof(MMD_Vertex), vCount) == GUI::Result::FAIL)
+				{
+					return -1;
+				};
+
+				if (mmdVB.Copy(mesh) == GUI::Result::FAIL)
+				{
+					return -1;
+				}
+				
+				System::SafeDeleteArray(&mesh);
+
+				auto iCount = file.GetIndexCount();
+				int* index = new int[iCount];
+				for (int i = 0; i < iCount; ++i)
+				{
+					index[i] = file.GetIndex(i);
+				}
+
+				if (device.CreateIndexBuffer(mmdIB, sizeof(int), iCount) == GUI::Result::FAIL)
+				{
+					return -1;
+				}
+
+				if (mmdIB.Copy(index) == GUI::Result::FAIL)
+				{
+					return -1;
+				}
+
+				System::SafeDeleteArray(&index);
+			}
 		}
 
 		command.BeginDraw();
 
-		command.SetGraphicsPipeline(pipeline);
+		command.SetGraphicsPipeline(mmdPipeline);
 
 		command.UnlockRenderTarget(renderTarget);
 
 		command.SetRenderTarget(renderTarget, depthStencil);
-		command.SetGraphicsRootSignature(rootSignature);
+		command.SetGraphicsRootSignature(mmdRootSignature);
 
 		command.ClearRenderTarget(GUI::Graphics::Color(0.5f, 0.5f, 0.5f));
 		command.ClearDepthBuffer();
 
 		command.SetDescriptorHeap(descHeap);
 		command.SetConstantBuffer(transform, 0);
-		command.SetConstantBuffer(color, 1);
 
 		//command.DrawTriangle(vertexBuffer);
-		command.DrawTriangleList(vertexBuffer, indexBuffer);
+		//command.DrawTriangleList(vertexBuffer, indexBuffer);
+		command.DrawTriangleList(mmdVB, mmdIB);
 
 		command.LockRenderTarget(renderTarget);
 
