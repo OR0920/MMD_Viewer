@@ -3,6 +3,9 @@
 #include"MathUtil.h"
 #include"GUI_Util.h"
 
+#include<vector>
+#include<string>
+
 class Model
 {
 public:
@@ -46,6 +49,8 @@ public:
 	GUI::Result SetDefaultSceneData();
 
 	void Draw(GUI::Graphics::GraphicsCommand& command) const;
+
+	void DebugOut() const;
 private:
 	GUI::Graphics::Device& mDevice;
 
@@ -57,7 +62,18 @@ private:
 	GUI::Graphics::ConstantBuffer mPS_DataBuffer;
 
 	GUI::Graphics::ConstantBuffer mMaterialBuffer;
-	int* mMaterialIndexCounts;
+
+	struct MaterialInfo
+	{
+		int materialIndexCount;
+		int texID = -1;
+		int sphID = -1;
+		int spaID = -1;
+		int toonID = -1;
+		bool isShared = true;
+	};
+	MaterialInfo* mMaterialInfo;
+
 	int mMaterialCount;
 
 	GUI::Graphics::InputElementDesc inputLayout;
@@ -67,6 +83,9 @@ private:
 	GUI::Result LoadPMD(const char* const filepath);
 	GUI::Result LoadPMX(const char* const filepath);
 	GUI::Result isSuccessLoad;
+
+	std::vector<std::string> mTexPath;
+	std::vector<std::string> mToonPath;
 };
 
 #endif // !_MODEL_H_

@@ -15,12 +15,13 @@ Model::Model(GUI::Graphics::Device& device)
 	mTransformBuffer(),
 	mPS_DataBuffer(),
 	mMaterialBuffer(),
-	mMaterialIndexCounts(nullptr),
 	mMaterialCount(0),
 	inputLayout({}),
 	mPipeline({}),
 	mRootSignature({}),
-	isSuccessLoad(GUI::Result::FAIL)
+	isSuccessLoad(GUI::Result::FAIL),
+	mTexPath(),
+	mToonPath(10)
 {
 	inputLayout.SetElementCount(2);
 	inputLayout.SetDefaultPositionDesc();
@@ -45,12 +46,27 @@ Model::Model(GUI::Graphics::Device& device)
 	mPipeline.SetVertexShader(gMMD_VS, _countof(gMMD_VS));
 	mPipeline.SetPixelShader(gMMD_PS, _countof(gMMD_PS));
 	mDevice.CreateGraphicsPipeline(mPipeline);
+
+	mToonPath =
+	{
+		"toon01.bmp",
+		"toon02.bmp",
+		"toon03.bmp",
+		"toon04.bmp",
+		"toon05.bmp",
+
+		"toon06.bmp",
+		"toon07.bmp",
+		"toon08.bmp",
+		"toon09.bmp",
+		"toon10.bmp",
+	};
 }
 
 
 Model::~Model()
 {
-	System::SafeDeleteArray(&mMaterialIndexCounts);
+	System::SafeDeleteArray(&mMaterialInfo);
 }
 
 
@@ -99,13 +115,19 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 	int indexOffs = 0;
 	for (int i = 0; i < mMaterialCount; ++i)
 	{
+		auto indexCount = mMaterialInfo[i].materialIndexCount;
 		command.SetDescriptorTable(mMaterialBuffer, i, 2);
-		command.DrawTriangleList(mMaterialIndexCounts[i], indexOffs);
-		indexOffs += mMaterialIndexCounts[i];
+		command.DrawTriangleList(indexCount, indexOffs);
+		indexOffs += indexCount;
 	}
+}
 
-
-
+void Model::DebugOut() const
+{
+	for (auto& tp : mTexPath)
+	{
+		DebugOutString(tp.c_str());
+	}
 }
 
 GUI::Result Model::LoadPMD(const char* const filepath)
@@ -182,27 +204,25 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		};
 
 		unsigned char* mappedMaterial = nullptr;
-		System::SafeDeleteArray(&mMaterialIndexCounts);
+		System::SafeDeleteArray(&mMaterialInfo);
 		if (mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)) == GUI::Result::SUCCESS)
 		{
-			mMaterialIndexCounts = new int[mMaterialCount] {};
+			mMaterialInfo = new MaterialInfo[mMaterialCount]{};
 			for (int i = 0; i < mMaterialCount; ++i)
 			{
-				//auto& mt = mappedMaterial[i];
-				//auto& mtf = file.GetMaterial(i);
-				//mt.diffuse = System::strong_cast<MathUtil::float4>(mtf.diffuse);
-				//mt.specular = System::strong_cast<MathUtil::float3>(mtf.specular);
-				//mt.specularity = mtf.specularity;
-				//mt.ambient = System::strong_cast<MathUtil::float3>(mtf.ambient);
-				//mMaterialIndexCounts[i] = mtf.vertexCount;
 				Material mat = {};
-				mat.diffuse = System::strong_cast<MathUtil::float4>(file.GetMaterial(i).diffuse);
-				mat.specular = System::strong_cast<MathUtil::float3>(file.GetMaterial(i).specular);
-				mat.specularity = file.GetMaterial(i).specularity;
-				mat.ambient = System::strong_cast<MathUtil::float3>(file.GetMaterial(i).ambient);
-				mMaterialIndexCounts[i] = file.GetMaterial(i).vertexCount;
+				auto& m = file.GetMaterial(i);
+				mat.diffuse = System::strong_cast<MathUtil::float4>(m.diffuse);
+				mat.specular = System::strong_cast<MathUtil::float3>(m.specular);
+				mat.specularity = m.specularity;
+				mat.ambient = System::strong_cast<MathUtil::float3>(m.ambient);
 				*reinterpret_cast<Material*>(mappedMaterial) = mat;
 				mappedMaterial += 256;
+
+
+				mMaterialInfo[i].materialIndexCount = m.vertexCount;
+				mMaterialInfo[i].toonID = m.toonIndex;
+				mMaterialInfo[i].isShared = true;
 			}
 			mMaterialBuffer.Unmap();
 		}
@@ -292,21 +312,43 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			return GUI::Result::FAIL;
 		};
 
+
 		unsigned char* mappedMaterial = nullptr;
-		System::SafeDeleteArray(&mMaterialIndexCounts);
+		System::SafeDeleteArray(&mMaterialInfo);
 		if (mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)) == GUI::Result::SUCCESS)
 		{
-			mMaterialIndexCounts = new int[mMaterialCount] {};
+			mMaterialInfo = new MaterialInfo[mMaterialCount]{};
 			for (int i = 0; i < mMaterialCount; ++i)
 			{
 				Material mat = {};
-				mat.diffuse = System::strong_cast<MathUtil::float4>(file.GetMaterial(i).diffuse);
-				mat.specular = System::strong_cast<MathUtil::float3>(file.GetMaterial(i).specular);
-				mat.specularity = file.GetMaterial(i).specularity;
-				mat.ambient = System::strong_cast<MathUtil::float3>(file.GetMaterial(i).ambient);
-				mMaterialIndexCounts[i] = file.GetMaterial(i).vertexCount;
+				auto& m = file.GetMaterial(i);
+				mat.diffuse = System::strong_cast<MathUtil::float4>(m.diffuse);
+				mat.specular = System::strong_cast<MathUtil::float3>(m.specular);
+				mat.specularity = m.specularity;
+				mat.ambient = System::strong_cast<MathUtil::float3>(m.ambient);
 				*reinterpret_cast<Material*>(mappedMaterial) = mat;
 				mappedMaterial += 256;
+
+
+				mMaterialInfo[i].materialIndexCount = m.vertexCount;
+				if (m.sphereMode == MMDsdk::PmxFile::Material::SphereMode::SM_SPH)
+				{
+					mMaterialInfo[i].sphID = m.sphereTextureID;
+				}
+				else if (m.sphereMode == MMDsdk::PmxFile::Material::SphereMode::SM_SPA)
+				{
+					mMaterialInfo[i].spaID = m.sphereTextureID;
+				}
+
+				mMaterialInfo[i].toonID = m.toonTextureID;
+				if (m.toonMode == MMDsdk::PmxFile::Material::ToonMode::TM_SHARED)
+				{
+					mMaterialInfo[i].isShared = true;
+				}
+				else
+				{
+					mMaterialInfo[i].isShared = false;
+				}
 			}
 			mMaterialBuffer.Unmap();
 		}
@@ -315,6 +357,14 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			return GUI::Result::FAIL;
 		}
 
+		std::string dirPath = file.GetDirectoryPath();
+
+		mTexPath.resize(file.GetTextureCount());
+		for (int i = 0; i < mTexPath.size(); ++i)
+		{
+			std::string path = file.GetTexturePath(i).GetText();
+			mTexPath[i] = dirPath + path;
+		}
 
 		return GUI::Result::SUCCESS;
 

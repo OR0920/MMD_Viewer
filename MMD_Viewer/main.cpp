@@ -104,7 +104,7 @@ int MAIN()
 			DebugOutString(fc.GetPath());
 
 			model.Load(fc.GetPath());
-			
+			model.DebugOut();
 		}
 
 		command.BeginDraw();
