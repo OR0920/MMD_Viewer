@@ -1050,6 +1050,11 @@ void GraphicsPipeline::SetDepthEnable()
 	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 }
 
+void GraphicsPipeline::SetAlphaEnable()
+{
+	psoDesc.BlendState.AlphaToCoverageEnable = true;
+}
+
 void GraphicsPipeline::SetInputLayout(const InputElementDesc& inputElementDesc)
 {
 	psoDesc.InputLayout.NumElements = inputElementDesc.GetDescCount();

@@ -24,6 +24,7 @@ VS_Output main(VS_Input input)
     
     output.screenPos = pos;
     output.normal = input.normal;
+    output.normal.a = 1.f;
     
     return output;
 }

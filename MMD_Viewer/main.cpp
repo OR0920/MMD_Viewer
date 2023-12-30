@@ -437,6 +437,7 @@ int MAIN()
 
 	GUI::Graphics::GraphicsPipeline mmdPipeline;
 	mmdPipeline.SetDepthEnable();
+	mmdPipeline.SetAlphaEnable();
 	mmdPipeline.SetInputLayout(mmdInputLayout);
 	mmdPipeline.SetRootSignature(mmdRootSignature);
 	mmdPipeline.SetVertexShader(gMMD_VS, _countof(gMMD_VS));
@@ -472,8 +473,6 @@ int MAIN()
 		command.SetDescriptorHeap(descHeap);
 		command.SetConstantBuffer(transform, 0);
 
-		//command.DrawTriangle(vertexBuffer);
-		//command.DrawTriangleList(vertexBuffer, indexBuffer);
 		if (model.IsSuccessLoad() == GUI::Result::SUCCESS)
 		{
 			command.DrawTriangleList(model.GetVB(), model.GetIB());

@@ -402,6 +402,8 @@ namespace GUI
 			// ステンシルも使う場合。　現在使う予定はないため未実装
 			void SetDepthStencilEnable();
 
+			void SetAlphaEnable();
+
 			void SetInputLayout(const InputElementDesc& inputElementDesc);
 			void SetRootSignature(const RootSignature& rootSignature);
 
