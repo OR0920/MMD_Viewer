@@ -23,5 +23,6 @@ VS_Output main( VS_Input input)
     //output.screenPos = input.position;
     output.color = input.color; 
     
+    
     return output;    
 }

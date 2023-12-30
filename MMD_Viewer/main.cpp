@@ -16,196 +16,12 @@ using namespace std;
 #include"MMD_VertexShasder.h"
 #include"MMD_PixelShader.h"
 
+#include"Model.h"
+
 static const int HD = 720;
 static const int FHD = 1080;
 static const int windowHeight = HD;
 static const int windowWidth = windowHeight / 9 * 16;
-
-class Model
-{
-public:
-
-	struct ModelVertex
-	{
-		MathUtil::float3 position;
-		MathUtil::float3 normal;
-	};
-
-	Model(GUI::Graphics::Device& device); ~Model();
-
-	GUI::Result	Load(const char* const filepath);
-	GUI::Result IsSuccessLoad() const;
-	const GUI::Graphics::VertexBuffer& GetVB() const;
-	const GUI::Graphics::IndexBuffer& GetIB() const;
-private:
-	GUI::Graphics::Device& mDevice;
-	GUI::Graphics::VertexBuffer mVB;
-	GUI::Graphics::IndexBuffer mIB;
-
-	GUI::Result LoadPMD(const char* const filepath);
-	GUI::Result LoadPMX(const char* const filepath);
-	GUI::Result isSuccessLoad;
-};
-
-Model::Model(GUI::Graphics::Device& device)
-	:
-	mDevice(device),
-	mVB(),
-	mIB(),
-	isSuccessLoad(GUI::Result::FAIL)
-{
-
-}
-
-Model::~Model() {}
-
-
-GUI::Result Model::Load(const char* const filepath)
-{
-	isSuccessLoad = GUI::Result::FAIL;
-
-	if (LoadPMD(filepath) == GUI::Result::SUCCESS)
-	{
-		isSuccessLoad = GUI::Result::SUCCESS;
-	}
-	else if (LoadPMX(filepath) == GUI::Result::SUCCESS)
-	{
-		isSuccessLoad = GUI::Result::SUCCESS;
-	}
-	
-	return isSuccessLoad;
-}
-
-GUI::Result Model::IsSuccessLoad() const
-{
-	return isSuccessLoad;
-}
-
-const GUI::Graphics::VertexBuffer& Model::GetVB() const
-{
-	return mVB;
-}
-
-const GUI::Graphics::IndexBuffer& Model::GetIB() const
-{
-	return mIB;
-}
-
-
-GUI::Result Model::LoadPMD(const char* const filepath)
-{
-	MMDsdk::PmdFile file(filepath);
-	if (file.IsSuccessLoad() == true)
-	{
-		auto vCount = file.GetVertexCount();
-		ModelVertex* mesh = new ModelVertex[vCount];
-		for (int i = 0; i < vCount; ++i)
-		{
-			auto& v = file.GetVertex(i);
-			mesh[i].position = System::strong_cast<MathUtil::float3>(v.position);
-			mesh[i].normal = System::strong_cast<MathUtil::float3>(v.normal);
-		}
-
-		if (mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vCount) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&mesh);
-			return GUI::Result::FAIL;
-		};
-
-		if (mVB.Copy(mesh) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&mesh);
-			return GUI::Result::FAIL;
-		}
-
-		System::SafeDeleteArray(&mesh);
-
-		auto iCount = file.GetIndexCount();
-		int* index = new int[iCount];
-		for (int i = 0; i < iCount; ++i)
-		{
-			index[i] = file.GetIndex(i);
-		}
-
-		if (mDevice.CreateIndexBuffer(mIB, sizeof(int), iCount) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&index);
-			return GUI::Result::FAIL;
-		}
-
-		if (mIB.Copy(index) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&index);
-			return GUI::Result::FAIL;
-		}
-
-		System::SafeDeleteArray(&index);
-
-		return GUI::Result::SUCCESS;
-	}
-	else
-	{
-		return GUI::Result::FAIL;
-	}
-}
-
-
-GUI::Result Model::LoadPMX(const char* const filepath)
-{
-	MMDsdk::PmxFile file(filepath);
-	if (file.IsSuccessLoad() == true)
-	{
-		auto vCount = file.GetVertexCount();
-		ModelVertex* mesh = new ModelVertex[vCount];
-		for (int i = 0; i < vCount; ++i)
-		{
-			auto& v = file.GetVertex(i);
-			mesh[i].position = System::strong_cast<MathUtil::float3>(v.position);
-			mesh[i].normal = System::strong_cast<MathUtil::float3>(v.normal);
-		}
-
-		if (mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vCount) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&mesh);
-			return GUI::Result::FAIL;
-		};
-
-		if (mVB.Copy(mesh) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&mesh);
-			return GUI::Result::FAIL;
-		}
-
-		System::SafeDeleteArray(&mesh);
-
-		auto iCount = file.GetIndexCount();
-		int* index = new int[iCount];
-		for (int i = 0; i < iCount; ++i)
-		{
-			index[i] = file.GetIndex(i);
-		}
-
-		if (mDevice.CreateIndexBuffer(mIB, sizeof(int), iCount) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&index);
-			return GUI::Result::FAIL;
-		}
-
-		if (mIB.Copy(index) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&index);
-			return GUI::Result::FAIL;
-		}
-
-		System::SafeDeleteArray(&index);
-
-		return GUI::Result::SUCCESS;
-	}
-	else
-	{
-		return GUI::Result::FAIL;
-	}
-}
 
 
 int MAIN()
@@ -385,56 +201,36 @@ int MAIN()
 			0.1f,
 			1000.f
 		);
-
 	}
 
-	struct Color
+	struct PixelShaderData
 	{
-		GUI::Graphics::Color color;
+		MathUtil::float3 lightDir;
 	};
 
-	GUI::Graphics::ConstantBuffer color;
-	if (device.CreateConstantBuffer(color, descHeap, sizeof(Color)) == GUI::Result::FAIL)
+	GUI::Graphics::ConstantBuffer psData;
+	if (device.CreateConstantBuffer(psData, descHeap, sizeof(PixelShaderData)) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
 
-	Color* mappedColor;
-	if (color.Map(reinterpret_cast<void**>(&mappedColor)) == GUI::Result::SUCCESS)
+	PixelShaderData* mappedPS_Data = nullptr;
+	if (psData.Map(reinterpret_cast<void**>(&mappedPS_Data)) == GUI::Result::SUCCESS)
 	{
-		mappedColor->color = GUI::Graphics::Color(1.f, 0.f, 0.f);
+		mappedPS_Data->lightDir = MathUtil::Vector(-1.f, -1.f, 1.f).GetFloat3();
 	}
 
 	// ルートシグネチャ作成
-	GUI::Graphics::RootSignature rootSignature;
-	rootSignature.SetParameterCount(2);
-	rootSignature.SetParamForCBV(0, 0);
-	rootSignature.SetParamForCBV(1, 1);
-	if (device.CreateRootSignature(rootSignature) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
-
 	GUI::Graphics::RootSignature mmdRootSignature;
-	mmdRootSignature.SetParameterCount(1);
+	mmdRootSignature.SetParameterCount(2);
 	mmdRootSignature.SetParamForCBV(0, 0);
+	mmdRootSignature.SetParamForCBV(1, 1);
 	if (device.CreateRootSignature(mmdRootSignature) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
 
 	// パイプラインステート
-	GUI::Graphics::GraphicsPipeline pipeline;
-	pipeline.SetInputLayout(inputElementDesc);
-	pipeline.SetRootSignature(rootSignature);
-	pipeline.SetVertexShader(VertexShader, _countof(VertexShader));
-	pipeline.SetPixelShader(PixelShader, _countof(PixelShader));
-
-	if (device.CreateGraphicsPipeline(pipeline) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
-
 	GUI::Graphics::GraphicsPipeline mmdPipeline;
 	mmdPipeline.SetDepthEnable();
 	mmdPipeline.SetAlphaEnable();
@@ -472,6 +268,7 @@ int MAIN()
 
 		command.SetDescriptorHeap(descHeap);
 		command.SetConstantBuffer(transform, 0);
+		command.SetConstantBuffer(psData, 1);
 
 		if (model.IsSuccessLoad() == GUI::Result::SUCCESS)
 		{
