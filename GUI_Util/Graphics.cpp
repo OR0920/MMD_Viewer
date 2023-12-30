@@ -473,8 +473,8 @@ Result Device::CreateConstantBuffer
 		&viewDesc, viewHeap.GetCPU_Handle()
 	);
 
-	constantBuffer.mCPU_View = viewHeap.GetCPU_Handle();
-	constantBuffer.mGPU_View = viewHeap.GetGPU_Handle();
+	constantBuffer.mCPU_Handle = viewHeap.GetCPU_Handle();
+	constantBuffer.mGPU_Handle = viewHeap.GetGPU_Handle();
 
 	viewHeap.MoveToNextHeap();
 
@@ -801,6 +801,7 @@ RenderTarget::RenderTarget()
 	mRTV_Heaps(nullptr),
 	mRT_Resource(nullptr),
 	mBufferCount(0),
+	mIncrementSize(0),
 	mViewPort({}),
 	mScissorRect({})
 {
@@ -872,7 +873,8 @@ void DepthStencilBuffer::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle
 RootSignature::RootSignature()
 	:
 	mRootSignature(nullptr),
-	mDesc({})
+	mDesc({}),
+	mRootParamter(nullptr)
 {
 	mDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 	mDesc.NumParameters = 0;
@@ -1180,7 +1182,10 @@ const int IndexBuffer::GetIndexCount() const
 
 ConstantBuffer::ConstantBuffer()
 	:
-	mResource(nullptr)
+	mResource(nullptr),
+	mViewDesc({}),
+	mCPU_Handle({}),
+	mGPU_Handle({})
 {
 
 }

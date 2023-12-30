@@ -481,8 +481,8 @@ namespace GUI
 		private:
 			ComPtr<ID3D12Resource> mResource;
 			D3D12_CONSTANT_BUFFER_VIEW_DESC mViewDesc;
-			D3D12_CPU_DESCRIPTOR_HANDLE mCPU_View;
-			D3D12_GPU_DESCRIPTOR_HANDLE mGPU_View;
+			D3D12_CPU_DESCRIPTOR_HANDLE mCPU_Handle;
+			D3D12_GPU_DESCRIPTOR_HANDLE mGPU_Handle;
 		};
 
 		class DescriptorHeapForShaderData
