@@ -93,18 +93,19 @@ int MAIN()
 		return -1;
 	}
 
-	// ƒ‚ƒfƒ‹ì¬
-	Model model(device);
+	Model* model = nullptr;
 	
 
-	while (mainWindow.ProcessMessage() == GUI::Result::CONTINUE)
+	while (mainWindow.ProcessMessageNoWait() == GUI::Result::CONTINUE)
 	{
 		if (fc.Update() == true)
 		{
 			DebugOutString(fc.GetPath());
 
-			model.Load(fc.GetPath());
-			model.DebugOut();
+			System::SafeDelete(&model);
+			model = new Model(device);
+			model->Load(fc.GetPath());
+			model->DebugOut();
 		}
 
 		command.BeginDraw();
@@ -117,16 +118,20 @@ int MAIN()
 		command.ClearDepthBuffer();
 
 
-		if (model.IsSuccessLoad() == GUI::Result::SUCCESS)
+		if (model != nullptr)
 		{
-			model.SetDefaultSceneData();
-			model.Draw(command);
+			if (model->IsSuccessLoad() == GUI::Result::SUCCESS)
+			{
+				model->SetDefaultSceneData();
+				model->Draw(command);
+			}
 		}
-
 		command.LockRenderTarget(renderTarget);
 
 		command.EndDraw();
 
 		swapChain.Present();
 	}
+
+	System::SafeDelete(&model);
 }

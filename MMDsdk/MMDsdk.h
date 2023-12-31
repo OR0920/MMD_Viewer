@@ -1,3 +1,7 @@
+//
+// MMDモデルを読み込むモジュール
+//
+
 #ifndef _MMD_SDK_H_
 #define _MMD_SDK_H_
 
@@ -5,6 +9,11 @@
 
 namespace MMDsdk
 {
+	// ジャンプ用
+	class PmdFile;
+	class PmxFile;
+
+
 	// モデルファイル内のデータを格納する構造体
 	// MathUtil::float3とは役割が明確に異なるため、
 	// 別で用意する //
@@ -27,6 +36,7 @@ namespace MMDsdk
 		float w = 0.f;
 	};
 
+	// 内部文字列のエンコード方式
 	enum EncodeType : uint8_t
 	{
 		UTF16 = 0,
@@ -34,6 +44,8 @@ namespace MMDsdk
 		INIT = 0xff
 	};
 
+	//　.pmd, .pmx　共通の列挙子
+	
 	// 0：base、1：まゆ、2：目、3：リップ、4：その他
 	enum MorphType : uint8_t
 	{
@@ -116,8 +128,10 @@ namespace MMDsdk
 
 	// pmdファイルを読み込み、内部構造のまま安全に公開するクラス
 	// より上位のクラス（例：Modelクラスなど）がファイルのデータを得るためのクラス
+	// 
 	// intなどの型を使用すると、将来的に変わってしまう可能性があるため、
 	// ビット数が明記された型名(int32_t等)を使用する
+	// 
 	// 配列は固定長、可変長関わらず隔離している
 	// アクセス関数を使用すること
 	// 
@@ -142,6 +156,15 @@ namespace MMDsdk
 		// GetLast__ID()	: 最後尾のインデックスを取得する
 		// DebugOut__(i)	: 要素単位でのコンソール出力
 		// DebugOutAll__()	: 全要素の出力
+
+		struct Header;
+		struct Vertex;
+		struct Material;
+		struct Bone;
+		struct IK_Data;
+		struct Morph;
+		struct Rigitbody;
+		struct Joint;
 
 		// 基本情報
 		struct Header
@@ -455,7 +478,7 @@ namespace MMDsdk
 		void DebugOutAllToonTexturePath() const;
 
 		// 以下、物理演算用のデータ
-		// 勉強中のため、よくわたっていないネーミングになっている可能性あり
+		// 勉強中のため、不正確なネーミングになっている可能性あり
 		// 物理演算を実装する際に名前を変える予定。 //
 
 		// 剛体データ 
@@ -610,6 +633,14 @@ namespace MMDsdk
 		bool IsSuccessLoad() const;
 
 		const char* const GetDirectoryPath() const;
+
+		struct Header;
+		struct Vertex;
+		struct Material;
+		struct Bone;
+		struct Morph;
+		struct Rigitbody;
+		struct Joint;
 
 		// ヘッダ情報
 		struct Header
@@ -1223,6 +1254,7 @@ namespace MMDsdk
 
 	};
 
+	// モーションファイル(実装中)
 	class VmdFile
 	{
 	public:

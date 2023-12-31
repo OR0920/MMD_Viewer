@@ -1,4 +1,5 @@
 #ifndef _MODEL_H_
+#define _MODEL_H_
 
 #include"MathUtil.h"
 #include"GUI_Util.h"

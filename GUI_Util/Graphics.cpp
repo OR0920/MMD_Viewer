@@ -1,3 +1,5 @@
+// 実装が長くなるので隔離
+
 #include"GUI_Util.h"
 
 // std
@@ -11,11 +13,13 @@
 #include<d3dcompiler.h>
 #pragma comment(lib, "d3dcompiler.lib")
 
+// バッファのサイズをアラインメントする
 #define D3D12Allignment(buffSize) (buffSize + 0xff) & ~0xff;
 
 // my lib
 #include "System.h"
 #include"MathUtil.h"
+
 
 #define ReturnIfFailed(func, at)\
 {\
@@ -677,12 +681,6 @@ void GraphicsCommand::BeginDraw()
 	mCommandAllocator->Reset();
 	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
 
-}
-
-void GraphicsCommand::BeginDraw(const GraphicsPipeline& pipeline)
-{
-	mCommandAllocator->Reset();
-	mCommandList->Reset(mCommandAllocator.Get(), pipeline.GetPipelineState().Get());
 }
 
 void GraphicsCommand::SetGraphicsPipeline(const GraphicsPipeline& pipeline)

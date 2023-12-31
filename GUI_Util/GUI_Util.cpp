@@ -151,7 +151,7 @@ Result MainWindow::Create(int width, int height)
 	return Result::SUCCESS;
 }
 
-Result MainWindow::ProcessMessage()
+Result MainWindow::ProcessMessageNoWait()
 {
 	MSG msg = {};
 

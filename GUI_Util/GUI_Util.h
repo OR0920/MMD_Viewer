@@ -1,3 +1,10 @@
+// 
+// GUIを扱うAPIのラッパライブラリ
+// 必要な機能のみを実装
+// あまり汎用的にしすぎず、わかりやすさを最重視
+// 
+
+
 #ifndef _GUI_UTIL_H_
 #define _GUI_UTIL_H_
 
@@ -12,6 +19,8 @@
 #include<d3d12.h>
 #include<dxgi1_6.h>
 
+// エントリポイントを隠蔽
+// デバッグ情報をコンソールへ
 #ifdef _DEBUG
 #define MAIN main 
 #else
@@ -19,9 +28,11 @@
 #endif // _DEBUG
 
 
-// GUIを作成するクラスが属する
+// WIN32APIのウィンドウ周りをラップ
 namespace GUI
 {
+	// メッセージ　兼　結果
+	// SUCCESSとFAILはHRESULTと統一
 	enum Result
 	{
 		SUCCESS = 0,
@@ -31,8 +42,7 @@ namespace GUI
 	};
 
 	// 子ウィンドウを持てるウィンドウのインターフェイス
-	// このインターフェイスで宣言されているメソッドは、
-	// ユーザー側からは呼び出さない
+	// これを継承していないウィンドウは子ウィンドウを持てない
 	class ParentWindow
 	{
 	public:
@@ -43,7 +53,8 @@ namespace GUI
 	protected:
 	};
 
-	// メインウィンドウ　メニューは今のところ作っていない
+	// メインウィンドウ
+	// タイトルバーとボタン類を持つウィンドウ
 	class MainWindow : public ParentWindow
 	{
 	public:
@@ -54,7 +65,9 @@ namespace GUI
 		Result Create(int width, int height);
 		// メッセージを処理する
 		// 閉じるボタンが押されるとfalseを返す
-		Result ProcessMessage();
+
+		// メッセージを待たない
+		Result ProcessMessageNoWait();
 
 		const int GetWindowWidth() const;
 		const int GetWindowHeight() const;
@@ -74,7 +87,7 @@ namespace GUI
 
 	void ErrorBox(const TCHAR* const message);
 
-	// 領域内にドロップされたウィンドウを認識するウィンドウ
+	// 領域内にドロップされたファイルを認識するウィンドウ
 	class FileCatcher
 	{
 	public:
@@ -92,6 +105,7 @@ namespace GUI
 		int GetLength() const;
 		const char* const GetPath() const;
 
+		// ファイルがドロップされた場所
 		struct DropPos
 		{
 			long x;
@@ -140,6 +154,7 @@ namespace GUI
 			Color();
 		};
 
+		// デバッグモードを有効にする
 		Result EnalbleDebugLayer();
 
 		class GraphicsCommand;
@@ -154,6 +169,8 @@ namespace GUI
 		class ConstantBuffer;
 		class DescriptorHeapForShaderData;
 
+		// デバイス
+		// デフォルトのグラフィックデバイスが指定される
 		class Device
 		{
 		public:
@@ -161,7 +178,9 @@ namespace GUI
 
 			Result Create();
 
+			// 各種インターフェイス生成関数
 			Result CreateGraphicsCommand(GraphicsCommand& graphicsCommand);
+
 			Result CreateRenderTarget
 			(
 				RenderTarget& renderTarget,
@@ -177,6 +196,11 @@ namespace GUI
 
 			Result CreateRootSignature(RootSignature& rootSignature);
 			Result CreateGraphicsPipeline(GraphicsPipeline& pipeline);
+
+			// 頂点バッファを生成する
+			// vertexBuffer		: 出力	: 頂点バッファのインターフェイス
+			// vertexTypeSize	: 入力	: 頂点構造体のサイズ
+			// vertesCount		: 入力	: 頂点数
 			Result CreateVertexBuffer
 			(
 				VertexBuffer& vertexBuffer,
@@ -184,6 +208,10 @@ namespace GUI
 				const unsigned int vertexCount
 			);
 
+			// インデックスバッファを生成する
+			// indexBuffer		: 出力	: インデックスバッファのインターフェイス
+			// indexTypeSize	: 入力	: 一つのインデックスのサイズ
+			// indexCount		: 入力	: インデックスの数
 			Result CreateIndexBuffer
 			(
 				IndexBuffer& indexBuffer,
@@ -191,6 +219,11 @@ namespace GUI
 				const unsigned int indexCount
 			);
 
+			// 定数バッファを生成する
+			// constantBuffer	: 出力		: 定数バッファのインターフェイス 
+			// viewHeap			: 入力・出力	: 定数バッファの情報を格納する領域
+			// bufferStructSize	: 入力		: 定数データ一つのサイズ
+			// bufferCount		: 入力		: データ数 
 			Result CreateConstantBuffer
 			(
 				ConstantBuffer& constantBuffer,
@@ -199,29 +232,40 @@ namespace GUI
 				const unsigned int bufferCount = 1
 			);
 
+			// 定数バッファ・テクスチャ用のディスクリプタヒープ
+			// heap				: 出力	: ヒープのインターフェイス
+			// resouceCount		: 入力	: 一度にバインドされる定数バッファ・テクスチャの数
 			Result CreateDescriptorHeap
 			(
 				DescriptorHeapForShaderData& heap,
-				const unsigned int descriptorCount
+				const unsigned int resourceCount
 			);
 		private:
 			ComPtr<ID3D12Device> mDevice;
 		};
 
+		// ダブルバッファ以上のレンダーターゲットを管理する
 		class SwapChain
 		{
 		public:
 			SwapChain(); ~SwapChain();
 
+			// 指定したウィンドウに描画される
+			// command		: 入力	: コマンドのインターフェイス 
+			// targetWindow	: 入力	: 描画先
+			// frameCount	: 入力	: バッファ数
 			Result Create
 			(
-				GraphicsCommand& device,
+				GraphicsCommand& command,
 				const ParentWindow& targetWindow,
 				const int frameCount
 			);
 
+			// 現在のバックバッファを取得する際に使用する
+			// 0 <= return < frameCount の値が返される
 			int GetCurrentBackBufferIndex() const;
 
+			// バッファを入れ替える
 			void Present();
 
 			// ライブラリから呼び出す関数
@@ -232,8 +276,10 @@ namespace GUI
 
 		};
 
+		// 描画コマンドを発行する
 		class GraphicsCommand
 		{
+			// 無暗にゲッターを作りたくないのでフレンド化
 			friend Result Device::CreateGraphicsCommand(GraphicsCommand&);
 			friend Result SwapChain::Create
 			(
@@ -244,37 +290,45 @@ namespace GUI
 		public:
 			GraphicsCommand(); ~GraphicsCommand();
 
+			// 描画開始時に呼ぶ
 			void BeginDraw();
-			void BeginDraw(const GraphicsPipeline& pipeline);
 
+			// パイプラインをセット
 			void SetGraphicsPipeline(const GraphicsPipeline& pipeline);
 
+			// レンダーターゲットを書き込み可能にする
 			void UnlockRenderTarget(const RenderTarget& renderTarget);
 
+			// レンダーターゲットをセットする
 			void SetRenderTarget
 			(
 				const RenderTarget& renderTarget
 			);
 
+			// レンダーターゲットと深度バッファをセットする
 			void SetRenderTarget
 			(
 				const RenderTarget& renderTarget,
 				const DepthStencilBuffer& depthStenilBuffer
 			);
 
+			// レンダーターゲットを塗りつぶす
+			// デフォルトはグレー
 			void ClearRenderTarget
 			(
 				const Color& color = Color(0.5f, 0.5f, 0.5f)
 			);
 
+			// 深度バッファを初期化する
 			void ClearDepthBuffer();
 
+			// 定数バッファ、テクスチャ等をバインドする
+			// ルートシグネチャで設定した値と対応させる必要がある
 			void SetGraphicsRootSignature(const RootSignature& rootSignature);
-
 			void SetDescriptorHeap(const DescriptorHeapForShaderData& descHeap);
 			void SetConstantBuffer
 			(
-				const ConstantBuffer& constBuffer, 
+				const ConstantBuffer& constBuffer,
 				const int rootParamID
 			);
 			void SetDescriptorTable
@@ -284,25 +338,28 @@ namespace GUI
 				const int rootParamID
 			);
 
+			// 頂点のみで描画
 			void SetVertexBuffer
 			(
 				const VertexBuffer& vertex
 			);
+			void DrawTriangle(const VertexBuffer& vertex);
 
+			// 頂点とインデックスで描画
 			void SetVertexBuffer
 			(
 				const VertexBuffer& vertex,
 				const IndexBuffer& intdex
 			);
-						
-			void DrawTriangle(const VertexBuffer& vertex);
 			void DrawTriangleList
 			(
 				const int indexCount, const int offs
 			);
 
+			// レンダーターゲットを書き込み不可にする
 			void LockRenderTarget(const RenderTarget& renderTarget);
 
+			// 描画終わりに呼び出す
 			void EndDraw();
 		private:
 			void SetViewportAndRect(const RenderTarget& renderTarget);
@@ -321,6 +378,9 @@ namespace GUI
 			UINT64 mFenceValue;
 		};
 
+		// 描画先を管理する
+		// スワップチェインから、描画先の領域をもらう
+		// ユーザー側からメンバを呼び出す必要はない
 		class RenderTarget
 		{
 			friend Result Device::CreateRenderTarget
@@ -347,6 +407,8 @@ namespace GUI
 			D3D12_RECT mScissorRect;
 		};
 
+		// 深度バッファ
+		// レンダーターゲット同様、ユーザー側はこのインターフェイスを生成するだけでよい
 		class DepthStencilBuffer
 		{
 			friend Result Device::CreateDepthBuffer
@@ -365,16 +427,37 @@ namespace GUI
 
 		};
 
+		// ルートシグネチャ周りのインターフェイス (情報が少ないので推測を含む)
+		// 参考: https://learn.microsoft.com/ja-jp/windows/win32/direct3d12/pipelines-and-shaders-with-directx-12A
+		// 
+		// パイプラインに渡されるデータ(リソース)は4種類で、すべてビューを介して渡される
+		// 
+		// 1.入力アセンブラ(IA)に渡されるもの
+		//		・頂点バッファ
+		//		・インデックスバッファ		(なくてもよい)
+		// 2.出力マージャー(OM)に渡されるもの
+		//		・レンダーターゲット
+		//		・深度ステンシルバッファ		(なくてもよい)
+		// 3.ストリーム出力(SO)の書き込み先	(なくてもよい)
+		// 
+		// 4.ルート引数に渡されるもの			(なくてもよい・最大64個)
+		//		・定数										(ルート定数)
+		//		・定数バッファ、テクスチャ等のディスクリプタ	(ルートディスクリプタ)
+		//		・複数のディスクリプタをまとめたテーブル		(ディスクリプタテーブル)
+		// 
+		// このうち4をどのように配置するかを記述したものがルートシグネチャ
+		//
+
+		// ディスクリプタテーブルを表すもの
 		class DescriptorRange
 		{
 		public:
 			DescriptorRange(); ~DescriptorRange();
 
-
+			// テーブルがいくつか
 			void SetRangeCount(const int rangeCount);
+			// 何番目のテーブルが、何番のレジスタに対応し、ディスクリプタがいくつあるか
 			void SetRangeForCBV(const int rangeID, const int registerID, const int descriptorCount);
-			//void SetRangeForSRV(const int registerID, const int descriptorCount);
-
 
 			// ライブラリから呼び出す関数
 			int GetRangeCount() const;
@@ -384,15 +467,22 @@ namespace GUI
 			int mRangeCount;
 		};
 
+		// ルートシグネチャ本体
 		class RootSignature
 		{
 			friend Result Device::CreateRootSignature(RootSignature&);
 		public:
 			RootSignature(); ~RootSignature();
 
-			// 実装中
+			// Create前に呼び出す
+
+			// ルート引数がいくつあるか
 			void SetParameterCount(const int count);
+
+			// 何番目の引数に何を渡すか
+			// 定数バッファビュー
 			void SetParamForCBV(const int paramID, const int registerID);
+			// ディスクリプタテーブル
 			void SetParamForDescriptorTable
 			(
 				const int paramID,
@@ -406,19 +496,24 @@ namespace GUI
 			ComPtr<ID3D12RootSignature> mRootSignature;
 			D3D12_ROOT_SIGNATURE_DESC mDesc;
 			D3D12_ROOT_PARAMETER* mRootParamter;
-			
+
 			bool IsSizeOver(const int i) const;
 		};
 
+		// 入力頂点のレイアウトを記述する
 		class InputElementDesc
 		{
 		public:
 			InputElementDesc(); ~InputElementDesc();
 
+			// 構造体の要素数
 			void SetElementCount(const int count);
-
+			
+			// 位置
 			void SetDefaultPositionDesc(const char* const semantics = "POSITION");
+			// 色
 			void SetDefaultColorDesc(const char* const semantics = "COLOR");
+			// 法線
 			void SetDefaultNormalDesc(const char* const semantics = "NORMAL");
 
 			void DebugOutLayout() const;
@@ -434,26 +529,38 @@ namespace GUI
 			D3D12_INPUT_ELEMENT_DESC* mInputElementDesc;
 		};
 
+		// パイプライン全体の設定
 		class GraphicsPipeline
 		{
 			friend Result Device::CreateGraphicsPipeline(GraphicsPipeline&);
 		public:
 			GraphicsPipeline(); ~GraphicsPipeline();
 
+			// Create前に呼び出す
+
+
 			// 深度バッファ有効化
 			void SetDepthEnable();
 			// ステンシルも使う場合。　現在使う予定はないため未実装
 			void SetDepthStencilEnable();
 
+			// 透過有効化　呼び出さない場合無効
 			void SetAlphaEnable();
 
+			// カリング無効化　呼び出さない場合有効
 			void SetCullDisable();
 
+			// 頂点レイアウト
 			void SetInputLayout(const InputElementDesc& inputElementDesc);
+			// ルートシグネチャ
 			void SetRootSignature(const RootSignature& rootSignature);
 
+			// シェーダーへのポインタ
+			// ヘッダへ書き出したものをバインドする場合
 			void SetVertexShader(const unsigned char* const vertexShader, const int length);
 			void SetPixelShader(const unsigned char* const pixelShader, const int length);
+
+			// ファイルを呼び出す場合(未実装)
 
 			// ライブラリから呼び出す関数
 			const ComPtr<ID3D12PipelineState> GetPipelineState() const;
@@ -462,6 +569,7 @@ namespace GUI
 			D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
 		};
 
+		// 頂点バッファ
 		class VertexBuffer
 		{
 			friend Result Device::CreateVertexBuffer
@@ -473,6 +581,7 @@ namespace GUI
 		public:
 			VertexBuffer(); ~VertexBuffer();
 
+			// 頂点データをコピー
 			Result Copy(const void* const data);
 
 			// ライブラリから呼び出す関数
@@ -484,6 +593,7 @@ namespace GUI
 			int mVertexCount = 0;
 		};
 
+		// インデックスバッファ
 		class IndexBuffer
 		{
 			friend Result Device::CreateIndexBuffer
@@ -496,7 +606,7 @@ namespace GUI
 			IndexBuffer(); ~IndexBuffer();
 
 			Result Copy(const void* const data);
-			
+
 			// ライブラリから呼び出す関数
 			const D3D12_INDEX_BUFFER_VIEW* const GetView() const;
 			const int GetIndexCount() const;
@@ -507,17 +617,29 @@ namespace GUI
 
 		};
 
+		// 定数バッファ
 		class ConstantBuffer
 		{
 			friend Result Device::CreateConstantBuffer
 			(
-				ConstantBuffer&, 
+				ConstantBuffer&,
 				DescriptorHeapForShaderData&,
 				unsigned int, unsigned int
 			);
 		public:
 			ConstantBuffer(); ~ConstantBuffer();
 
+			// 構造体が定まらないのでポインタへマップ
+			// アラインメントにより定数バッファの構造体のサイズにかかわらず
+			// 256バイト単位となっているため
+			// 定数バッファの構造体そのものの配列ではデータがずれる
+			// 
+			// unsigned char* mappedData;
+			// *reinterpret_cast<Buffer*>(mappedData) = srcData[i];
+			// mappedData += (256バイト単位へアラインメントされたバッファのサイズ);
+			// 
+			// このようにしないとデータがずれる。
+			// マテリアルがおかしくなったらここを疑うこと
 			Result Map(void** ptr);
 			void Unmap();
 
@@ -533,6 +655,8 @@ namespace GUI
 			int mIncrementSize;
 		};
 
+		// 定数バッファ、テクスチャのビューを格納するヒープ
+		// 描画中に切り替えると処理が重くなるらしいので、できる限り少なく運用すること
 		class DescriptorHeapForShaderData
 		{
 			friend Result Device::CreateDescriptorHeap
@@ -547,8 +671,10 @@ namespace GUI
 			// ライブラリから呼び出す関数
 			const D3D12_CPU_DESCRIPTOR_HANDLE GetCPU_Handle();
 			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle();
+
+			// ユーザー側からは絶対に呼び出してはいけない
 			void MoveToNextHeapPos();
-				
+
 			const ComPtr<ID3D12DescriptorHeap> GetDescriptorHeap() const;
 		private:
 			ComPtr<ID3D12DescriptorHeap> mDescriptorHeap;

@@ -33,7 +33,7 @@ namespace MathUtil
 	extern const float PI_DIV4;
 	extern const float _2PI;
 
-	//データ用
+	//データ用構造体名を隠蔽
 	using float2 = DirectX::XMFLOAT2;
 	using float3 = DirectX::XMFLOAT3;
 	using float4 = DirectX::XMFLOAT4;
@@ -63,6 +63,7 @@ namespace MathUtil
 		//参照ではなくmDataの実体コピー
 		Vector(const Vector& other);
 
+		// ユーザーは呼び出さない
 		Vector(const DirectX::XMVECTOR& other);
 
 		//データ用構造体を取得
@@ -78,14 +79,17 @@ namespace MathUtil
 		const float z() const;
 		const float w() const;
 
+		// 長さ
 		const float Vector2Length() const;
 		const float Vector3Length() const;
 		const float Vector4Length() const;
 
+		// 自身を正規化
 		void Vector2Normalize();
 		void Vector3Normalize();
 		void Vector4Normalize();
 
+		// 正規化されたものを返す
 		Vector GetVector2Normalized() const;
 		Vector GetVector3Normalized() const;
 		Vector GetVector4Normalized() const;
@@ -130,22 +134,29 @@ namespace MathUtil
 		// { 0.f, 0.f, 0.f, 1.f }
 		static const Vector basicW;
 
+		// 正規化されたベクトルを生成する
 		static Vector GenerateVectorNormalized(const float2& rawVec);
 		static Vector GenerateVectorNormalized(const float3& rawVec);
 		static Vector GenerateVectorNormalized(const float4& rawVec);
 
+		// ベクトルを変換する
 		static Vector GenerateVector3Transform(const Matrix& matrix, const Vector& vector);
 
+		// 線形補完
 		static Vector GenerateVectorLerp(const Vector a, const Vector b, const float t);
 
+		// 四元数　球面補完
 		static Vector GenerateRotationQuaternionSlerp(const Vector a, const Vector b, const float t);
+
+		// オイラー角から資源数へ
 		static Vector GenerateRotationQuaternionFromEuler(const float x, const float y, const float z);
 
 	private:
 		DirectX::XMVECTOR mData;
 	};
 
-
+	// 行列クラス
+	// 値を生で読み書きするというよりは、生成した行列を管理するために使用する
 	class Matrix
 	{
 		friend Vector;
@@ -162,12 +173,14 @@ namespace MathUtil
 		void operator*=(const Matrix& other);
 
 
+		// 単位行列
 		static Matrix GenerateMatrixIdentity();
-
+		// 逆行列
 		static Matrix GenerateMatrixInverse(const Matrix& matrix);
-
+		// 転置行列
 		static Matrix GenerateMatrixTranspose(const Matrix& matrix);
 
+		// 視点と前方向、上方向を指定することでカメラ行列を生成する
 		static Matrix GenerateMatrixLookToLH
 		(
 			const Vector& eye,
@@ -175,6 +188,7 @@ namespace MathUtil
 			const Vector& up
 		);
 
+		// 視点とターゲット座標、上方向を指定することでカメラ行列を生成する
 		static Matrix GenerateMatrixLookAtLH
 		(
 			const Vector& eye,
@@ -182,6 +196,7 @@ namespace MathUtil
 			const Vector& up
 		);
 
+		// プロジェクション行列を生成する
 		static Matrix GenerateMatrixPerspectiveFovLH
 		(
 			const float FovAngleY,
@@ -190,14 +205,20 @@ namespace MathUtil
 			const float FarZ
 		);
 
+		// 移動行列
 		static Matrix GenerateMatrixTranslation(const Vector& position);
 
+		// 回転行列
 		// 単位すべてラジアン
+
+		// 軸と角度を指定して回転
 		static Matrix GenerateMatrixRotationX(const float angle);
 		static Matrix GenerateMatrixRotationY(const float angle);
 		static Matrix GenerateMatrixRotationZ(const float angle);
-		static Matrix GenerateMatrixRotationQ(const Vector& q);
 		static Matrix GenerateMatrixRotationAxis(const Vector& axis, float angle);
+
+		// 四元数による回転
+		static Matrix GenerateMatrixRotationQ(const Vector& q);
 	private:
 		DirectX::XMMATRIX mData;
 	};
