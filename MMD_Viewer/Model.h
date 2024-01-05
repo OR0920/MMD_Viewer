@@ -81,7 +81,8 @@ private:
 		int toonID = -1;
 		bool isShared = true;
 
-		
+		void Load(const MMDsdk::PmdFile::Material& data);
+		void Load(const MMDsdk::PmxFile::Material& data);
 	};
 	MaterialInfo* mMaterialInfo;
 

@@ -158,6 +158,36 @@ void Model::DebugOut() const
 	}
 }
 
+void Model::MaterialInfo::Load(const MMDsdk::PmdFile::Material& data)
+{
+	materialIndexCount = data.vertexCount;
+	toonID = data.toonIndex;
+	isShared = true;
+}
+
+void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
+{
+	materialIndexCount = data.vertexCount;
+	if (data.sphereMode == MMDsdk::PmxFile::Material::SphereMode::SM_SPH)
+	{
+		sphID = data.sphereTextureID;
+	}
+	else if (data.sphereMode == MMDsdk::PmxFile::Material::SphereMode::SM_SPA)
+	{
+		spaID = data.sphereTextureID;
+	}
+
+	toonID = data.toonTextureID;
+	if (data.toonMode == MMDsdk::PmxFile::Material::ToonMode::TM_SHARED)
+	{
+		isShared = true;
+	}
+	else
+	{
+		isShared = false;
+	}
+}
+
 GUI::Result Model::LoadPMD(const char* const filepath)
 {
 	MMDsdk::PmdFile file(filepath);
@@ -238,13 +268,10 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			{
 				auto& m = file.GetMaterial(i);
 
-				reinterpret_cast<Material*>(mappedMaterial)->Load(m); 
+				reinterpret_cast<Material*>(mappedMaterial)->Load(m);
 				mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
 
-
-				mMaterialInfo[i].materialIndexCount = m.vertexCount;
-				mMaterialInfo[i].toonID = m.toonIndex;
-				mMaterialInfo[i].isShared = true;
+				mMaterialInfo[i].Load(m);
 			}
 			mMaterialBuffer.Unmap();
 		}
@@ -341,29 +368,11 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			for (int i = 0; i < mMaterialCount; ++i)
 			{
 				auto& m = file.GetMaterial(i);
+
 				reinterpret_cast<Material*>(mappedMaterial)->Load(m);
 				mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
 
-
-				mMaterialInfo[i].materialIndexCount = m.vertexCount;
-				if (m.sphereMode == MMDsdk::PmxFile::Material::SphereMode::SM_SPH)
-				{
-					mMaterialInfo[i].sphID = m.sphereTextureID;
-				}
-				else if (m.sphereMode == MMDsdk::PmxFile::Material::SphereMode::SM_SPA)
-				{
-					mMaterialInfo[i].spaID = m.sphereTextureID;
-				}
-
-				mMaterialInfo[i].toonID = m.toonTextureID;
-				if (m.toonMode == MMDsdk::PmxFile::Material::ToonMode::TM_SHARED)
-				{
-					mMaterialInfo[i].isShared = true;
-				}
-				else
-				{
-					mMaterialInfo[i].isShared = false;
-				}
+				mMaterialInfo[i].Load(m);
 			}
 			mMaterialBuffer.Unmap();
 		}
