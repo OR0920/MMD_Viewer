@@ -236,12 +236,9 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			mMaterialInfo = new MaterialInfo[mMaterialCount]{};
 			for (int i = 0; i < mMaterialCount; ++i)
 			{
-				Material material = {};
-
 				auto& m = file.GetMaterial(i);
-				material.Load(m);
 
-				*reinterpret_cast<Material*>(mappedMaterial) = material;
+				reinterpret_cast<Material*>(mappedMaterial)->Load(m); 
 				mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
 
 
@@ -343,10 +340,8 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			mMaterialInfo = new MaterialInfo[mMaterialCount]{};
 			for (int i = 0; i < mMaterialCount; ++i)
 			{
-				Material material = {};
 				auto& m = file.GetMaterial(i);
-				material.Load(m);
-				*reinterpret_cast<Material*>(mappedMaterial) = material;
+				reinterpret_cast<Material*>(mappedMaterial)->Load(m);
 				mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
 
 
