@@ -47,7 +47,7 @@ namespace GUI
 	{
 	public:
 		virtual ~ParentWindow();
-		virtual const HWND GetCPU_Handle() const = 0;
+		virtual const HWND GetCurrentCPU_Handle() const = 0;
 		virtual const int GetWindowWidth() const = 0;
 		virtual const int GetWindowHeight() const = 0;
 	protected:
@@ -73,7 +73,7 @@ namespace GUI
 		const int GetWindowHeight() const;
 
 		// ライブラリ側から呼び出す関数
-		const HWND GetCPU_Handle() const;
+		const HWND GetCurrentCPU_Handle() const;
 	private:
 		MainWindow();
 		~MainWindow();
@@ -401,7 +401,7 @@ namespace GUI
 			ComPtr<ID3D12Resource>* mRT_Resource;
 			int mBufferCount;
 
-			int mIncrementSize;
+			int mViewIncrementSize;
 
 			D3D12_VIEWPORT mViewPort;
 			D3D12_RECT mScissorRect;
@@ -643,16 +643,19 @@ namespace GUI
 			Result Map(void** ptr);
 			void Unmap();
 
+			const int GetBufferIncrementSize() const;
+
 			//ライブラリから呼び出す関数
 			const D3D12_GPU_VIRTUAL_ADDRESS GetGPU_Address() const;
-			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle(const int i) const;
+			const D3D12_GPU_DESCRIPTOR_HANDLE GetCurrentGPU_Handle(const int i) const;
 		private:
 			ComPtr<ID3D12Resource> mResource;
 			D3D12_CONSTANT_BUFFER_VIEW_DESC mViewDesc;
 			D3D12_CPU_DESCRIPTOR_HANDLE mCPU_Handle;
 			D3D12_GPU_DESCRIPTOR_HANDLE mGPU_Handle;
 
-			int mIncrementSize;
+			int mViewIncrementSize;
+			int mBufferIncrementSize;
 		};
 
 		// 定数バッファ、テクスチャのビューを格納するヒープ
@@ -664,22 +667,30 @@ namespace GUI
 				DescriptorHeapForShaderData&,
 				const unsigned int
 			);
+			friend Result Device::CreateConstantBuffer
+			(
+				ConstantBuffer&,
+				DescriptorHeapForShaderData&,
+				const unsigned int,
+				const unsigned int
+			);
 		public:
 			DescriptorHeapForShaderData();
 			~DescriptorHeapForShaderData();
 
 			// ライブラリから呼び出す関数
-			const D3D12_CPU_DESCRIPTOR_HANDLE GetCPU_Handle();
-			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle();
+			const D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentCPU_Handle();
+			const D3D12_GPU_DESCRIPTOR_HANDLE GetCurrentGPU_Handle();
 
 			// ユーザー側からは絶対に呼び出してはいけない
-			void MoveToNextHeapPos();
 
 			const ComPtr<ID3D12DescriptorHeap> GetDescriptorHeap() const;
 		private:
+			void MoveToNextHeapPos();
+
 			ComPtr<ID3D12DescriptorHeap> mDescriptorHeap;
 			int mDescriptorCount;
-			int mIncrementSize;
+			int mViewIncrementSize;
 			int mLastID;
 
 		};

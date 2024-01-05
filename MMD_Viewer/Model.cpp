@@ -217,7 +217,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 				mat.specularity = m.specularity;
 				mat.ambient = System::strong_cast<MathUtil::float3>(m.ambient);
 				*reinterpret_cast<Material*>(mappedMaterial) = mat;
-				mappedMaterial += 256;
+				mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
 
 
 				mMaterialInfo[i].materialIndexCount = m.vertexCount;
