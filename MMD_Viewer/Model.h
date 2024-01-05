@@ -1,11 +1,13 @@
 #ifndef _MODEL_H_
 #define _MODEL_H_
 
-#include"MathUtil.h"
 #include"GUI_Util.h"
 
 #include<vector>
 #include<string>
+
+#include"MathUtil.h"
+#include"MMDsdk.h"
 
 class Model
 {
@@ -15,6 +17,9 @@ public:
 	{
 		MathUtil::float3 position;
 		MathUtil::float3 normal;
+
+		void Load(const MMDsdk::PmdFile::Vertex& data);
+		void Load(const MMDsdk::PmxFile::Vertex& data);
 	};
 
 	struct ModelTransform
@@ -36,6 +41,9 @@ public:
 		MathUtil::float3 specular;
 		float specularity;
 		MathUtil::float3 ambient;
+
+		void Load(const MMDsdk::PmdFile::Material& data);
+		void Load(const MMDsdk::PmxFile::Material& data);
 	};
 
 	Model(GUI::Graphics::Device& device);
@@ -72,6 +80,8 @@ private:
 		int spaID = -1;
 		int toonID = -1;
 		bool isShared = true;
+
+		
 	};
 	MaterialInfo* mMaterialInfo;
 

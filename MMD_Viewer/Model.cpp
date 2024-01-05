@@ -6,6 +6,34 @@
 #include"MMD_VertexShasder.h"
 #include"MMD_PixelShader.h"
 
+void Model::ModelVertex::Load(const MMDsdk::PmdFile::Vertex& data)
+{
+	position = System::strong_cast<MathUtil::float3>(data.position);
+	normal = System::strong_cast<MathUtil::float3>(data.normal);
+}
+
+void Model::ModelVertex::Load(const MMDsdk::PmxFile::Vertex& data)
+{
+	position = System::strong_cast<MathUtil::float3>(data.position);
+	normal = System::strong_cast<MathUtil::float3>(data.normal);
+}
+
+void Model::Material::Load(const MMDsdk::PmdFile::Material& data)
+{
+	diffuse = System::strong_cast<MathUtil::float4>(data.diffuse);
+	specular = System::strong_cast<MathUtil::float3>(data.specular);
+	specularity = data.specularity;
+	ambient = System::strong_cast<MathUtil::float3>(data.ambient);
+}
+
+void Model::Material::Load(const MMDsdk::PmxFile::Material& data)
+{
+	diffuse = System::strong_cast<MathUtil::float4>(data.diffuse);
+	specular = System::strong_cast<MathUtil::float3>(data.specular);
+	specularity = data.specularity;
+	ambient = System::strong_cast<MathUtil::float3>(data.ambient);
+}
+
 Model::Model(GUI::Graphics::Device& device)
 	:
 	mDevice(device),
@@ -139,9 +167,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		ModelVertex* mesh = new ModelVertex[vCount];
 		for (int i = 0; i < vCount; ++i)
 		{
-			auto& v = file.GetVertex(i);
-			mesh[i].position = System::strong_cast<MathUtil::float3>(v.position);
-			mesh[i].normal = System::strong_cast<MathUtil::float3>(v.normal);
+			mesh[i].Load(file.GetVertex(i));
 		}
 
 		if (mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vCount) == GUI::Result::FAIL)
@@ -210,13 +236,12 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			mMaterialInfo = new MaterialInfo[mMaterialCount]{};
 			for (int i = 0; i < mMaterialCount; ++i)
 			{
-				Material mat = {};
+				Material material = {};
+
 				auto& m = file.GetMaterial(i);
-				mat.diffuse = System::strong_cast<MathUtil::float4>(m.diffuse);
-				mat.specular = System::strong_cast<MathUtil::float3>(m.specular);
-				mat.specularity = m.specularity;
-				mat.ambient = System::strong_cast<MathUtil::float3>(m.ambient);
-				*reinterpret_cast<Material*>(mappedMaterial) = mat;
+				material.Load(m);
+
+				*reinterpret_cast<Material*>(mappedMaterial) = material;
 				mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
 
 
@@ -249,9 +274,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 		ModelVertex* mesh = new ModelVertex[vCount];
 		for (int i = 0; i < vCount; ++i)
 		{
-			auto& v = file.GetVertex(i);
-			mesh[i].position = System::strong_cast<MathUtil::float3>(v.position);
-			mesh[i].normal = System::strong_cast<MathUtil::float3>(v.normal);
+			mesh[i].Load(file.GetVertex(i));
 		}
 
 		if (mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vCount) == GUI::Result::FAIL)
@@ -320,14 +343,11 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			mMaterialInfo = new MaterialInfo[mMaterialCount]{};
 			for (int i = 0; i < mMaterialCount; ++i)
 			{
-				Material mat = {};
+				Material material = {};
 				auto& m = file.GetMaterial(i);
-				mat.diffuse = System::strong_cast<MathUtil::float4>(m.diffuse);
-				mat.specular = System::strong_cast<MathUtil::float3>(m.specular);
-				mat.specularity = m.specularity;
-				mat.ambient = System::strong_cast<MathUtil::float3>(m.ambient);
-				*reinterpret_cast<Material*>(mappedMaterial) = mat;
-				mappedMaterial += 256;
+				material.Load(m);
+				*reinterpret_cast<Material*>(mappedMaterial) = material;
+				mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
 
 
 				mMaterialInfo[i].materialIndexCount = m.vertexCount;
