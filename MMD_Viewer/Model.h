@@ -66,7 +66,7 @@ private:
 	GUI::Graphics::VertexBuffer mVB;
 	GUI::Graphics::IndexBuffer mIB;
 
-	GUI::Graphics::DescriptorHeapForShaderData mHeap;
+	GUI::Graphics::DescriptorHeap mHeap;
 	GUI::Graphics::ConstantBuffer mTransformBuffer;
 	GUI::Graphics::ConstantBuffer mPS_DataBuffer;
 
