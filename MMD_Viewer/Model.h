@@ -101,6 +101,10 @@ private:
 	std::vector<std::string> mToonPath;
 
 	GUI::Graphics::Texture2D* mUniqueTexture;
+
+	// todo;
+	GUI::Graphics::Texture2D mDefaultTextureWhite;
+	GUI::Graphics::Texture2D mDefaultTextureBlack;
 };
 
 #endif // !_MODEL_H_

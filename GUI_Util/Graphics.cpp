@@ -1534,19 +1534,45 @@ Texture2D::Texture2D()
 
 Texture2D::~Texture2D() {}
 
+#define ReturnIfSuccess(func)\
+{\
+	auto result = func;\
+	if(SUCCEEDED(result))\
+	{\
+		return SUCCESS;\
+	}\
+}
+
 Result Texture2D::LoadFromFile(const wchar_t* const filepath)
 {
-	ReturnIfFailed
+	ReturnIfSuccess
 	(
 		DirectX::LoadFromWICFile
 		(
 			filepath, DirectX::WIC_FLAGS_NONE,
 			&mMetaData, mImg
-		),
-		Texture2D::LoadFromFile();
+		)
 	);
 
-	return SUCCESS;
+	ReturnIfSuccess
+	(
+		DirectX::LoadFromDDSFile
+		(
+			filepath, DirectX::DDS_FLAGS_NONE,
+			&mMetaData, mImg
+		)
+	);
+
+	ReturnIfSuccess
+	(
+		DirectX::LoadFromTGAFile
+		(
+			filepath, DirectX::TGA_FLAGS_NONE,
+			&mMetaData, mImg
+		)
+	);
+
+	return FAIL;
 }
 
 const D3D12_GPU_DESCRIPTOR_HANDLE Texture2D::GetGPU_Handle(const int i) const
