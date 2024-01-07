@@ -337,13 +337,14 @@ namespace GUI
 			void SetConstantBuffer
 			(
 				const ConstantBuffer& constBuffer,
-				const int rootParamID
+				const int rootParamID,
+				const int bufferID = 0
 			);
 			void SetDescriptorTable
 			(
 				const ConstantBuffer& constBuffer,
-				const int bufferID,
-				const int rootParamID
+				const int rootParamID,
+				const int bufferID = 0
 			);
 
 			// 頂点のみで描画
@@ -654,7 +655,7 @@ namespace GUI
 			const int GetBufferIncrementSize() const;
 
 			//ライブラリから呼び出す関数
-			const D3D12_GPU_VIRTUAL_ADDRESS GetGPU_Address() const;
+			const D3D12_GPU_VIRTUAL_ADDRESS GetGPU_Address(const int i = 0) const;
 			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle(const int i) const;
 		private:
 			ComPtr<ID3D12Resource> mResource;
@@ -701,8 +702,6 @@ namespace GUI
 			// ライブラリから呼び出す関数
 			const D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentCPU_Handle();
 			const D3D12_GPU_DESCRIPTOR_HANDLE GetCurrentGPU_Handle();
-
-			// ユーザー側からは絶対に呼び出してはいけない
 
 			const ComPtr<ID3D12DescriptorHeap> GetDescriptorHeap() const;
 		private:

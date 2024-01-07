@@ -746,21 +746,22 @@ void GraphicsCommand::SetDescriptorHeap(const DescriptorHeap& descHeap)
 void GraphicsCommand::SetConstantBuffer
 (
 	const ConstantBuffer& constBuffer,
-	const int paramID
+	const int paramID,
+	const int bufferID
 )
 {
 	mCommandList->SetGraphicsRootConstantBufferView
 	(
 		paramID,
-		constBuffer.GetGPU_Address()
+		constBuffer.GetGPU_Address(bufferID)
 	);
 }
 
 void GraphicsCommand::SetDescriptorTable
 (
 	const ConstantBuffer& constBuffer, 
-	const int bufferID, 
-	const int paramID
+	const int paramID,
+	const int bufferID
 )
 {
 	mCommandList->SetGraphicsRootDescriptorTable
@@ -1356,9 +1357,9 @@ const int ConstantBuffer::GetBufferIncrementSize() const
 	return mViewDesc.SizeInBytes;
 }
 
-const D3D12_GPU_VIRTUAL_ADDRESS ConstantBuffer::GetGPU_Address() const
+const D3D12_GPU_VIRTUAL_ADDRESS ConstantBuffer::GetGPU_Address(const int i) const
 {
-	return mViewDesc.BufferLocation;
+	return mViewDesc.BufferLocation + (i * mViewDesc.SizeInBytes);
 }
 
 const D3D12_GPU_DESCRIPTOR_HANDLE ConstantBuffer::GetGPU_Handle(const int i) const

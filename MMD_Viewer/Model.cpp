@@ -58,11 +58,12 @@ Model::Model(GUI::Graphics::Device& device)
 	mRootSignature.SetParameterCount(3);
 	mRootSignature.SetParamForCBV(0, 0);
 	mRootSignature.SetParamForCBV(1, 1);
+	mRootSignature.SetParamForCBV(2, 2);
 
-	GUI::Graphics::DescriptorRange range;
-	range.SetRangeCount(1);
-	range.SetRangeForCBV(0, 2, 1);
-	mRootSignature.SetParamForDescriptorTable(2, range);
+	//GUI::Graphics::DescriptorRange range;
+	//range.SetRangeCount(1);
+	//range.SetRangeForCBV(0, 2, 1);
+	//mRootSignature.SetParamForDescriptorTable(2, range);
 
 	mDevice.CreateRootSignature(mRootSignature);
 
@@ -144,7 +145,7 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 	for (int i = 0; i < mMaterialCount; ++i)
 	{
 		auto indexCount = mMaterialInfo[i].materialIndexCount;
-		command.SetDescriptorTable(mMaterialBuffer, i, 2);
+		command.SetConstantBuffer(mMaterialBuffer, 2, i);
 		command.DrawTriangleList(indexCount, indexOffs);
 		indexOffs += indexCount;
 	}
