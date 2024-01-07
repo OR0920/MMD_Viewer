@@ -495,8 +495,6 @@ Result Device::CreateConstantBuffer
 	constantBuffer.mViewIncrementSize = 
 		mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-	constantBuffer.mBufferIncrementSize = bufferStructSizeAllignmented;
-
 	return SUCCESS;
 }
 
@@ -1324,8 +1322,7 @@ ConstantBuffer::ConstantBuffer()
 	mViewDesc({}),
 	mCPU_Handle({}),
 	mGPU_Handle({}),
-	mViewIncrementSize(0),
-	mBufferIncrementSize(0)
+	mViewIncrementSize(0)
 {
 
 }
@@ -1356,7 +1353,7 @@ void ConstantBuffer::Unmap()
 
 const int ConstantBuffer::GetBufferIncrementSize() const
 {
-	return mBufferIncrementSize;
+	return mViewDesc.SizeInBytes;
 }
 
 const D3D12_GPU_VIRTUAL_ADDRESS ConstantBuffer::GetGPU_Address() const

@@ -663,7 +663,6 @@ namespace GUI
 			D3D12_GPU_DESCRIPTOR_HANDLE mGPU_Handle;
 
 			int mViewIncrementSize;
-			int mBufferIncrementSize;
 		};
 
 		class Texture2D
