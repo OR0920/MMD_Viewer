@@ -169,10 +169,6 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 
 void Model::DebugOut() const
 {
-	for (auto& tp : mTexPath)
-	{
-		DebugOutString(tp.c_str());
-	}
 }
 
 void Model::MaterialInfo::Load(const MMDsdk::PmdFile::Material& data)
@@ -409,14 +405,13 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			mTexPath[i] = dirPath + path;
 		}
 
-		mUniqueTexture = new GUI::Graphics::Texture2D[file.GetTextureCount()];
+		mUniqueTexture = new GUI::Graphics::Texture2D[file.GetTextureCount()]{};
 		for (int i = 0; i < file.GetTextureCount(); ++i)
 		{
 			char* tFilePath = nullptr;
 			System::newArray_CopyAssetPath(&tFilePath, file.GetDirectoryPath(), file.GetTexturePath(i).GetText());
 			wchar_t* filepath = nullptr;
 			System::newArray_CreateWideCharStrFromMultiByteStr(&filepath, tFilePath);
-			DebugOutStringWide(filepath);
 
 			if (mUniqueTexture[i].LoadFromFile(filepath) == GUI::Result::FAIL)
 			{
