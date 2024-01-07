@@ -167,8 +167,10 @@ namespace GUI
 		class GraphicsPipeline;
 		class VertexBuffer;
 		class IndexBuffer;
+		class SignaturedBuffer;
 		class ConstantBuffer;
 		class Texture2D;
+		 
 
 		class DescriptorHeap;
 
@@ -341,22 +343,10 @@ namespace GUI
 				const int rootParamID,
 				const int bufferID = 0
 			);
-			void SetTexture
-			(
-				const Texture2D& texture,
-				const int rootParamID
-			);
 
 			void SetDescriptorTable
 			(
-				const ConstantBuffer& constBuffer,
-				const int rootParamID,
-				const int bufferID = 0
-			);
-
-			void SetDescriptorTable
-			(
-				const Texture2D& texture,
+				const SignaturedBuffer& buffer,
 				const int rootParamID,
 				const int bufferID = 0
 			);
@@ -652,8 +642,19 @@ namespace GUI
 
 		};
 
+		// 定数バッファ、テクスチャ等、ルートシグネチャ経由でバインドされる
+		// リソースのインターフェース
+		class SignaturedBuffer
+		{
+		public:
+			virtual ~SignaturedBuffer();
+
+			virtual const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle(const int i = 0) const = 0;
+		private:
+		};
+
 		// 定数バッファ
-		class ConstantBuffer
+		class ConstantBuffer : public SignaturedBuffer
 		{
 			friend Result Device::CreateConstantBuffer
 			(
@@ -682,7 +683,7 @@ namespace GUI
 
 			//ライブラリから呼び出す関数
 			const D3D12_GPU_VIRTUAL_ADDRESS GetGPU_Address(const int i = 0) const;
-			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle(const int i) const;
+			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle(const int i = 0) const;
 		private:
 			ComPtr<ID3D12Resource> mResource;
 			D3D12_CONSTANT_BUFFER_VIEW_DESC mViewDesc;
@@ -692,7 +693,7 @@ namespace GUI
 			int mViewIncrementSize;
 		};
 
-		class Texture2D
+		class Texture2D : public SignaturedBuffer
 		{
 			friend Result Device::CreateTexture2D
 			(
@@ -704,8 +705,7 @@ namespace GUI
 			Result LoadFromFile(const wchar_t* const filePath);
 
 			// ライブラリから呼び出す関数
-			const D3D12_GPU_VIRTUAL_ADDRESS GetGPU_Address() const;
-			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle() const;
+			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle(const int i = 0) const;
 		private:
 			ComPtr<ID3D12Resource> mResource;
 			D3D12_SHADER_RESOURCE_VIEW_DESC mViewDesc;
@@ -713,6 +713,8 @@ namespace GUI
 
 			DirectX::TexMetadata mMetaData;
 			DirectX::ScratchImage mImg;
+
+			int mViewIncrementSize;
 
 			Result WriteToSubresource();
 		};

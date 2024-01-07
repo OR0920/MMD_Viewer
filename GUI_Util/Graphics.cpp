@@ -554,6 +554,7 @@ Result Device::CreateTexture2D
 	);
 
 	texture.mGPU_Handle = viewHeap.GetCurrentGPU_Handle();
+	texture.mViewIncrementSize = viewHeap.mViewIncrementSize;
 
 	viewHeap.MoveToNextHeapPos();
 
@@ -810,42 +811,17 @@ void GraphicsCommand::SetConstantBuffer
 	);
 }
 
-void GraphicsCommand::SetTexture
-(
-	const Texture2D& texture,
-	const int paramID
-)
-{
-	mCommandList->SetGraphicsRootShaderResourceView
-	(
-		paramID,
-		texture.GetGPU_Address()
-	);
-}
 
 void GraphicsCommand::SetDescriptorTable
 (
-	const ConstantBuffer& constBuffer,
+	const SignaturedBuffer& buffer,
 	const int paramID,
 	const int bufferID
 )
 {
 	mCommandList->SetGraphicsRootDescriptorTable
 	(
-		paramID, constBuffer.GetGPU_Handle(bufferID)
-	);
-}
-
-void GraphicsCommand::SetDescriptorTable
-(
-	const Texture2D& texture,
-	const int paramID,
-	const int bufferID
-)
-{
-	mCommandList->SetGraphicsRootDescriptorTable
-	(
-		paramID, texture.GetGPU_Handle()
+		paramID, buffer.GetGPU_Handle(bufferID)
 	);
 }
 
@@ -1076,7 +1052,7 @@ RootSignature::RootSignature()
 	mRootSignature(nullptr),
 	mDesc({}),
 	mRootParamter(nullptr),
-	mSamplerDesc({})
+	mSamplerDesc(nullptr)
 {
 	mDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 	mDesc.NumParameters = 0;
@@ -1484,6 +1460,10 @@ const int IndexBuffer::GetIndexCount() const
 	return mIndexCount;
 }
 
+// ルートシグネチャでバインドされるリソース
+
+SignaturedBuffer::~SignaturedBuffer() {}
+
 //　定数バッファ
 
 ConstantBuffer::ConstantBuffer()
@@ -1568,14 +1548,11 @@ Result Texture2D::LoadFromFile(const wchar_t* const filepath)
 	return SUCCESS;
 }
 
-const D3D12_GPU_VIRTUAL_ADDRESS Texture2D::GetGPU_Address() const
+const D3D12_GPU_DESCRIPTOR_HANDLE Texture2D::GetGPU_Handle(const int i) const
 {
-	return mResource->GetGPUVirtualAddress();
-}
-
-const D3D12_GPU_DESCRIPTOR_HANDLE Texture2D::GetGPU_Handle() const
-{
-	return mGPU_Handle;
+	auto ret = mGPU_Handle;
+	ret.ptr += i * mViewIncrementSize;
+	return ret;
 }
 
 Result Texture2D::WriteToSubresource()
