@@ -167,7 +167,7 @@ namespace GUI
 		class VertexBuffer;
 		class IndexBuffer;
 		class ConstantBuffer;
-		class DescriptorHeapForShaderData;
+		class DescriptorHeap;
 
 		// デバイス
 		// デフォルトのグラフィックデバイスが指定される
@@ -227,7 +227,7 @@ namespace GUI
 			Result CreateConstantBuffer
 			(
 				ConstantBuffer& constantBuffer,
-				DescriptorHeapForShaderData& viewHeap,
+				DescriptorHeap& viewHeap,
 				const unsigned int bufferStructSize,
 				const unsigned int bufferCount = 1
 			);
@@ -237,7 +237,7 @@ namespace GUI
 			// resouceCount		: 入力	: 一度にバインドされる定数バッファ・テクスチャの数
 			Result CreateDescriptorHeap
 			(
-				DescriptorHeapForShaderData& heap,
+				DescriptorHeap& heap,
 				const unsigned int resourceCount
 			);
 		private:
@@ -325,7 +325,7 @@ namespace GUI
 			// 定数バッファ、テクスチャ等をバインドする
 			// ルートシグネチャで設定した値と対応させる必要がある
 			void SetGraphicsRootSignature(const RootSignature& rootSignature);
-			void SetDescriptorHeap(const DescriptorHeapForShaderData& descHeap);
+			void SetDescriptorHeap(const DescriptorHeap& descHeap);
 			void SetConstantBuffer
 			(
 				const ConstantBuffer& constBuffer,
@@ -623,7 +623,7 @@ namespace GUI
 			friend Result Device::CreateConstantBuffer
 			(
 				ConstantBuffer&,
-				DescriptorHeapForShaderData&,
+				DescriptorHeap&,
 				unsigned int, unsigned int
 			);
 		public:
@@ -660,23 +660,23 @@ namespace GUI
 
 		// 定数バッファ、テクスチャのビューを格納するヒープ
 		// 描画中に切り替えると処理が重くなるらしいので、できる限り少なく運用すること
-		class DescriptorHeapForShaderData
+		class DescriptorHeap
 		{
 			friend Result Device::CreateDescriptorHeap
 			(
-				DescriptorHeapForShaderData&,
+				DescriptorHeap&,
 				const unsigned int
 			);
 			friend Result Device::CreateConstantBuffer
 			(
 				ConstantBuffer&,
-				DescriptorHeapForShaderData&,
+				DescriptorHeap&,
 				const unsigned int,
 				const unsigned int
 			);
 		public:
-			DescriptorHeapForShaderData();
-			~DescriptorHeapForShaderData();
+			DescriptorHeap();
+			~DescriptorHeap();
 
 			// ライブラリから呼び出す関数
 			const D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentCPU_Handle();

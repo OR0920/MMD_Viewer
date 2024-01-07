@@ -443,21 +443,14 @@ Result Device::CreateIndexBuffer
 Result Device::CreateConstantBuffer
 (
 	ConstantBuffer& constantBuffer,
-	DescriptorHeapForShaderData& viewHeap,
+	DescriptorHeap& viewHeap,
 	const unsigned int bufferStructSize,
 	const unsigned int bufferCount
 )
 {
-	DebugMessage(ToString(Device::CreateConstantBuffer()));
-
-	DebugOutParam(bufferCount);
-	DebugOutParam(bufferStructSize);
-
 	auto bufferStructSizeAllignmented = D3D12Allignment(bufferStructSize);
-	DebugOutParam(bufferStructSizeAllignmented);
 
 	auto bufferSize = bufferStructSizeAllignmented * bufferCount;
-	DebugOutParam(bufferSize);
 
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
@@ -509,7 +502,7 @@ Result Device::CreateConstantBuffer
 
 Result Device::CreateDescriptorHeap
 (
-	DescriptorHeapForShaderData& heap,
+	DescriptorHeap& heap,
 	const unsigned int descriptorCount
 )
 {
@@ -738,7 +731,7 @@ void GraphicsCommand::SetGraphicsRootSignature(const RootSignature& rootSignatur
 	mCommandList->SetGraphicsRootSignature(rootSignature.GetRootSignature().Get());
 }
 
-void GraphicsCommand::SetDescriptorHeap(const DescriptorHeapForShaderData& descHeap)
+void GraphicsCommand::SetDescriptorHeap(const DescriptorHeap& descHeap)
 {
 	mCommandList->SetDescriptorHeaps(1, descHeap.GetDescriptorHeap().GetAddressOf());
 }
@@ -1371,7 +1364,7 @@ const D3D12_GPU_DESCRIPTOR_HANDLE ConstantBuffer::GetCurrentGPU_Handle(const int
 
 // ディスクリプタヒープ
 
-DescriptorHeapForShaderData::DescriptorHeapForShaderData()
+DescriptorHeap::DescriptorHeap()
 	:
 	mDescriptorHeap(nullptr),
 	mDescriptorCount(0),
@@ -1380,12 +1373,12 @@ DescriptorHeapForShaderData::DescriptorHeapForShaderData()
 {
 }
 
-DescriptorHeapForShaderData::~DescriptorHeapForShaderData()
+DescriptorHeap::~DescriptorHeap()
 {
 
 }
 
-const D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeapForShaderData::GetCurrentCPU_Handle()
+const D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap::GetCurrentCPU_Handle()
 {
 	if (mDescriptorCount <= mLastID)
 	{
@@ -1397,7 +1390,7 @@ const D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeapForShaderData::GetCurrentCPU_Han
 	return ret;
 }
 
-const D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeapForShaderData::GetCurrentGPU_Handle()
+const D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap::GetCurrentGPU_Handle()
 {
 	if (mDescriptorCount <= mLastID)
 	{
@@ -1409,12 +1402,12 @@ const D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeapForShaderData::GetCurrentGPU_Han
 	return ret;
 }
 
-void DescriptorHeapForShaderData::MoveToNextHeapPos()
+void DescriptorHeap::MoveToNextHeapPos()
 {
 	mLastID++;
 }
 
-const ComPtr<ID3D12DescriptorHeap> DescriptorHeapForShaderData::GetDescriptorHeap() const
+const ComPtr<ID3D12DescriptorHeap> DescriptorHeap::GetDescriptorHeap() const
 {
 	return mDescriptorHeap;
 }
