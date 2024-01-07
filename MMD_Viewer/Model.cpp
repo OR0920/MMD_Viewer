@@ -55,10 +55,11 @@ Model::Model(GUI::Graphics::Device& device)
 	inputLayout.SetDefaultPositionDesc();
 	inputLayout.SetDefaultNormalDesc();
 
-	mRootSignature.SetParameterCount(3);
+	mRootSignature.SetParameterCount(4);
 	mRootSignature.SetParamForCBV(0, 0);
 	mRootSignature.SetParamForCBV(1, 1);
 	mRootSignature.SetParamForCBV(2, 2);
+	mRootSignature.SetParamForSRV(3, 0);
 
 	//GUI::Graphics::DescriptorRange range;
 	//range.SetRangeCount(1);
@@ -339,7 +340,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 
 
 		mMaterialCount = file.GetMaterialCount();
-		auto descriptorCount = 1 + 1 + mMaterialCount;
+		auto descriptorCount = 1 + 1 + mMaterialCount + file.GetTextureCount();
 		if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
 		{
 			return GUI::Result::FAIL;
@@ -392,6 +393,28 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 		}
 
 		
+		char* tFilePath = nullptr;
+
+		System::newArray_CopyAssetPath(&tFilePath, file.GetDirectoryPath(), file.GetTexturePath(0).GetText());
+
+		wchar_t* filepath = nullptr;
+
+		System::newArray_CreateWideCharStrFromMultiByteStr(&filepath, tFilePath);
+
+		if (mTexture.LoadFromFile(filepath) == GUI::Result::FAIL)
+		{
+			System::SafeDeleteArray(&tFilePath);
+			System::SafeDeleteArray(&filepath);
+			return GUI::Result::FAIL;
+		}
+
+		if (mDevice.CreateTexture2D(mTexture, mHeap) == GUI::Result::FAIL)
+		{
+			return GUI::Result::FAIL;
+		}
+
+		System::SafeDeleteArray(&tFilePath);
+		System::SafeDeleteArray(&filepath);
 
 		return GUI::Result::SUCCESS;
 

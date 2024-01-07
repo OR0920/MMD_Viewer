@@ -492,7 +492,7 @@ Result Device::CreateConstantBuffer
 	}
 
 
-	constantBuffer.mViewIncrementSize = 
+	constantBuffer.mViewIncrementSize =
 		mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	return SUCCESS;
@@ -500,11 +500,62 @@ Result Device::CreateConstantBuffer
 
 Result Device::CreateTexture2D
 (
-	Texture2D& texture, 
+	Texture2D& texture,
 	DescriptorHeap& viewHeap
 )
 {
-	return FAIL;
+	D3D12_HEAP_PROPERTIES heapProp = {};
+	heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_CUSTOM;
+	heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+	heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_L0;
+	heapProp.CreationNodeMask = 0;
+	heapProp.VisibleNodeMask = 0;
+
+	auto& metadata = texture.mMetaData;
+	D3D12_RESOURCE_DESC resDesc = {};
+	resDesc.Format = metadata.format;
+	resDesc.Width = metadata.width;
+	resDesc.Height = metadata.height;
+	resDesc.DepthOrArraySize = metadata.arraySize;
+	resDesc.SampleDesc.Count = 1;
+	resDesc.SampleDesc.Quality = 0;
+	resDesc.MipLevels = metadata.mipLevels;
+	resDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+
+	ReturnIfFailed
+	(
+		mDevice->CreateCommittedResource
+		(
+			&heapProp,
+			D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE,
+			&resDesc,
+			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+			nullptr,
+			IID_PPV_ARGS(texture.mResource.GetAddressOf())
+		),
+		Device::CreateTexture2D();
+	);
+
+	if (texture.WriteToSubresource() == FAIL) return FAIL;
+
+	auto& viewDesc = texture.mViewDesc;
+	viewDesc.Format = texture.mResource->GetDesc().Format;
+	viewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	viewDesc.ViewDimension = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2D;
+	viewDesc.Texture2D.MipLevels = 1;
+
+	mDevice->CreateShaderResourceView
+	(
+		texture.mResource.Get(),
+		&viewDesc,
+		viewHeap.GetCurrentCPU_Handle()
+	);
+
+	viewHeap.MoveToNextHeapPos();
+
+	return SUCCESS;
 }
 
 Result Device::CreateDescriptorHeap
@@ -759,7 +810,7 @@ void GraphicsCommand::SetConstantBuffer
 
 void GraphicsCommand::SetDescriptorTable
 (
-	const ConstantBuffer& constBuffer, 
+	const ConstantBuffer& constBuffer,
 	const int paramID,
 	const int bufferID
 )
@@ -942,7 +993,7 @@ void DescriptorRange::SetRangeCount(const int rangeCount)
 void DescriptorRange::SetRangeForCBV
 (
 	const int rangeID,
-	const int registerID, 
+	const int registerID,
 	const int descriptorCount
 )
 {
@@ -1011,6 +1062,16 @@ void RootSignature::SetParamForCBV(const int paramID, const int registerID)
 	p.Descriptor.ShaderRegister = registerID;
 }
 
+void RootSignature::SetParamForSRV(const int paramID, const int registerID)
+{
+	if (IsSizeOver(paramID)) return;
+	auto& p = mRootParamter[paramID];
+	p.ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
+	p.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	p.Descriptor.RegisterSpace = 0;
+	p.Descriptor.ShaderRegister = registerID;
+}
+
 void RootSignature::SetParamForDescriptorTable
 (
 	const int paramID,
@@ -1022,7 +1083,7 @@ void RootSignature::SetParamForDescriptorTable
 	auto& p = mRootParamter[paramID];
 	p.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	p.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	
+
 	p.DescriptorTable.NumDescriptorRanges = range.GetRangeCount();
 	p.DescriptorTable.pDescriptorRanges = range.GetRange();
 
@@ -1371,8 +1432,51 @@ const D3D12_GPU_DESCRIPTOR_HANDLE ConstantBuffer::GetGPU_Handle(const int i) con
 
 // テクスチャ2D
 
-Texture2D::Texture2D() {}
+Texture2D::Texture2D()
+	:
+	mResource(nullptr),
+	mViewDesc({}),
+	mMetaData({}),
+	mImg({})
+{
+
+}
+
 Texture2D::~Texture2D() {}
+
+Result Texture2D::LoadFromFile(const wchar_t* const filepath)
+{
+	ReturnIfFailed
+	(
+		DirectX::LoadFromWICFile
+		(
+			filepath, DirectX::WIC_FLAGS_NONE,
+			&mMetaData, mImg
+		),
+		Texture2D::LoadFromFile();
+	);
+
+	return SUCCESS;
+}
+
+Result Texture2D::WriteToSubresource()
+{
+	auto img = mImg.GetImage(0, 0, 0);
+	ReturnIfFailed
+	(
+		mResource->WriteToSubresource
+		(
+			0,
+			nullptr,
+			img->pixels,
+			img->rowPitch,
+			img->slicePitch
+		),
+		Texture2D::WriteToSubresource()
+	);
+
+	return SUCCESS;
+}
 
 // ディスクリプタヒープ
 

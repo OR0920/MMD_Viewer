@@ -18,6 +18,7 @@
 #include<tchar.h>
 #include<d3d12.h>
 #include<dxgi1_6.h>
+#include<directxtex.h>
 
 // エントリポイントを隠蔽
 // デバッグ情報をコンソールへ
@@ -491,6 +492,8 @@ namespace GUI
 			// 何番目の引数に何を渡すか
 			// 定数バッファビュー
 			void SetParamForCBV(const int paramID, const int registerID);
+			void SetParamForSRV(const int paramID, const int registerID);
+
 			// ディスクリプタテーブル
 			void SetParamForDescriptorTable
 			(
@@ -675,8 +678,15 @@ namespace GUI
 		public:
 			Texture2D(); ~Texture2D();
 
-		private:
+			Result LoadFromFile(const wchar_t* const filePath);
 
+		private:
+			ComPtr<ID3D12Resource> mResource;
+			D3D12_SHADER_RESOURCE_VIEW_DESC mViewDesc;
+			DirectX::TexMetadata mMetaData;
+			DirectX::ScratchImage mImg;
+
+			Result WriteToSubresource();
 		};
 
 		// 定数バッファ、テクスチャのビューを格納するヒープ
@@ -694,6 +704,11 @@ namespace GUI
 				DescriptorHeap&,
 				const unsigned int,
 				const unsigned int
+			);
+			friend Result Device::CreateTexture2D
+			(
+				Texture2D&,
+				DescriptorHeap&
 			);
 		public:
 			DescriptorHeap();

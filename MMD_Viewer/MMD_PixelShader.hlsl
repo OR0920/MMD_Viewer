@@ -13,8 +13,8 @@ cbuffer Material : register(b2)
 };
 
 Texture2D<float4> tex : register(t0);
-Texture2D<float4> sph : register(t0);
-Texture2D<float4> spa : register(t0);
+Texture2D<float4> sph : register(t1);
+Texture2D<float4> spa : register(t2);
 Texture2D<float4> toon : register(t3);
 SamplerState smp : register(s0);
 SamplerState toonSmp : register(s1);
@@ -38,6 +38,8 @@ float4 main(VS_Output input) : SV_TARGET
     float4 ambientLight = float4(ambient, 0.f) * 0.2;
     
     float4 finalLight = diffuseLight + specularLight + ambientLight;
+    
+    
     
     return finalLight;
 }

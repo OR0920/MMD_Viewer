@@ -98,6 +98,8 @@ private:
 
 	std::vector<std::string> mTexPath;
 	std::vector<std::string> mToonPath;
+
+	GUI::Graphics::Texture2D mTexture;
 };
 
 #endif // !_MODEL_H_
