@@ -700,7 +700,8 @@ namespace GUI
 				Texture2D&, DescriptorHeap&
 			);
 		public:
-			Texture2D(); ~Texture2D();
+			Texture2D(); 
+			~Texture2D();
 
 			Result LoadFromFile(const wchar_t* const filePath);
 

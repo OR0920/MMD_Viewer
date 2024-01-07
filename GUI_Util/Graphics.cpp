@@ -1526,7 +1526,8 @@ Texture2D::Texture2D()
 	mViewDesc({}),
 	mGPU_Handle({}),
 	mMetaData({}),
-	mImg({})
+	mImg({}),
+	mViewIncrementSize()
 {
 
 }

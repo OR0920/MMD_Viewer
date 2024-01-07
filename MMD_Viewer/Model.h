@@ -100,7 +100,7 @@ private:
 	std::vector<std::string> mTexPath;
 	std::vector<std::string> mToonPath;
 
-	GUI::Graphics::Texture2D mTexture;
+	GUI::Graphics::Texture2D* mUniqueTexture;
 };
 
 #endif // !_MODEL_H_

@@ -104,6 +104,7 @@ Model::Model(GUI::Graphics::Device& device)
 Model::~Model()
 {
 	System::SafeDeleteArray(&mMaterialInfo);
+	System::SafeDeleteArray(&mUniqueTexture);
 }
 
 
@@ -152,9 +153,15 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 	int indexOffs = 0;
 	for (int i = 0; i < mMaterialCount; ++i)
 	{
-		auto indexCount = mMaterialInfo[i].materialIndexCount;
+		auto& info = mMaterialInfo[i];
+		auto indexCount = info.materialIndexCount;
+		
 		command.SetConstantBuffer(mMaterialBuffer, 2, i);
-		command.SetDescriptorTable(mTexture, 3);
+
+		if (info.texID != -1)
+		{
+			command.SetDescriptorTable(mUniqueTexture[info.texID], 3);
+		}
 		command.DrawTriangleList(indexCount, indexOffs);
 		indexOffs += indexCount;
 	}
@@ -177,7 +184,7 @@ void Model::MaterialInfo::Load(const MMDsdk::PmdFile::Material& data)
 
 void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
 {
-	materialIndexCount = data.vertexCount;
+	texID = data.textureID;
 	if (data.sphereMode == MMDsdk::PmxFile::Material::SphereMode::SM_SPH)
 	{
 		sphID = data.sphereTextureID;
@@ -196,6 +203,8 @@ void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
 	{
 		isShared = false;
 	}
+
+	materialIndexCount = data.vertexCount;
 }
 
 GUI::Result Model::LoadPMD(const char* const filepath)
@@ -400,26 +409,30 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			mTexPath[i] = dirPath + path;
 		}
 
-		
-		char* tFilePath = nullptr;
-		System::newArray_CopyAssetPath(&tFilePath, file.GetDirectoryPath(), file.GetTexturePath(0).GetText());
-		wchar_t* filepath = nullptr;
-		System::newArray_CreateWideCharStrFromMultiByteStr(&filepath, tFilePath);
-		DebugOutStringWide(filepath);
-		if (mTexture.LoadFromFile(filepath) == GUI::Result::FAIL)
+		mUniqueTexture = new GUI::Graphics::Texture2D[file.GetTextureCount()];
+		for (int i = 0; i < file.GetTextureCount(); ++i)
 		{
+			char* tFilePath = nullptr;
+			System::newArray_CopyAssetPath(&tFilePath, file.GetDirectoryPath(), file.GetTexturePath(i).GetText());
+			wchar_t* filepath = nullptr;
+			System::newArray_CreateWideCharStrFromMultiByteStr(&filepath, tFilePath);
+			DebugOutStringWide(filepath);
+
+			if (mUniqueTexture[i].LoadFromFile(filepath) == GUI::Result::FAIL)
+			{
+				System::SafeDeleteArray(&tFilePath);
+				System::SafeDeleteArray(&filepath);
+				return GUI::Result::FAIL;
+			}
+
+			if (mDevice.CreateTexture2D(mUniqueTexture[i], mHeap) == GUI::Result::FAIL)
+			{
+				return GUI::Result::FAIL;
+			}
+
 			System::SafeDeleteArray(&tFilePath);
 			System::SafeDeleteArray(&filepath);
-			return GUI::Result::FAIL;
 		}
-
-		if (mDevice.CreateTexture2D(mTexture, mHeap) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
-
-		System::SafeDeleteArray(&tFilePath);
-		System::SafeDeleteArray(&filepath);
 
 		return GUI::Result::SUCCESS;
 
