@@ -69,6 +69,9 @@ Model::Model(GUI::Graphics::Device& device)
 	//range.SetRangeForCBV(0, 2, 1);
 	//mRootSignature.SetParamForDescriptorTable(2, range);
 
+	mRootSignature.SetStaticSamplerCount(1);
+	mRootSignature.SetSamplerDefault(0, 0);
+
 	mDevice.CreateRootSignature(mRootSignature);
 
 	mPipeline.SetRootSignature(mRootSignature);

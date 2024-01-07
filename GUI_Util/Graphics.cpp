@@ -1039,12 +1039,11 @@ RootSignature::RootSignature()
 RootSignature::~RootSignature()
 {
 	System::SafeDeleteArray(&mRootParamter);
+	System::SafeDeleteArray(&mSamplerDesc);
 }
 
 void RootSignature::SetParameterCount(const int count)
 {
-	mDesc.NumParameters = count;
-
 	System::SafeDeleteArray(&mRootParamter);
 	mRootParamter = new D3D12_ROOT_PARAMETER[count]{};
 	mDesc.NumParameters = count;
@@ -1053,7 +1052,7 @@ void RootSignature::SetParameterCount(const int count)
 
 void RootSignature::SetParamForCBV(const int paramID, const int registerID)
 {
-	if (IsSizeOver(paramID)) return;
+	if (IsParamSizeOver(paramID)) return;
 
 	auto& p = mRootParamter[paramID];
 	p.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
@@ -1064,7 +1063,7 @@ void RootSignature::SetParamForCBV(const int paramID, const int registerID)
 
 void RootSignature::SetParamForSRV(const int paramID, const int registerID)
 {
-	if (IsSizeOver(paramID)) return;
+	if (IsParamSizeOver(paramID)) return;
 	auto& p = mRootParamter[paramID];
 	p.ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
 	p.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
@@ -1078,7 +1077,7 @@ void RootSignature::SetParamForDescriptorTable
 	const DescriptorRange& range
 )
 {
-	if (IsSizeOver(paramID)) return;
+	if (IsParamSizeOver(paramID)) return;
 
 	auto& p = mRootParamter[paramID];
 	p.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
@@ -1089,14 +1088,58 @@ void RootSignature::SetParamForDescriptorTable
 
 }
 
+void RootSignature::SetStaticSamplerCount(const int count)
+{
+	System::SafeDeleteArray(&mSamplerDesc);
+	mSamplerDesc = new D3D12_STATIC_SAMPLER_DESC[count]{};
+	mDesc.NumStaticSamplers = count;
+	mDesc.pStaticSamplers = mSamplerDesc;
+}
+
+void RootSignature::SetSamplerDefault(const int samplerID, const int registerID)
+{
+	if (IsSamplerSizeOver(samplerID)) return;
+
+	CD3DX12_STATIC_SAMPLER_DESC desc = {};
+	desc.Init(registerID);
+
+	mSamplerDesc[samplerID] = desc;
+}
+
+void RootSignature::SetSamplerUV_Clamp(const int samplerID, const int registerID)
+{
+	if (IsSamplerSizeOver(samplerID)) return;
+
+	CD3DX12_STATIC_SAMPLER_DESC desc = {};
+	desc.Init
+	(
+		registerID,
+		D3D12_FILTER_ANISOTROPIC,
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP
+	);
+	mSamplerDesc[samplerID] = desc;
+}
+
 const ComPtr<ID3D12RootSignature> RootSignature::GetRootSignature() const
 {
 	return mRootSignature;
 }
 
-bool RootSignature::IsSizeOver(const int i) const
+bool RootSignature::IsParamSizeOver(const int i) const
 {
 	if (i < 0 || mDesc.NumParameters <= i)
+	{
+		DebugMessage("The id " << i << " is over Size !");
+		assert(false);
+		return true;
+	}
+	return false;
+}
+
+bool RootSignature::IsSamplerSizeOver(const int i) const
+{
+	if (i < 0 || mDesc.NumStaticSamplers <= i)
 	{
 		DebugMessage("The id " << i << " is over Size !");
 		assert(false);

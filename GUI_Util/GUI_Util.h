@@ -501,15 +501,22 @@ namespace GUI
 				const DescriptorRange& range
 			);
 
+			// サンプラーがいくつあるか
+			void SetStaticSamplerCount(const int count);
+			void SetSamplerDefault(const int samplerID, const int registerID);
+			void SetSamplerUV_Clamp(const int samplerID, const int registerID);
 
 			// ライブラリから呼び出す関数
 			const ComPtr<ID3D12RootSignature> GetRootSignature() const;
 		private:
 			ComPtr<ID3D12RootSignature> mRootSignature;
 			D3D12_ROOT_SIGNATURE_DESC mDesc;
-			D3D12_ROOT_PARAMETER* mRootParamter;
 
-			bool IsSizeOver(const int i) const;
+			D3D12_ROOT_PARAMETER* mRootParamter;
+			D3D12_STATIC_SAMPLER_DESC* mSamplerDesc;
+
+			bool IsParamSizeOver(const int i) const;
+			bool IsSamplerSizeOver(const int i) const;
 		};
 
 		// 入力頂点のレイアウトを記述する
@@ -520,7 +527,7 @@ namespace GUI
 
 			// 構造体の要素数
 			void SetElementCount(const int count);
-			
+
 			// 位置
 			void SetDefaultPositionDesc(const char* const semantics = "POSITION");
 			// 色
