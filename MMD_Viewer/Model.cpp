@@ -390,6 +390,8 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			mTexPath[i] = dirPath + path;
 		}
 
+		
+
 		return GUI::Result::SUCCESS;
 
 	}

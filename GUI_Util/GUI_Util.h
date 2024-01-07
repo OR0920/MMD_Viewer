@@ -167,6 +167,8 @@ namespace GUI
 		class VertexBuffer;
 		class IndexBuffer;
 		class ConstantBuffer;
+		class Texture2D;
+
 		class DescriptorHeap;
 
 		// デバイス
@@ -230,6 +232,12 @@ namespace GUI
 				DescriptorHeap& viewHeap,
 				const unsigned int bufferStructSize,
 				const unsigned int bufferCount = 1
+			);
+
+			Result CreateTexture2D
+			(
+				Texture2D& texture,
+				DescriptorHeap& viewHeap
 			);
 
 			// 定数バッファ・テクスチャ用のディスクリプタヒープ
@@ -647,7 +655,7 @@ namespace GUI
 
 			//ライブラリから呼び出す関数
 			const D3D12_GPU_VIRTUAL_ADDRESS GetGPU_Address() const;
-			const D3D12_GPU_DESCRIPTOR_HANDLE GetCurrentGPU_Handle(const int i) const;
+			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle(const int i) const;
 		private:
 			ComPtr<ID3D12Resource> mResource;
 			D3D12_CONSTANT_BUFFER_VIEW_DESC mViewDesc;
@@ -656,6 +664,19 @@ namespace GUI
 
 			int mViewIncrementSize;
 			int mBufferIncrementSize;
+		};
+
+		class Texture2D
+		{
+			friend Result Device::CreateTexture2D
+			(
+				Texture2D&, DescriptorHeap&
+			);
+		public:
+			Texture2D(); ~Texture2D();
+
+		private:
+
 		};
 
 		// 定数バッファ、テクスチャのビューを格納するヒープ

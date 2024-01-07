@@ -500,6 +500,15 @@ Result Device::CreateConstantBuffer
 	return SUCCESS;
 }
 
+Result Device::CreateTexture2D
+(
+	Texture2D& texture, 
+	DescriptorHeap& viewHeap
+)
+{
+	return FAIL;
+}
+
 Result Device::CreateDescriptorHeap
 (
 	DescriptorHeap& heap,
@@ -758,7 +767,7 @@ void GraphicsCommand::SetDescriptorTable
 {
 	mCommandList->SetGraphicsRootDescriptorTable
 	(
-		paramID, constBuffer.GetCurrentGPU_Handle(bufferID)
+		paramID, constBuffer.GetGPU_Handle(bufferID)
 	);
 }
 
@@ -1355,12 +1364,17 @@ const D3D12_GPU_VIRTUAL_ADDRESS ConstantBuffer::GetGPU_Address() const
 	return mViewDesc.BufferLocation;
 }
 
-const D3D12_GPU_DESCRIPTOR_HANDLE ConstantBuffer::GetCurrentGPU_Handle(const int i) const
+const D3D12_GPU_DESCRIPTOR_HANDLE ConstantBuffer::GetGPU_Handle(const int i) const
 {
 	auto ret = mGPU_Handle;
 	ret.ptr += i * mViewIncrementSize;
 	return ret;
 }
+
+// テクスチャ2D
+
+Texture2D::Texture2D() {}
+Texture2D::~Texture2D() {}
 
 // ディスクリプタヒープ
 
