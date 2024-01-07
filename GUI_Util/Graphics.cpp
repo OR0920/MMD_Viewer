@@ -1178,6 +1178,22 @@ void InputElementDesc::SetDefaultNormalDesc(const char* const semantics)
 	mLastID++;
 }
 
+void InputElementDesc::SetDefaultUV_Desc(const char* const semantics)
+{
+	if (IsSizeOver() == true) return;
+
+	auto& desc = mInputElementDesc[mLastID];
+	desc.SemanticName = semantics;
+	desc.SemanticIndex = 0;
+	desc.Format = DXGI_FORMAT_R32G32_FLOAT;
+	desc.InputSlot = 0;
+	desc.AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+	desc.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+	desc.InstanceDataStepRate = 0;
+
+	mLastID++;
+}
+
 void InputElementDesc::DebugOutLayout() const
 {
 	for (int i = 0; i < mCount; ++i)

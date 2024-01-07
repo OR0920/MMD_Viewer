@@ -4,6 +4,7 @@ struct VS_Input
 {
     float4 position : POSITION;
     float4 normal : NORMAL;
+    float2 uv : UV;
 };
 
 cbuffer Transform : register(b0)
@@ -28,6 +29,8 @@ VS_Output main(VS_Input input)
     
     output.screenPos = pos;
     output.normal = mul(world, input.normal);
+    
+    output.uv = input.uv;
     
     return output;
 }

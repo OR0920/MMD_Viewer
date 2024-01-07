@@ -527,6 +527,8 @@ namespace GUI
 			void SetDefaultColorDesc(const char* const semantics = "COLOR");
 			// ñ@ê¸
 			void SetDefaultNormalDesc(const char* const semantics = "NORMAL");
+			// UV
+			void SetDefaultUV_Desc(const char* const semantics = "UV");
 
 			void DebugOutLayout() const;
 

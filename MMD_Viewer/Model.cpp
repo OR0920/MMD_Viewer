@@ -10,12 +10,14 @@ void Model::ModelVertex::Load(const MMDsdk::PmdFile::Vertex& data)
 {
 	position = System::strong_cast<MathUtil::float3>(data.position);
 	normal = System::strong_cast<MathUtil::float3>(data.normal);
+	uv = System::strong_cast<MathUtil::float2>(data.uv);
 }
 
 void Model::ModelVertex::Load(const MMDsdk::PmxFile::Vertex& data)
 {
 	position = System::strong_cast<MathUtil::float3>(data.position);
 	normal = System::strong_cast<MathUtil::float3>(data.normal);
+	uv = System::strong_cast<MathUtil::float2>(data.uv);
 }
 
 void Model::Material::Load(const MMDsdk::PmdFile::Material& data)
@@ -51,9 +53,10 @@ Model::Model(GUI::Graphics::Device& device)
 	mTexPath(),
 	mToonPath(10)
 {
-	inputLayout.SetElementCount(2);
+	inputLayout.SetElementCount(3);
 	inputLayout.SetDefaultPositionDesc();
 	inputLayout.SetDefaultNormalDesc();
+	inputLayout.SetDefaultUV_Desc();
 
 	mRootSignature.SetParameterCount(4);
 	mRootSignature.SetParamForCBV(0, 0);
@@ -394,11 +397,8 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 
 		
 		char* tFilePath = nullptr;
-
 		System::newArray_CopyAssetPath(&tFilePath, file.GetDirectoryPath(), file.GetTexturePath(0).GetText());
-
 		wchar_t* filepath = nullptr;
-
 		System::newArray_CreateWideCharStrFromMultiByteStr(&filepath, tFilePath);
 
 		if (mTexture.LoadFromFile(filepath) == GUI::Result::FAIL)
