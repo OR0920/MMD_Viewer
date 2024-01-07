@@ -341,9 +341,22 @@ namespace GUI
 				const int rootParamID,
 				const int bufferID = 0
 			);
+			void SetTexture
+			(
+				const Texture2D& texture,
+				const int rootParamID
+			);
+
 			void SetDescriptorTable
 			(
 				const ConstantBuffer& constBuffer,
+				const int rootParamID,
+				const int bufferID = 0
+			);
+
+			void SetDescriptorTable
+			(
+				const Texture2D& texture,
 				const int rootParamID,
 				const int bufferID = 0
 			);
@@ -468,6 +481,7 @@ namespace GUI
 			void SetRangeCount(const int rangeCount);
 			// 何番目のテーブルが、何番のレジスタに対応し、ディスクリプタがいくつあるか
 			void SetRangeForCBV(const int rangeID, const int registerID, const int descriptorCount);
+			void SetRangeForSRV(const int rangeID, const int registerID, const int descriptorCount);
 
 			// ライブラリから呼び出す関数
 			int GetRangeCount() const;
@@ -689,9 +703,14 @@ namespace GUI
 
 			Result LoadFromFile(const wchar_t* const filePath);
 
+			// ライブラリから呼び出す関数
+			const D3D12_GPU_VIRTUAL_ADDRESS GetGPU_Address() const;
+			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle() const;
 		private:
 			ComPtr<ID3D12Resource> mResource;
 			D3D12_SHADER_RESOURCE_VIEW_DESC mViewDesc;
+			D3D12_GPU_DESCRIPTOR_HANDLE mGPU_Handle;
+
 			DirectX::TexMetadata mMetaData;
 			DirectX::ScratchImage mImg;
 

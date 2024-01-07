@@ -39,7 +39,7 @@ float4 main(VS_Output input) : SV_TARGET
     
     float4 finalLight = diffuseLight + specularLight + ambientLight;
     
+    float4 finalColor = tex.Sample(smp, input.uv);
     
-    
-    return finalLight;
+    return finalLight * finalColor;
 }

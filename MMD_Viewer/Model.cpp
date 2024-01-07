@@ -62,12 +62,13 @@ Model::Model(GUI::Graphics::Device& device)
 	mRootSignature.SetParamForCBV(0, 0);
 	mRootSignature.SetParamForCBV(1, 1);
 	mRootSignature.SetParamForCBV(2, 2);
-	mRootSignature.SetParamForSRV(3, 0);
 
-	//GUI::Graphics::DescriptorRange range;
-	//range.SetRangeCount(1);
-	//range.SetRangeForCBV(0, 2, 1);
-	//mRootSignature.SetParamForDescriptorTable(2, range);
+	//mRootSignature.SetParamForSRV(3, 0);
+
+	GUI::Graphics::DescriptorRange range;
+	range.SetRangeCount(1);
+	range.SetRangeForSRV(0, 0, 1);
+	mRootSignature.SetParamForDescriptorTable(3, range);
 
 	mRootSignature.SetStaticSamplerCount(1);
 	mRootSignature.SetSamplerDefault(0, 0);
@@ -153,6 +154,7 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 	{
 		auto indexCount = mMaterialInfo[i].materialIndexCount;
 		command.SetConstantBuffer(mMaterialBuffer, 2, i);
+		command.SetDescriptorTable(mTexture, 3);
 		command.DrawTriangleList(indexCount, indexOffs);
 		indexOffs += indexCount;
 	}
@@ -403,7 +405,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 		System::newArray_CopyAssetPath(&tFilePath, file.GetDirectoryPath(), file.GetTexturePath(0).GetText());
 		wchar_t* filepath = nullptr;
 		System::newArray_CreateWideCharStrFromMultiByteStr(&filepath, tFilePath);
-
+		DebugOutStringWide(filepath);
 		if (mTexture.LoadFromFile(filepath) == GUI::Result::FAIL)
 		{
 			System::SafeDeleteArray(&tFilePath);

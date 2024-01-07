@@ -553,6 +553,8 @@ Result Device::CreateTexture2D
 		viewHeap.GetCurrentCPU_Handle()
 	);
 
+	texture.mGPU_Handle = viewHeap.GetCurrentGPU_Handle();
+
 	viewHeap.MoveToNextHeapPos();
 
 	return SUCCESS;
@@ -808,6 +810,19 @@ void GraphicsCommand::SetConstantBuffer
 	);
 }
 
+void GraphicsCommand::SetTexture
+(
+	const Texture2D& texture,
+	const int paramID
+)
+{
+	mCommandList->SetGraphicsRootShaderResourceView
+	(
+		paramID,
+		texture.GetGPU_Address()
+	);
+}
+
 void GraphicsCommand::SetDescriptorTable
 (
 	const ConstantBuffer& constBuffer,
@@ -818,6 +833,19 @@ void GraphicsCommand::SetDescriptorTable
 	mCommandList->SetGraphicsRootDescriptorTable
 	(
 		paramID, constBuffer.GetGPU_Handle(bufferID)
+	);
+}
+
+void GraphicsCommand::SetDescriptorTable
+(
+	const Texture2D& texture,
+	const int paramID,
+	const int bufferID
+)
+{
+	mCommandList->SetGraphicsRootDescriptorTable
+	(
+		paramID, texture.GetGPU_Handle()
 	);
 }
 
@@ -1010,6 +1038,26 @@ void DescriptorRange::SetRangeForCBV
 	r.RegisterSpace = 0;
 }
 
+void DescriptorRange::SetRangeForSRV
+(
+	const int rangeID,
+	const int registerID,
+	const int descriptorCount
+)
+{
+	if (mRangeCount < rangeID)
+	{
+		assert(false);
+	}
+
+	auto& r = mRange[rangeID];
+	r.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	r.BaseShaderRegister = registerID;
+	r.NumDescriptors = descriptorCount;
+	r.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	r.RegisterSpace = 0;
+}
+
 int DescriptorRange::GetRangeCount() const
 {
 	return mRangeCount;
@@ -1027,7 +1075,8 @@ RootSignature::RootSignature()
 	:
 	mRootSignature(nullptr),
 	mDesc({}),
-	mRootParamter(nullptr)
+	mRootParamter(nullptr),
+	mSamplerDesc({})
 {
 	mDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 	mDesc.NumParameters = 0;
@@ -1495,6 +1544,7 @@ Texture2D::Texture2D()
 	:
 	mResource(nullptr),
 	mViewDesc({}),
+	mGPU_Handle({}),
 	mMetaData({}),
 	mImg({})
 {
@@ -1516,6 +1566,16 @@ Result Texture2D::LoadFromFile(const wchar_t* const filepath)
 	);
 
 	return SUCCESS;
+}
+
+const D3D12_GPU_VIRTUAL_ADDRESS Texture2D::GetGPU_Address() const
+{
+	return mResource->GetGPUVirtualAddress();
+}
+
+const D3D12_GPU_DESCRIPTOR_HANDLE Texture2D::GetGPU_Handle() const
+{
+	return mGPU_Handle;
 }
 
 Result Texture2D::WriteToSubresource()
