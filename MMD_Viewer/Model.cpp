@@ -58,7 +58,7 @@ Model::Model(GUI::Graphics::Device& device)
 	inputLayout.SetDefaultNormalDesc();
 	inputLayout.SetDefaultUV_Desc();
 
-	mRootSignature.SetParameterCount(4);
+	mRootSignature.SetParameterCount(6);
 	mRootSignature.SetParamForCBV(0, 0);
 	mRootSignature.SetParamForCBV(1, 1);
 	mRootSignature.SetParamForCBV(2, 2);
@@ -69,6 +69,16 @@ Model::Model(GUI::Graphics::Device& device)
 	range.SetRangeCount(1);
 	range.SetRangeForSRV(0, 0, 1);
 	mRootSignature.SetParamForDescriptorTable(3, range);
+
+	GUI::Graphics::DescriptorRange sphRange;
+	sphRange.SetRangeCount(1);
+	sphRange.SetRangeForSRV(0, 1, 1);
+	mRootSignature.SetParamForDescriptorTable(4, sphRange);
+
+	GUI::Graphics::DescriptorRange spaRange;
+	spaRange.SetRangeCount(1);
+	spaRange.SetRangeForSRV(0, 2, 1);
+	mRootSignature.SetParamForDescriptorTable(5, spaRange);
 
 	mRootSignature.SetStaticSamplerCount(1);
 	mRootSignature.SetSamplerDefault(0, 0);
@@ -157,7 +167,7 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 	{
 		auto& info = mMaterialInfo[i];
 		auto indexCount = info.materialIndexCount;
-		
+
 		command.SetConstantBuffer(mMaterialBuffer, 2, i);
 
 		if (info.texID != -1)
@@ -167,7 +177,25 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 		else
 		{
 			command.SetDescriptorTable(mDefaultTextureWhite, 3);
-		}		
+		}
+
+		if (info.sphID != -1)
+		{
+			command.SetDescriptorTable(mUniqueTexture[info.sphID], 4);
+		}
+		else
+		{
+			command.SetDescriptorTable(mDefaultTextureWhite, 4);
+		}
+
+		if (info.spaID != -1)
+		{
+			command.SetDescriptorTable(mUniqueTexture[info.spaID], 5);
+		}
+		else
+		{
+			command.SetDescriptorTable(mDefaultTextureBlack, 5);
+		}
 
 		command.DrawTriangleList(indexCount, indexOffs);
 		indexOffs += indexCount;

@@ -21,6 +21,8 @@ SamplerState toonSmp : register(s1);
 
 float4 main(VS_Output input) : SV_TARGET
 {
+    return spa.Sample(smp, input.uv);
+    
     float3 light = normalize(float3(-1.f, -1.f, 1.f));
     
     float diffuseB = -dot(input.normal.xyz, light);

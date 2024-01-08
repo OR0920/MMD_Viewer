@@ -28,7 +28,9 @@
 	if(FAILED(result))\
 	{\
 		DebugMessageFunctionError(func, at);\
+		DebugMessageNewLine();\
 		DebugOutParamHex(result);\
+		DebugMessageNewLine();\
 		return GUI::Result::FAIL;\
 	}\
 }
@@ -1094,6 +1096,7 @@ void DescriptorRange::SetRangeForSRV
 	}
 
 	auto& r = mRange[rangeID];
+	r = {};
 	r.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	r.BaseShaderRegister = registerID;
 	r.NumDescriptors = descriptorCount;
