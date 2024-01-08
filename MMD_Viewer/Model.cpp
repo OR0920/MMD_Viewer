@@ -98,6 +98,8 @@ Model::Model(GUI::Graphics::Device& device)
 		"toon09.bmp",
 		"toon10.bmp",
 	};
+
+	
 }
 
 
@@ -162,6 +164,11 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 		{
 			command.SetDescriptorTable(mUniqueTexture[info.texID], 3);
 		}
+		else
+		{
+			command.SetDescriptorTable(mDefaultTextureWhite, 3);
+		}		
+
 		command.DrawTriangleList(indexCount, indexOffs);
 		indexOffs += indexCount;
 	}
@@ -353,7 +360,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 
 
 		mMaterialCount = file.GetMaterialCount();
-		auto descriptorCount = 1 + 1 + mMaterialCount + file.GetTextureCount();
+		auto descriptorCount = 1 + 1 + mMaterialCount + file.GetTextureCount() + 2;
 		if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
 		{
 			return GUI::Result::FAIL;
@@ -428,6 +435,27 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			System::SafeDeleteArray(&tFilePath);
 			System::SafeDeleteArray(&filepath);
 		}
+
+
+		if (mDefaultTextureWhite.LoadFromFile(L"DefaultTexture/White.png") == GUI::Result::FAIL)
+		{
+			return GUI::Result::FAIL;
+		}
+
+		if (mDevice.CreateTexture2D(mDefaultTextureWhite, mHeap) == GUI::Result::FAIL)
+		{
+			return GUI::Result::FAIL;
+		}
+
+		if (mDefaultTextureBlack.LoadFromFile(L"DefaultTexture/Black.png") == GUI::Result::FAIL)
+		{
+			return GUI::Result::FAIL;
+		}
+
+		if (mDevice.CreateTexture2D(mDefaultTextureBlack, mHeap) == GUI::Result::FAIL)
+		{
+			return GUI::Result::FAIL;
+		}		
 
 		return GUI::Result::SUCCESS;
 

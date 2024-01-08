@@ -1,17 +1,8 @@
-#include<iostream>
-#include<iomanip>
-
-#include<array>
-#include<string>
-
 #include"MathUtil.h"
 #include"System.h"
 #include"MMDsdk.h"
 #include"GUI_Util.h"
 using namespace std;
-
-#include"VertexShader.h"
-#include"PixelShader.h"
 
 #include"MMD_VertexShasder.h"
 #include"MMD_PixelShader.h"
