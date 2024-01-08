@@ -97,7 +97,7 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\mmdsdk\;$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration)\system\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -119,7 +119,7 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\mmdsdk\;$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration)\system\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -136,8 +136,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\mmdsdk\;$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration)\system\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Projects\MMD_Viewer\packages\directxtex_desktop_win10.2023.10.31.1\native\lib\x64\Debug;$(solutiondir)$(platform)\$(configuration)\mmdsdk\;$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration)\system\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -158,8 +158,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\mmdsdk\;$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration)\system\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Projects\MMD_Viewer\packages\directxtex_desktop_win10.2023.10.31.1\native\lib\x64\Release;$(solutiondir)$(platform)\$(configuration)\mmdsdk\;$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration)\system\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>

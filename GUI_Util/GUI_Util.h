@@ -27,12 +27,6 @@
 #define MAIN() WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif // _DEBUG
 
-namespace DirectX
-{
-	class TexMetadata;
-	class ScratchImage;
-}
-
 // WIN32APIのウィンドウ周りをラップ
 namespace GUI
 {
@@ -697,6 +691,8 @@ namespace GUI
 			int mViewIncrementSize;
 		};
 
+		class TextureData;
+
 		class Texture2D : public SignaturedBuffer
 		{
 			friend Result Device::CreateTexture2D
@@ -716,8 +712,7 @@ namespace GUI
 			D3D12_SHADER_RESOURCE_VIEW_DESC mViewDesc;
 			D3D12_GPU_DESCRIPTOR_HANDLE mGPU_Handle;
 
-			DirectX::TexMetadata* mMetaData;
-			DirectX::ScratchImage* mImg;
+			TextureData* mData;
 
 			int mViewIncrementSize;
 

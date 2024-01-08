@@ -46,6 +46,72 @@ void SafeRelease(ComInterface** ptr)
 	}
 }
 
+
+#define ReturnIfSuccess(func)\
+{\
+	auto result = func;\
+	if(SUCCEEDED(result))\
+	{\
+		return SUCCESS;\
+	}\
+}
+
+// テクスチャデータの実装クラス
+namespace GUI
+{
+	namespace Graphics
+	{
+		class TextureData
+		{
+		public:
+			TextureData() : mMetaData({}), mImage({}) {}
+
+			const DirectX::TexMetadata& GetMetaData() const
+			{
+				return mMetaData;
+			}
+			const DirectX::ScratchImage& GetImage() const
+			{
+				return mImage;
+			}
+
+			Result LoadFromFile(const wchar_t* const filepath)
+			{
+				ReturnIfSuccess
+				(
+					DirectX::LoadFromWICFile
+					(
+						filepath, DirectX::WIC_FLAGS_NONE,
+						&mMetaData, mImage
+					)
+				);
+
+				ReturnIfSuccess
+				(
+					DirectX::LoadFromDDSFile
+					(
+						filepath, DirectX::DDS_FLAGS_NONE,
+						&mMetaData, mImage
+					)
+				);
+
+				ReturnIfSuccess
+				(
+					DirectX::LoadFromTGAFile
+					(
+						filepath, DirectX::TGA_FLAGS_NONE,
+						&mMetaData, mImage
+					)
+				);
+			}
+
+		private:
+			DirectX::TexMetadata mMetaData;
+			DirectX::ScratchImage mImage;
+		};
+	}
+}
+
 Color::Color
 (
 	float _r,
@@ -512,7 +578,7 @@ Result Device::CreateTexture2D
 	heapProp.CreationNodeMask = 0;
 	heapProp.VisibleNodeMask = 0;
 
-	auto& metadata = *texture.mMetaData;
+	auto& metadata = texture.mData->GetMetaData();
 	D3D12_RESOURCE_DESC resDesc = {};
 	resDesc.Format = metadata.format;
 	resDesc.Width = metadata.width;
@@ -1521,13 +1587,13 @@ const D3D12_GPU_DESCRIPTOR_HANDLE ConstantBuffer::GetGPU_Handle(const int i) con
 
 // テクスチャ2D
 
+
 Texture2D::Texture2D()
 	:
 	mResource(nullptr),
 	mViewDesc({}),
 	mGPU_Handle({}),
-	mMetaData(nullptr),
-	mImg(nullptr),
+	mData(nullptr),
 	mViewIncrementSize()
 {
 
@@ -1535,52 +1601,19 @@ Texture2D::Texture2D()
 
 Texture2D::~Texture2D()
 {
-	System::SafeDelete(&mMetaData);
-	System::SafeDelete(&mImg);
+	System::SafeDelete(&mData);
 }
 
-#define ReturnIfSuccess(func)\
-{\
-	auto result = func;\
-	if(SUCCEEDED(result))\
-	{\
-		return SUCCESS;\
-	}\
-}
 
 Result Texture2D::LoadFromFile(const wchar_t* const filepath)
 {
-	mMetaData = new DirectX::TexMetadata();
-	mImg = new DirectX::ScratchImage();
+	mData = new TextureData();
+	if (mData->LoadFromFile(filepath) == FAIL)
+	{
+		return FAIL;
+	}
 
-	ReturnIfSuccess
-	(
-		DirectX::LoadFromWICFile
-		(
-			filepath, DirectX::WIC_FLAGS_NONE,
-			mMetaData, *mImg
-		)
-	);
-
-	ReturnIfSuccess
-	(
-		DirectX::LoadFromDDSFile
-		(
-			filepath, DirectX::DDS_FLAGS_NONE,
-			mMetaData, *mImg
-		)
-	);
-
-	ReturnIfSuccess
-	(
-		DirectX::LoadFromTGAFile
-		(
-			filepath, DirectX::TGA_FLAGS_NONE,
-			mMetaData, *mImg
-		)
-	);
-
-	return FAIL;
+	return SUCCESS;
 }
 
 const D3D12_GPU_DESCRIPTOR_HANDLE Texture2D::GetGPU_Handle(const int i) const
@@ -1592,7 +1625,7 @@ const D3D12_GPU_DESCRIPTOR_HANDLE Texture2D::GetGPU_Handle(const int i) const
 
 Result Texture2D::WriteToSubresource()
 {
-	auto img = mImg->GetImage(0, 0, 0);
+	auto img = mData->GetImage().GetImage(0, 0, 0);
 	ReturnIfFailed
 	(
 		mResource->WriteToSubresource
