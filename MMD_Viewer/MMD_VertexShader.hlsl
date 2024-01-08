@@ -29,8 +29,10 @@ VS_Output main(VS_Input input)
     
     output.screenPos = pos;
     output.normal = mul(world, input.normal);
+    output.vnormal = mul(view, output.normal);
     
     output.uv = input.uv;
+    
     
     return output;
 }
