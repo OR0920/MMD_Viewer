@@ -915,9 +915,9 @@ void GraphicsCommand::SetVertexBuffer
 	mCommandList->IASetIndexBuffer(index.GetView());
 }
 
-void GraphicsCommand::DrawTriangle(const VertexBuffer& vertex)
+void GraphicsCommand::DrawTriangle(const int vertexCount)
 {
-	mCommandList->DrawInstanced(vertex.GetVertexCount(), 1, 0, 0);
+	mCommandList->DrawInstanced(vertexCount, 1, 0, 0);
 }
 
 void GraphicsCommand::DrawTriangleList

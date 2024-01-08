@@ -354,7 +354,7 @@ namespace GUI
 			(
 				const VertexBuffer& vertex
 			);
-			void DrawTriangle(const VertexBuffer& vertex);
+			void DrawTriangle(const int vertexCount);
 
 			// 頂点とインデックスで描画
 			void SetVertexBuffer
