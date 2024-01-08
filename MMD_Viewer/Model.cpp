@@ -173,6 +173,11 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 
 		command.SetConstantBuffer(mMaterialBuffer, 2, i);
 
+		//command.SetDescriptorTable(mDefaultTextureWhite, 3);
+		//command.SetDescriptorTable(mDefaultTextureWhite, 4);
+		//command.SetDescriptorTable(mDefaultTextureBlack, 5);
+		//command.SetDescriptorTable(mDefaultTextureWhite, 6);
+
 		if (info.texID != -1)
 		{
 			command.SetDescriptorTable(mUniqueTexture[info.texID], 3);

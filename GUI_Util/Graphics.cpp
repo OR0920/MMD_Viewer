@@ -805,7 +805,8 @@ void GraphicsCommand::BeginDraw()
 {
 	mCommandAllocator->Reset();
 	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
-
+	float bf[] = {0.f, 0.f, 0.f, 0.f};
+	mCommandList->OMSetBlendFactor(bf);
 }
 
 void GraphicsCommand::SetGraphicsPipeline(const GraphicsPipeline& pipeline)
@@ -1409,7 +1410,16 @@ void GraphicsPipeline::SetDepthEnable()
 
 void GraphicsPipeline::SetAlphaEnable()
 {
-	psoDesc.BlendState.AlphaToCoverageEnable = true;
+	psoDesc.BlendState.AlphaToCoverageEnable = false;
+	psoDesc.BlendState.IndependentBlendEnable = false;
+	psoDesc.BlendState.RenderTarget[0].BlendEnable = true;
+	psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+	psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+	psoDesc.BlendState.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+	psoDesc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
+	psoDesc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;	
 }
 
 void GraphicsPipeline::SetCullDisable()
