@@ -12,6 +12,7 @@
 #include"d3dx12.h"
 #include<d3dcompiler.h>
 #pragma comment(lib, "d3dcompiler.lib")
+#include<directxtex.h>
 
 // バッファのサイズをアラインメントする
 #define D3D12Allignment(buffSize) (buffSize + 0xff) & ~0xff;
@@ -511,7 +512,7 @@ Result Device::CreateTexture2D
 	heapProp.CreationNodeMask = 0;
 	heapProp.VisibleNodeMask = 0;
 
-	auto& metadata = texture.mMetaData;
+	auto& metadata = *texture.mMetaData;
 	D3D12_RESOURCE_DESC resDesc = {};
 	resDesc.Format = metadata.format;
 	resDesc.Width = metadata.width;
@@ -1525,14 +1526,18 @@ Texture2D::Texture2D()
 	mResource(nullptr),
 	mViewDesc({}),
 	mGPU_Handle({}),
-	mMetaData({}),
-	mImg({}),
+	mMetaData(nullptr),
+	mImg(nullptr),
 	mViewIncrementSize()
 {
 
 }
 
-Texture2D::~Texture2D() {}
+Texture2D::~Texture2D()
+{
+	System::SafeDelete(&mMetaData);
+	System::SafeDelete(&mImg);
+}
 
 #define ReturnIfSuccess(func)\
 {\
@@ -1545,12 +1550,15 @@ Texture2D::~Texture2D() {}
 
 Result Texture2D::LoadFromFile(const wchar_t* const filepath)
 {
+	mMetaData = new DirectX::TexMetadata();
+	mImg = new DirectX::ScratchImage();
+
 	ReturnIfSuccess
 	(
 		DirectX::LoadFromWICFile
 		(
 			filepath, DirectX::WIC_FLAGS_NONE,
-			&mMetaData, mImg
+			mMetaData, *mImg
 		)
 	);
 
@@ -1559,7 +1567,7 @@ Result Texture2D::LoadFromFile(const wchar_t* const filepath)
 		DirectX::LoadFromDDSFile
 		(
 			filepath, DirectX::DDS_FLAGS_NONE,
-			&mMetaData, mImg
+			mMetaData, *mImg
 		)
 	);
 
@@ -1568,7 +1576,7 @@ Result Texture2D::LoadFromFile(const wchar_t* const filepath)
 		DirectX::LoadFromTGAFile
 		(
 			filepath, DirectX::TGA_FLAGS_NONE,
-			&mMetaData, mImg
+			mMetaData, *mImg
 		)
 	);
 
@@ -1584,7 +1592,7 @@ const D3D12_GPU_DESCRIPTOR_HANDLE Texture2D::GetGPU_Handle(const int i) const
 
 Result Texture2D::WriteToSubresource()
 {
-	auto img = mImg.GetImage(0, 0, 0);
+	auto img = mImg->GetImage(0, 0, 0);
 	ReturnIfFailed
 	(
 		mResource->WriteToSubresource

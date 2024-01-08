@@ -18,7 +18,6 @@
 #include<tchar.h>
 #include<d3d12.h>
 #include<dxgi1_6.h>
-#include<directxtex.h>
 
 // エントリポイントを隠蔽
 // デバッグ情報をコンソールへ
@@ -28,6 +27,11 @@
 #define MAIN() WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif // _DEBUG
 
+namespace DirectX
+{
+	class TexMetadata;
+	class ScratchImage;
+}
 
 // WIN32APIのウィンドウ周りをラップ
 namespace GUI
@@ -712,8 +716,8 @@ namespace GUI
 			D3D12_SHADER_RESOURCE_VIEW_DESC mViewDesc;
 			D3D12_GPU_DESCRIPTOR_HANDLE mGPU_Handle;
 
-			DirectX::TexMetadata mMetaData;
-			DirectX::ScratchImage mImg;
+			DirectX::TexMetadata* mMetaData;
+			DirectX::ScratchImage* mImg;
 
 			int mViewIncrementSize;
 
