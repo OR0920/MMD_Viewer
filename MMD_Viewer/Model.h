@@ -98,13 +98,14 @@ private:
 	GUI::Result isSuccessLoad;
 
 	std::vector<std::string> mTexPath;
-	std::vector<std::string> mToonPath;
+	std::vector<std::wstring> mToonPath;
 
 	GUI::Graphics::Texture2D* mUniqueTexture;
 
 	// todo;
 	GUI::Graphics::Texture2D mDefaultTextureWhite;
 	GUI::Graphics::Texture2D mDefaultTextureBlack;
+	GUI::Graphics::Texture2D mDefaultTextureToon[10];
 };
 
 #endif // !_MODEL_H_

@@ -58,12 +58,10 @@ Model::Model(GUI::Graphics::Device& device)
 	inputLayout.SetDefaultNormalDesc();
 	inputLayout.SetDefaultUV_Desc();
 
-	mRootSignature.SetParameterCount(6);
+	mRootSignature.SetParameterCount(7);
 	mRootSignature.SetParamForCBV(0, 0);
 	mRootSignature.SetParamForCBV(1, 1);
 	mRootSignature.SetParamForCBV(2, 2);
-
-	//mRootSignature.SetParamForSRV(3, 0);
 
 	GUI::Graphics::DescriptorRange range;
 	range.SetRangeCount(1);
@@ -80,8 +78,14 @@ Model::Model(GUI::Graphics::Device& device)
 	spaRange.SetRangeForSRV(0, 2, 1);
 	mRootSignature.SetParamForDescriptorTable(5, spaRange);
 
-	mRootSignature.SetStaticSamplerCount(1);
+	GUI::Graphics::DescriptorRange toonRange;
+	toonRange.SetRangeCount(1);
+	toonRange.SetRangeForSRV(0, 3, 1);
+	mRootSignature.SetParamForDescriptorTable(6, toonRange);
+
+	mRootSignature.SetStaticSamplerCount(2);
 	mRootSignature.SetSamplerDefault(0, 0);
+	mRootSignature.SetSamplerUV_Clamp(1, 1);
 
 	mDevice.CreateRootSignature(mRootSignature);
 
@@ -96,17 +100,16 @@ Model::Model(GUI::Graphics::Device& device)
 
 	mToonPath =
 	{
-		"toon01.bmp",
-		"toon02.bmp",
-		"toon03.bmp",
-		"toon04.bmp",
-		"toon05.bmp",
-
-		"toon06.bmp",
-		"toon07.bmp",
-		"toon08.bmp",
-		"toon09.bmp",
-		"toon10.bmp",
+		L"DefaultTexture/toon01.bmp",
+		L"DefaultTexture/toon02.bmp",
+		L"DefaultTexture/toon03.bmp",
+		L"DefaultTexture/toon04.bmp",
+		L"DefaultTexture/toon05.bmp",
+		L"DefaultTexture/toon06.bmp",
+		L"DefaultTexture/toon07.bmp",
+		L"DefaultTexture/toon08.bmp",
+		L"DefaultTexture/toon09.bmp",
+		L"DefaultTexture/toon10.bmp",
 	};
 
 	
@@ -195,6 +198,22 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 		else
 		{
 			command.SetDescriptorTable(mDefaultTextureBlack, 5);
+		}
+
+		if (info.toonID!= -1)
+		{
+			if (info.isShared == true)
+			{
+				command.SetDescriptorTable(mDefaultTextureToon[info.toonID], 6);
+			}
+			else
+			{
+				command.SetDescriptorTable(mUniqueTexture[info.toonID], 6);
+			}
+		}
+		else
+		{
+			command.SetDescriptorTable(mDefaultTextureWhite, 6);
 		}
 
 		command.DrawTriangleList(indexCount, indexOffs);
@@ -388,7 +407,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 
 
 		mMaterialCount = file.GetMaterialCount();
-		auto descriptorCount = 1 + 1 + mMaterialCount + file.GetTextureCount() + 2;
+		auto descriptorCount = 1 + 1 + mMaterialCount + file.GetTextureCount() + 2 + 10;
 		if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
 		{
 			return GUI::Result::FAIL;
@@ -485,6 +504,21 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			return GUI::Result::FAIL;
 		}		
 
+		for (int i = 0; i < 10; ++i)
+		{
+			auto& t = mDefaultTextureToon[i];
+
+			if (t.LoadFromFile(mToonPath[i].c_str()) == GUI::Result::FAIL)
+			{
+				return GUI::Result::FAIL;
+			}
+
+			if (mDevice.CreateTexture2D(t, mHeap) == GUI::Result::FAIL)
+			{
+				return GUI::Result::FAIL;
+			}
+		}
+
 		return GUI::Result::SUCCESS;
 
 	}
@@ -501,7 +535,7 @@ GUI::Result Model::SetDefaultSceneData()
 	ModelTransform* mappedTransform = nullptr;
 	if (mTransformBuffer.Map(reinterpret_cast<void**>(&mappedTransform)) == GUI::Result::SUCCESS)
 	{
-		auto eye = MathUtil::Vector(0.f, 10.f, -50.f);
+		auto eye = MathUtil::Vector(0.f, 10.f, -20.f);
 		mappedTransform->world = MathUtil::Matrix::GenerateMatrixIdentity();
 		mappedTransform->view = MathUtil::Matrix::GenerateMatrixLookToLH
 		(

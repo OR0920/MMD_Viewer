@@ -35,9 +35,9 @@ float4 main(VS_Output input) : SV_TARGET
         diffuseB = 0.f;
     }
     
-    //float4 toonDiffse = toon.Sample(toonSmp, float2(0.f, 1 - diffuseB));
+    float4 toonDiffse = toon.Sample(toonSmp, float2(0.f, 1 - diffuseB));
 
-    float4 diffuseLight = float4(diffuse.rgb * diffuseB, diffuse.a);
+    float4 diffuseLight = float4(diffuse.rgb * toonDiffse.rgb, diffuse.a);
 
     float3 ref = reflect(light, input.normal.xyz);
     float3 toEye = normalize(input.ray);
