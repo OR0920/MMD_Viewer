@@ -96,7 +96,6 @@ int MAIN()
 			System::SafeDelete(&model);
 			model = new Model(device);
 			model->Load(fc.GetPath());
-			model->DebugOut();
 		}
 
 		command.BeginDraw();

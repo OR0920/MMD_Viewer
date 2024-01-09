@@ -112,7 +112,7 @@ Model::Model(GUI::Graphics::Device& device)
 		L"DefaultTexture/toon10.bmp",
 	};
 
-	
+
 }
 
 
@@ -135,6 +135,46 @@ GUI::Result Model::Load(const char* const filepath)
 	{
 		isSuccessLoad = GUI::Result::SUCCESS;
 	}
+	
+	if (isSuccessLoad == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
+	if (mDefaultTextureWhite.LoadFromFile(L"DefaultTexture/White.png") == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
+	if (mDevice.CreateTexture2D(mDefaultTextureWhite, mHeap) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
+	if (mDefaultTextureBlack.LoadFromFile(L"DefaultTexture/Black.png") == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
+	if (mDevice.CreateTexture2D(mDefaultTextureBlack, mHeap) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
+	for (int i = 0; i < 10; ++i)
+	{
+		auto& t = mDefaultTextureToon[i];
+
+		if (t.LoadFromFile(mToonPath[i].c_str()) == GUI::Result::FAIL)
+		{
+			return GUI::Result::FAIL;
+		}
+
+		if (mDevice.CreateTexture2D(t, mHeap) == GUI::Result::FAIL)
+		{
+			return GUI::Result::FAIL;
+		}
+	}
 
 	return isSuccessLoad;
 }
@@ -142,16 +182,6 @@ GUI::Result Model::Load(const char* const filepath)
 GUI::Result Model::IsSuccessLoad() const
 {
 	return isSuccessLoad;
-}
-
-const GUI::Graphics::VertexBuffer& Model::GetVB() const
-{
-	return mVB;
-}
-
-const GUI::Graphics::IndexBuffer& Model::GetIB() const
-{
-	return mIB;
 }
 
 void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
@@ -200,7 +230,7 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 			command.SetDescriptorTable(mDefaultTextureBlack, 5);
 		}
 
-		if (info.toonID!= -1)
+		if (info.toonID != -1)
 		{
 			if (info.isShared == true)
 			{
@@ -219,10 +249,6 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 		command.DrawTriangleList(indexCount, indexOffs);
 		indexOffs += indexCount;
 	}
-}
-
-void Model::DebugOut() const
-{
 }
 
 void Model::MaterialInfo::Load(const MMDsdk::PmdFile::Material& data)
@@ -260,73 +286,79 @@ void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
 GUI::Result Model::LoadPMD(const char* const filepath)
 {
 	MMDsdk::PmdFile file(filepath);
-	if (file.IsSuccessLoad() == true)
+	if (file.IsSuccessLoad() == false)
 	{
-		auto vCount = file.GetVertexCount();
-		ModelVertex* mesh = new ModelVertex[vCount];
-		for (int i = 0; i < vCount; ++i)
-		{
-			mesh[i].Load(file.GetVertex(i));
-		}
+		return GUI::Result::FAIL;
+	}
 
-		if (mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vCount) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&mesh);
-			return GUI::Result::FAIL;
-		};
+	auto vCount = file.GetVertexCount();
+	ModelVertex* mesh = new ModelVertex[vCount];
+	for (int i = 0; i < vCount; ++i)
+	{
+		mesh[i].Load(file.GetVertex(i));
+	}
 
-		if (mVB.Copy(mesh) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&mesh);
-			return GUI::Result::FAIL;
-		}
-
+	if (mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vCount) == GUI::Result::FAIL)
+	{
 		System::SafeDeleteArray(&mesh);
+		return GUI::Result::FAIL;
+	};
 
-		auto iCount = file.GetIndexCount();
-		int* index = new int[iCount];
-		for (int i = 0; i < iCount; ++i)
-		{
-			index[i] = file.GetIndex(i);
-		}
+	if (mVB.Copy(mesh) == GUI::Result::FAIL)
+	{
+		System::SafeDeleteArray(&mesh);
+		return GUI::Result::FAIL;
+	}
 
-		if (mDevice.CreateIndexBuffer(mIB, sizeof(int), iCount) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&index);
-			return GUI::Result::FAIL;
-		}
+	System::SafeDeleteArray(&mesh);
 
-		if (mIB.Copy(index) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&index);
-			return GUI::Result::FAIL;
-		}
+	auto iCount = file.GetIndexCount();
+	int* index = new int[iCount];
+	for (int i = 0; i < iCount; ++i)
+	{
+		index[i] = file.GetIndex(i);
+	}
 
+	if (mDevice.CreateIndexBuffer(mIB, sizeof(int), iCount) == GUI::Result::FAIL)
+	{
 		System::SafeDeleteArray(&index);
+		return GUI::Result::FAIL;
+	}
+
+	if (mIB.Copy(index) == GUI::Result::FAIL)
+	{
+		System::SafeDeleteArray(&index);
+		return GUI::Result::FAIL;
+	}
+
+	System::SafeDeleteArray(&index);
 
 
 
-		mMaterialCount = file.GetMaterialCount();
-		auto descriptorCount = 1 + 1 + mMaterialCount;
-		if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
+	mMaterialCount = file.GetMaterialCount();
+	auto descriptorCount = 1 + 1 + mMaterialCount + 2 + 10;
 
-		if (mDevice.CreateConstantBuffer(mTransformBuffer, mHeap, sizeof(ModelTransform)) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
+	if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
 
-		if (mDevice.CreateConstantBuffer(mPS_DataBuffer, mHeap, sizeof(PixelShaderData)) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
+	if (mDevice.CreateConstantBuffer(mTransformBuffer, mHeap, sizeof(ModelTransform)) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
 
+	if (mDevice.CreateConstantBuffer(mPS_DataBuffer, mHeap, sizeof(PixelShaderData)) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
+	if (mMaterialCount != 0)
+	{
 		if (mDevice.CreateConstantBuffer(mMaterialBuffer, mHeap, sizeof(Material), mMaterialCount) == GUI::Result::FAIL)
 		{
 			return GUI::Result::FAIL;
-		};
+		}
 
 		unsigned char* mappedMaterial = nullptr;
 		System::SafeDeleteArray(&mMaterialInfo);
@@ -348,186 +380,141 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		{
 			return GUI::Result::FAIL;
 		}
+	}
 
-		return GUI::Result::SUCCESS;
-	}
-	else
-	{
-		return GUI::Result::FAIL;
-	}
+	return GUI::Result::SUCCESS;
 }
 
 
 GUI::Result Model::LoadPMX(const char* const filepath)
 {
 	MMDsdk::PmxFile file(filepath);
-	if (file.IsSuccessLoad() == true)
+	if (file.IsSuccessLoad() == false)
 	{
-		auto vCount = file.GetVertexCount();
-		ModelVertex* mesh = new ModelVertex[vCount];
-		for (int i = 0; i < vCount; ++i)
-		{
-			mesh[i].Load(file.GetVertex(i));
-		}
+		return GUI::Result::FAIL;
+	}
 
-		if (mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vCount) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&mesh);
-			return GUI::Result::FAIL;
-		};
+	auto vCount = file.GetVertexCount();
+	ModelVertex* mesh = new ModelVertex[vCount];
+	for (int i = 0; i < vCount; ++i)
+	{
+		mesh[i].Load(file.GetVertex(i));
+	}
 
-		if (mVB.Copy(mesh) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&mesh);
-			return GUI::Result::FAIL;
-		}
-
+	if (mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vCount) == GUI::Result::FAIL)
+	{
 		System::SafeDeleteArray(&mesh);
+		return GUI::Result::FAIL;
+	};
 
-		auto iCount = file.GetIndexCount();
-		int* index = new int[iCount];
-		for (int i = 0; i < iCount; ++i)
-		{
-			index[i] = file.GetIndex(i);
-		}
+	if (mVB.Copy(mesh) == GUI::Result::FAIL)
+	{
+		System::SafeDeleteArray(&mesh);
+		return GUI::Result::FAIL;
+	}
 
-		if (mDevice.CreateIndexBuffer(mIB, sizeof(int), iCount) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&index);
-			return GUI::Result::FAIL;
-		}
+	System::SafeDeleteArray(&mesh);
 
-		if (mIB.Copy(index) == GUI::Result::FAIL)
-		{
-			System::SafeDeleteArray(&index);
-			return GUI::Result::FAIL;
-		}
+	auto iCount = file.GetIndexCount();
+	int* index = new int[iCount];
+	for (int i = 0; i < iCount; ++i)
+	{
+		index[i] = file.GetIndex(i);
+	}
 
+	if (mDevice.CreateIndexBuffer(mIB, sizeof(int), iCount) == GUI::Result::FAIL)
+	{
 		System::SafeDeleteArray(&index);
+		return GUI::Result::FAIL;
+	}
+
+	if (mIB.Copy(index) == GUI::Result::FAIL)
+	{
+		System::SafeDeleteArray(&index);
+		return GUI::Result::FAIL;
+	}
+
+	System::SafeDeleteArray(&index);
 
 
-		mMaterialCount = file.GetMaterialCount();
-		auto descriptorCount = 1 + 1 + mMaterialCount + file.GetTextureCount() + 2 + 10;
-		if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
+	mMaterialCount = file.GetMaterialCount();
+	auto descriptorCount = 1 + 1 + mMaterialCount + file.GetTextureCount() + 2 + 10;
+	if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
+	if (mDevice.CreateConstantBuffer(mTransformBuffer, mHeap, sizeof(ModelTransform)) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
+	if (mDevice.CreateConstantBuffer(mPS_DataBuffer, mHeap, sizeof(PixelShaderData)) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
+	if (mDevice.CreateConstantBuffer(mMaterialBuffer, mHeap, sizeof(Material), mMaterialCount) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	};
+
+
+	unsigned char* mappedMaterial = nullptr;
+	System::SafeDeleteArray(&mMaterialInfo);
+	if (mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)) == GUI::Result::SUCCESS)
+	{
+		mMaterialInfo = new MaterialInfo[mMaterialCount]{};
+		for (int i = 0; i < mMaterialCount; ++i)
 		{
-			return GUI::Result::FAIL;
+			auto& m = file.GetMaterial(i);
+
+			reinterpret_cast<Material*>(mappedMaterial)->Load(m);
+			mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
+
+			mMaterialInfo[i].Load(m);
 		}
-
-		if (mDevice.CreateConstantBuffer(mTransformBuffer, mHeap, sizeof(ModelTransform)) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
-
-		if (mDevice.CreateConstantBuffer(mPS_DataBuffer, mHeap, sizeof(PixelShaderData)) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
-
-		if (mDevice.CreateConstantBuffer(mMaterialBuffer, mHeap, sizeof(Material), mMaterialCount) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		};
-
-
-		unsigned char* mappedMaterial = nullptr;
-		System::SafeDeleteArray(&mMaterialInfo);
-		if (mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)) == GUI::Result::SUCCESS)
-		{
-			mMaterialInfo = new MaterialInfo[mMaterialCount]{};
-			for (int i = 0; i < mMaterialCount; ++i)
-			{
-				auto& m = file.GetMaterial(i);
-
-				reinterpret_cast<Material*>(mappedMaterial)->Load(m);
-				mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
-
-				mMaterialInfo[i].Load(m);
-			}
-			mMaterialBuffer.Unmap();
-		}
-		else
-		{
-			return GUI::Result::FAIL;
-		}
-
-		std::string dirPath = file.GetDirectoryPath();
-
-		mTexPath.resize(file.GetTextureCount());
-		for (int i = 0; i < mTexPath.size(); ++i)
-		{
-			std::string path = file.GetTexturePath(i).GetText();
-			mTexPath[i] = dirPath + path;
-		}
-
-		mUniqueTexture = new GUI::Graphics::Texture2D[file.GetTextureCount()]{};
-		for (int i = 0; i < file.GetTextureCount(); ++i)
-		{
-			char* tFilePath = nullptr;
-			System::newArray_CopyAssetPath(&tFilePath, file.GetDirectoryPath(), file.GetTexturePath(i).GetText());
-			wchar_t* filepath = nullptr;
-			System::newArray_CreateWideCharStrFromMultiByteStr(&filepath, tFilePath);
-
-			if (mUniqueTexture[i].LoadFromFile(filepath) == GUI::Result::FAIL)
-			{
-				System::SafeDeleteArray(&tFilePath);
-				System::SafeDeleteArray(&filepath);
-				return GUI::Result::FAIL;
-			}
-
-			if (mDevice.CreateTexture2D(mUniqueTexture[i], mHeap) == GUI::Result::FAIL)
-			{
-				return GUI::Result::FAIL;
-			}
-
-			System::SafeDeleteArray(&tFilePath);
-			System::SafeDeleteArray(&filepath);
-		}
-
-
-		if (mDefaultTextureWhite.LoadFromFile(L"DefaultTexture/White.png") == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
-
-		if (mDevice.CreateTexture2D(mDefaultTextureWhite, mHeap) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
-
-		if (mDefaultTextureBlack.LoadFromFile(L"DefaultTexture/Black.png") == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
-
-		if (mDevice.CreateTexture2D(mDefaultTextureBlack, mHeap) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}		
-
-		for (int i = 0; i < 10; ++i)
-		{
-			auto& t = mDefaultTextureToon[i];
-
-			if (t.LoadFromFile(mToonPath[i].c_str()) == GUI::Result::FAIL)
-			{
-				return GUI::Result::FAIL;
-			}
-
-			if (mDevice.CreateTexture2D(t, mHeap) == GUI::Result::FAIL)
-			{
-				return GUI::Result::FAIL;
-			}
-		}
-
-		return GUI::Result::SUCCESS;
-
+		mMaterialBuffer.Unmap();
 	}
 	else
 	{
 		return GUI::Result::FAIL;
 	}
 
+	std::string dirPath = file.GetDirectoryPath();
 
+	mTexPath.resize(file.GetTextureCount());
+	for (int i = 0; i < mTexPath.size(); ++i)
+	{
+		std::string path = file.GetTexturePath(i).GetText();
+		mTexPath[i] = dirPath + path;
+	}
+
+	mUniqueTexture = new GUI::Graphics::Texture2D[file.GetTextureCount()]{};
+	for (int i = 0; i < file.GetTextureCount(); ++i)
+	{
+		char* tFilePath = nullptr;
+		System::newArray_CopyAssetPath(&tFilePath, file.GetDirectoryPath(), file.GetTexturePath(i).GetText());
+		wchar_t* filepath = nullptr;
+		System::newArray_CreateWideCharStrFromMultiByteStr(&filepath, tFilePath);
+
+		if (mUniqueTexture[i].LoadFromFile(filepath) == GUI::Result::FAIL)
+		{
+			System::SafeDeleteArray(&tFilePath);
+			System::SafeDeleteArray(&filepath);
+			return GUI::Result::FAIL;
+		}
+
+		if (mDevice.CreateTexture2D(mUniqueTexture[i], mHeap) == GUI::Result::FAIL)
+		{
+			return GUI::Result::FAIL;
+		}
+
+		System::SafeDeleteArray(&tFilePath);
+		System::SafeDeleteArray(&filepath);
+	}
+
+	return GUI::Result::SUCCESS;
 }
 
 GUI::Result Model::SetDefaultSceneData()
