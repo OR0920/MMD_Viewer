@@ -95,6 +95,10 @@ private:
 
 	GUI::Result LoadPMD(const char* const filepath);
 	GUI::Result LoadPMX(const char* const filepath);
+
+	GUI::Result CreateVertexBuffer(const ModelVertex vertex[], const int vertexCount);
+	GUI::Result CreateIndexBuffer(const int index[], const int indexCount);
+
 	GUI::Result isSuccessLoad;
 
 	std::vector<std::string> mTexPath;

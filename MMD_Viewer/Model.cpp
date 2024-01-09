@@ -292,52 +292,45 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	}
 
 	auto vCount = file.GetVertexCount();
-	ModelVertex* mesh = new ModelVertex[vCount];
-	for (int i = 0; i < vCount; ++i)
+	if (vCount != 0)
 	{
-		mesh[i].Load(file.GetVertex(i));
+		ModelVertex* mesh = new ModelVertex[vCount];
+		for (int i = 0; i < vCount; ++i)
+		{
+			mesh[i].Load(file.GetVertex(i));
+		}
+
+		if (CreateVertexBuffer(mesh, vCount) == GUI::Result::FAIL)
+		{
+			System::SafeDeleteArray(&mesh);
+			return GUI::Result::FAIL;
+		}
+
+		System::SafeDeleteArray(&mesh);
 	}
 
-	if (mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vCount) == GUI::Result::FAIL)
-	{
-		System::SafeDeleteArray(&mesh);
-		return GUI::Result::FAIL;
-	};
-
-	if (mVB.Copy(mesh) == GUI::Result::FAIL)
-	{
-		System::SafeDeleteArray(&mesh);
-		return GUI::Result::FAIL;
-	}
-
-	System::SafeDeleteArray(&mesh);
 
 	auto iCount = file.GetIndexCount();
-	int* index = new int[iCount];
-	for (int i = 0; i < iCount; ++i)
+	if (iCount != 0)
 	{
-		index[i] = file.GetIndex(i);
-	}
+		int* index = new int[iCount];
+		for (int i = 0; i < iCount; ++i)
+		{
+			index[i] = file.GetIndex(i);
+		}
 
-	if (mDevice.CreateIndexBuffer(mIB, sizeof(int), iCount) == GUI::Result::FAIL)
-	{
+		if (CreateIndexBuffer(index, iCount) == GUI::Result::FAIL)
+		{
+			System::SafeDeleteArray(&index);
+			return GUI::Result::FAIL;
+		}
+
 		System::SafeDeleteArray(&index);
-		return GUI::Result::FAIL;
 	}
-
-	if (mIB.Copy(index) == GUI::Result::FAIL)
-	{
-		System::SafeDeleteArray(&index);
-		return GUI::Result::FAIL;
-	}
-
-	System::SafeDeleteArray(&index);
-
 
 
 	mMaterialCount = file.GetMaterialCount();
 	auto descriptorCount = 1 + 1 + mMaterialCount + 2 + 10;
-
 	if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
@@ -394,26 +387,26 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 		return GUI::Result::FAIL;
 	}
 
+	
 	auto vCount = file.GetVertexCount();
-	ModelVertex* mesh = new ModelVertex[vCount];
-	for (int i = 0; i < vCount; ++i)
+	if (vCount != 0)
 	{
-		mesh[i].Load(file.GetVertex(i));
+		ModelVertex* mesh = new ModelVertex[vCount];
+		for (int i = 0; i < vCount; ++i)
+		{
+			mesh[i].Load(file.GetVertex(i));
+		}
+
+		if (CreateVertexBuffer(mesh, vCount) == GUI::Result::FAIL)
+		{
+			System::SafeDeleteArray(&mesh);
+			return GUI::Result::FAIL;
+		}
+
+	
+		System::SafeDeleteArray(&mesh);
 	}
 
-	if (mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vCount) == GUI::Result::FAIL)
-	{
-		System::SafeDeleteArray(&mesh);
-		return GUI::Result::FAIL;
-	};
-
-	if (mVB.Copy(mesh) == GUI::Result::FAIL)
-	{
-		System::SafeDeleteArray(&mesh);
-		return GUI::Result::FAIL;
-	}
-
-	System::SafeDeleteArray(&mesh);
 
 	auto iCount = file.GetIndexCount();
 	int* index = new int[iCount];
@@ -515,6 +508,34 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 	}
 
 	return GUI::Result::SUCCESS;
+}
+
+GUI::Result Model::CreateVertexBuffer(const ModelVertex vertex[], const int vertexCount)
+{
+	if (mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vertexCount) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	};
+
+	if (mVB.Copy(vertex) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
+	return GUI::Result::SUCCESS;
+}
+
+GUI::Result Model::CreateIndexBuffer(const int index[], const int indexCount)
+{
+	if (mDevice.CreateIndexBuffer(mIB, sizeof(int), indexCount) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
+	if (mIB.Copy(index) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
 }
 
 GUI::Result Model::SetDefaultSceneData()
