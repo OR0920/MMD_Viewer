@@ -127,6 +127,8 @@ GUI::Result Model::Load(const char* const filepath)
 {
 	isSuccessLoad = GUI::Result::FAIL;
 
+	mDescriptorCount = sDefaultTextureCount + sSceneDataCount;
+
 	if (LoadPMD(filepath) == GUI::Result::SUCCESS)
 	{
 		isSuccessLoad = GUI::Result::SUCCESS;
@@ -140,6 +142,18 @@ GUI::Result Model::Load(const char* const filepath)
 	{
 		return GUI::Result::FAIL;
 	}
+
+
+	if (mDevice.CreateConstantBuffer(mTransformBuffer, mHeap, sizeof(ModelTransform)) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
+	if (mDevice.CreateConstantBuffer(mPS_DataBuffer, mHeap, sizeof(PixelShaderData)) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
 
 	if (mDefaultTextureWhite.LoadFromFile(L"DefaultTexture/White.png") == GUI::Result::FAIL)
 	{
@@ -330,21 +344,13 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 
 	mMaterialCount = file.GetMaterialCount();
-	auto descriptorCount = 1 + 1 + mMaterialCount + 2 + 10;
-	if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
+
+	mDescriptorCount += mMaterialCount;
+	if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
 	}
 
-	if (mDevice.CreateConstantBuffer(mTransformBuffer, mHeap, sizeof(ModelTransform)) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
-
-	if (mDevice.CreateConstantBuffer(mPS_DataBuffer, mHeap, sizeof(PixelShaderData)) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
 
 	if (mMaterialCount != 0)
 	{
@@ -431,18 +437,9 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 
 
 	mMaterialCount = file.GetMaterialCount();
-	auto descriptorCount = 1 + 1 + mMaterialCount + file.GetTextureCount() + 2 + 10;
-	if (mDevice.CreateDescriptorHeap(mHeap, descriptorCount) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
+	mDescriptorCount += mMaterialCount + file.GetTextureCount();
 
-	if (mDevice.CreateConstantBuffer(mTransformBuffer, mHeap, sizeof(ModelTransform)) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
-
-	if (mDevice.CreateConstantBuffer(mPS_DataBuffer, mHeap, sizeof(PixelShaderData)) == GUI::Result::FAIL)
+	if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
 	}
@@ -451,7 +448,6 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 	{
 		return GUI::Result::FAIL;
 	};
-
 
 	unsigned char* mappedMaterial = nullptr;
 	System::SafeDeleteArray(&mMaterialInfo);

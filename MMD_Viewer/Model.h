@@ -67,6 +67,10 @@ private:
 	GUI::Graphics::VertexBuffer mVB;
 	GUI::Graphics::IndexBuffer mIB;
 
+	static const int sDefaultTextureCount = 12;
+	static const int sSceneDataCount = 2;
+
+	int mDescriptorCount;
 	GUI::Graphics::DescriptorHeap mHeap;
 	GUI::Graphics::ConstantBuffer mTransformBuffer;
 	GUI::Graphics::ConstantBuffer mPS_DataBuffer;
@@ -98,6 +102,8 @@ private:
 
 	GUI::Result CreateVertexBuffer(const ModelVertex vertex[], const int vertexCount);
 	GUI::Result CreateIndexBuffer(const int index[], const int indexCount);
+
+	
 
 	GUI::Result isSuccessLoad;
 
