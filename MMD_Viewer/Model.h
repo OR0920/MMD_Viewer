@@ -64,7 +64,8 @@ private:
 	GUI::Graphics::VertexBuffer mVB;
 	GUI::Graphics::IndexBuffer mIB;
 
-	static const int sDefaultTextureCount = 12;
+	static const int sDefaultTextureCount = 2;
+	static const int sDefaultToonTextureCount = 10;
 	static const int sSceneDataCount = 2;
 
 	int mDescriptorCount;

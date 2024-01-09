@@ -127,7 +127,7 @@ GUI::Result Model::Load(const char* const filepath)
 {
 	isSuccessLoad = GUI::Result::FAIL;
 
-	mDescriptorCount = sDefaultTextureCount + sSceneDataCount;
+	mDescriptorCount = sDefaultTextureCount + sDefaultToonTextureCount + sSceneDataCount;
 
 	if (LoadPMD(filepath) == GUI::Result::SUCCESS)
 	{
@@ -143,6 +143,7 @@ GUI::Result Model::Load(const char* const filepath)
 		return GUI::Result::FAIL;
 	}
 
+	DebugMessage("Model Load Succeeded !");
 
 	if (mDevice.CreateConstantBuffer(mTransformBuffer, mHeap, sizeof(ModelTransform)) == GUI::Result::FAIL)
 	{
@@ -153,7 +154,6 @@ GUI::Result Model::Load(const char* const filepath)
 	{
 		return GUI::Result::FAIL;
 	}
-
 
 	if (mDefaultTextureWhite.LoadFromFile(L"DefaultTexture/White.png") == GUI::Result::FAIL)
 	{
@@ -268,8 +268,8 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 void Model::MaterialInfo::Load(const MMDsdk::PmdFile::Material& data)
 {
 	materialIndexCount = data.vertexCount;
-	toonID = data.toonIndex;
-	isShared = true;
+	toonID = static_cast<int>(data.toonIndex);
+	isShared == true;
 }
 
 void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
@@ -346,22 +346,26 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	mMaterialCount = file.GetMaterialCount();
 
 	mDescriptorCount += mMaterialCount;
+
+	DebugOutParam(mMaterialCount);
+
 	if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
 	}
 
-
 	if (mMaterialCount != 0)
 	{
 		Material* material = new Material[mMaterialCount];
-		mMaterialInfo = new MaterialInfo[mMaterialCount]{};
+		mMaterialInfo = new MaterialInfo[mMaterialCount];
 
 		for (int i = 0; i < mMaterialCount; ++i)
 		{
 			auto& m = file.GetMaterial(i);
 			material[i].Load(m);
 			mMaterialInfo[i].Load(m);
+
+			DebugOutString(m.texturePath.GetText());
 		}
 
 		if (CreateMaterialBuffer(material, mMaterialCount) == GUI::Result::FAIL)
@@ -434,7 +438,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 	{
 		Material* material = new Material[mMaterialCount];
 		mMaterialInfo = new MaterialInfo[mMaterialCount];
-		
+
 		for (int i = 0; i < mMaterialCount; ++i)
 		{
 			auto& m = file.GetMaterial(i);
@@ -464,7 +468,6 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			}
 		}
 	}
-	
 
 	return GUI::Result::SUCCESS;
 }

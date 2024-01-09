@@ -256,7 +256,7 @@ namespace MMDsdk
 			float3 ambient = {};
 
 			// 共有テクスチャのID
-			uint8_t toonIndex = 0;
+			int8_t toonIndex = 0;
 
 			// 輪郭を表示するか 
 			// なぜか頂点データとフラグが逆。何故？ //
