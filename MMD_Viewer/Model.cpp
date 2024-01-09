@@ -137,7 +137,7 @@ GUI::Result Model::Load(const char* const filepath)
 	{
 		isSuccessLoad = GUI::Result::SUCCESS;
 	}
-	
+
 	if (isSuccessLoad == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
@@ -354,28 +354,17 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 	if (mMaterialCount != 0)
 	{
-		if (mDevice.CreateConstantBuffer(mMaterialBuffer, mHeap, sizeof(Material), mMaterialCount) == GUI::Result::FAIL)
+		Material* material = new Material[mMaterialCount];
+		mMaterialInfo = new MaterialInfo[mMaterialCount]{};
+
+		for (int i = 0; i < mMaterialCount; ++i)
 		{
-			return GUI::Result::FAIL;
+			auto& m = file.GetMaterial(i);
+			material[i].Load(m);
+			mMaterialInfo[i].Load(m);
 		}
 
-		unsigned char* mappedMaterial = nullptr;
-		System::SafeDeleteArray(&mMaterialInfo);
-		if (mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)) == GUI::Result::SUCCESS)
-		{
-			mMaterialInfo = new MaterialInfo[mMaterialCount]{};
-			for (int i = 0; i < mMaterialCount; ++i)
-			{
-				auto& m = file.GetMaterial(i);
-
-				reinterpret_cast<Material*>(mappedMaterial)->Load(m);
-				mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
-
-				mMaterialInfo[i].Load(m);
-			}
-			mMaterialBuffer.Unmap();
-		}
-		else
+		if (CreateMaterialBuffer(material, mMaterialCount) == GUI::Result::FAIL)
 		{
 			return GUI::Result::FAIL;
 		}
@@ -393,7 +382,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 		return GUI::Result::FAIL;
 	}
 
-	
+
 	auto vCount = file.GetVertexCount();
 	if (vCount != 0)
 	{
@@ -409,34 +398,30 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			return GUI::Result::FAIL;
 		}
 
-	
+
 		System::SafeDeleteArray(&mesh);
 	}
 
-
 	auto iCount = file.GetIndexCount();
-	int* index = new int[iCount];
-	for (int i = 0; i < iCount; ++i)
+	if (iCount != 0)
 	{
-		index[i] = file.GetIndex(i);
-	}
+		int* index = new int[iCount];
+		for (int i = 0; i < iCount; ++i)
+		{
+			index[i] = file.GetIndex(i);
+		}
 
-	if (mDevice.CreateIndexBuffer(mIB, sizeof(int), iCount) == GUI::Result::FAIL)
-	{
+		if (CreateIndexBuffer(index, iCount) == GUI::Result::FAIL)
+		{
+			System::SafeDeleteArray(&index);
+			return GUI::Result::FAIL;
+		}
+
 		System::SafeDeleteArray(&index);
-		return GUI::Result::FAIL;
 	}
-
-	if (mIB.Copy(index) == GUI::Result::FAIL)
-	{
-		System::SafeDeleteArray(&index);
-		return GUI::Result::FAIL;
-	}
-
-	System::SafeDeleteArray(&index);
-
 
 	mMaterialCount = file.GetMaterialCount();
+
 	mDescriptorCount += mMaterialCount + file.GetTextureCount();
 
 	if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
@@ -444,39 +429,26 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 		return GUI::Result::FAIL;
 	}
 
-	if (mDevice.CreateConstantBuffer(mMaterialBuffer, mHeap, sizeof(Material), mMaterialCount) == GUI::Result::FAIL)
+	if (mMaterialCount != 0)
 	{
-		return GUI::Result::FAIL;
-	};
-
-	unsigned char* mappedMaterial = nullptr;
-	System::SafeDeleteArray(&mMaterialInfo);
-	if (mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)) == GUI::Result::SUCCESS)
-	{
-		mMaterialInfo = new MaterialInfo[mMaterialCount]{};
+		Material* material = new Material[mMaterialCount];
+		mMaterialInfo = new MaterialInfo[mMaterialCount];
+		
 		for (int i = 0; i < mMaterialCount; ++i)
 		{
 			auto& m = file.GetMaterial(i);
 
-			reinterpret_cast<Material*>(mappedMaterial)->Load(m);
-			mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
-
+			material[i].Load(m);
 			mMaterialInfo[i].Load(m);
 		}
-		mMaterialBuffer.Unmap();
-	}
-	else
-	{
-		return GUI::Result::FAIL;
-	}
 
-	std::string dirPath = file.GetDirectoryPath();
+		if (CreateMaterialBuffer(material, mMaterialCount) == GUI::Result::FAIL)
+		{
+			System::SafeDeleteArray(&material);
+			return GUI::Result::FAIL;
+		}
 
-	mTexPath.resize(file.GetTextureCount());
-	for (int i = 0; i < mTexPath.size(); ++i)
-	{
-		std::string path = file.GetTexturePath(i).GetText();
-		mTexPath[i] = dirPath + path;
+		System::SafeDeleteArray(&material);
 	}
 
 	mUniqueTexture = new GUI::Graphics::Texture2D[file.GetTextureCount()]{};
@@ -532,6 +504,30 @@ GUI::Result Model::CreateIndexBuffer(const int index[], const int indexCount)
 	{
 		return GUI::Result::FAIL;
 	}
+
+	return GUI::Result::SUCCESS;
+}
+
+GUI::Result Model::CreateMaterialBuffer(const Material material[], const int materialCount)
+{
+	if (mDevice.CreateConstantBuffer(mMaterialBuffer, mHeap, sizeof(Material), materialCount) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
+	unsigned char* mappedMaterial = nullptr;
+	if (mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)) == GUI::Result::SUCCESS)
+	{
+		for (int i = 0; i < materialCount; ++i)
+		{
+			*reinterpret_cast<Material*>(mappedMaterial) = material[i];
+			mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
+		}
+
+		return GUI::Result::SUCCESS;
+	}
+
+	return GUI::Result::FAIL;
 }
 
 GUI::Result Model::SetDefaultSceneData()
@@ -539,7 +535,7 @@ GUI::Result Model::SetDefaultSceneData()
 	ModelTransform* mappedTransform = nullptr;
 	if (mTransformBuffer.Map(reinterpret_cast<void**>(&mappedTransform)) == GUI::Result::SUCCESS)
 	{
-		auto eye = MathUtil::Vector(0.f, 10.f, -20.f);
+		auto eye = MathUtil::Vector(0.f, 10.f, -30.f);
 		mappedTransform->world = MathUtil::Matrix::GenerateMatrixIdentity();
 		mappedTransform->view = MathUtil::Matrix::GenerateMatrixLookToLH
 		(

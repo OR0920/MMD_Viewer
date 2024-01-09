@@ -53,14 +53,11 @@ public:
 
 	GUI::Result	Load(const char* const filepath);
 	GUI::Result IsSuccessLoad() const;
-	const GUI::Graphics::VertexBuffer& GetVB() const;
-	const GUI::Graphics::IndexBuffer& GetIB() const;
 
 	GUI::Result SetDefaultSceneData();
 
 	void Draw(GUI::Graphics::GraphicsCommand& command) const;
 
-	void DebugOut() const;
 private:
 	GUI::Graphics::Device& mDevice;
 
@@ -79,7 +76,7 @@ private:
 
 	struct MaterialInfo
 	{
-		int materialIndexCount;
+		int materialIndexCount = 0;
 		int texID = -1;
 		int sphID = -1;
 		int spaID = -1;
@@ -89,6 +86,7 @@ private:
 		void Load(const MMDsdk::PmdFile::Material& data);
 		void Load(const MMDsdk::PmxFile::Material& data);
 	};
+
 	MaterialInfo* mMaterialInfo;
 
 	int mMaterialCount;
@@ -102,8 +100,7 @@ private:
 
 	GUI::Result CreateVertexBuffer(const ModelVertex vertex[], const int vertexCount);
 	GUI::Result CreateIndexBuffer(const int index[], const int indexCount);
-
-	
+	GUI::Result CreateMaterialBuffer(const Material material[], const int materialCount);
 
 	GUI::Result isSuccessLoad;
 
