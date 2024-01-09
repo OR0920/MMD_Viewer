@@ -402,13 +402,6 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 				System::newArray_CreateWideCharStrFromMultiByteStr(&wtp, tp);
 				wchar_t* ext = PathFindExtension(wtp);
 
-				DebugOutStringWide(ext);
-
-				if (System::StringEqual(L"!!‚©‚«‚­‚¯‚±", L"!!‚ ‚¢‚¤‚¦‚¨") == true)
-				{
-					DebugMessage("Wrong Result");
-					DebugMessageNewLine();
-				}
 				auto& p = paths[i];
 				auto& mifo = mMaterialInfo[i];
 				if (System::StringEqual(ext, L".sph") == true)
@@ -432,12 +425,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 				System::SafeDeleteArray(&wtp);
 			}
-
-			DebugOutString(tp);
 		}
-
-		DebugOutParam(tCount);
-		DebugOutParam(mMaterialCount);
 
 		mDescriptorCount += mMaterialCount + tCount;
 		if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
@@ -466,10 +454,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		for (int i = 0; i < mMaterialCount; ++i)
 		{
 			auto p = paths[i];
-			DebugOutString(p.tex);
-			DebugOutString(p.sph);
-			DebugOutString(p.spa);
-
+			
 			if (p.tex != nullptr)
 			{
 				if (CreateTexture(file.GetDirectoryPath(), p.tex, texID) == GUI::Result::FAIL)
@@ -487,6 +472,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 					System::SafeDeleteArray(&paths);
 					return GUI::Result::FAIL;
 				}
+				texID++;
 			}
 
 			if (p.spa != nullptr)
@@ -496,6 +482,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 					System::SafeDeleteArray(&paths);
 					return GUI::Result::FAIL;
 				}
+				texID++;
 			}
 		}	
 	}
