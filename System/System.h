@@ -42,6 +42,10 @@ namespace System
 	int GetStringLength(const char* const text);
 	int GetStringLength(const wchar_t* const text);
 
+	// ファイルの拡張を取得する
+	const char* const GetExt(const char* const filename);
+	const wchar_t* const GetExt(const wchar_t* const filename);
+
 	// ディレクトリのパスを取得する関数
 	// dirpath	:ディレクトリのパスを受け取るポインタ nullptrであること。内部でnew[]されるので、必ずdelete[]すること
 	// filepath :元のポインタ

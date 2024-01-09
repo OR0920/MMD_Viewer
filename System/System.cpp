@@ -6,6 +6,8 @@
 
 // winapi
 #include<Windows.h>
+#include<Shlwapi.h>
+#pragma comment(lib, "shlwapi.lib")
 
 #define IS_USED_PTR(ptr)\
 if(ptr != nullptr)\
@@ -41,6 +43,16 @@ bool System::StringEqual(const wchar_t* const _str1, const wchar_t* const _str2)
 bool System::StringEqual(const char16_t* const _str1, const char16_t* const _str2)
 {
 	return StringEqual(reinterpret_cast<const wchar_t* const>(_str1), reinterpret_cast<const wchar_t* const>(_str2));
+}
+
+const char* const System::GetExt(const char* const filename)
+{
+	return PathFindExtensionA(filename);
+}
+
+const wchar_t* const System::GetExt(const wchar_t* const filename)
+{
+	return PathFindExtension(filename);
 }
 
 void System::newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const filepath)

@@ -32,6 +32,14 @@ namespace SystemTest
 			Assert::IsFalse(StringEqual(L".bmp", L".sph"));
 		}
 
+		TEST_METHOD(GetExtTest)
+		{
+			Assert::IsTrue(StringEqual(".ext", GetExt("filename.ext")));
+			Assert::IsFalse(StringEqual(".ext", GetExt("filename.text")));
+			Assert::IsTrue(StringEqual(L".ext", GetExt(L"filename.ext")));
+			Assert::IsFalse(StringEqual(L".ext", GetExt(L"filename.text")));
+		}
+
 		TEST_METHOD(CopyDirectoryPathTest)
 		{
 			const char* filepath = "TestRoot/TestDir/TestFilePath.file";
