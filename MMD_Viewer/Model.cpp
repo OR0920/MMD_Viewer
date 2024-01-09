@@ -367,14 +367,24 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	}
 
 
-	const char** texpath = nullptr;
+	struct TexPaths
+	{
+		const char* tex = nullptr;
+		const char* sph = nullptr;
+		const char* spa = nullptr;
+	};
+
+	TexPaths* paths = nullptr;
+	
 	int tCount = 0;
 
 	if (mMaterialCount != 0)
 	{
 		Material* material = new Material[mMaterialCount];
 		mMaterialInfo = new MaterialInfo[mMaterialCount];
-		texpath = new const char* [mMaterialCount] { nullptr };
+		//texpath = new const char* [mMaterialCount] { nullptr };
+
+		paths = new TexPaths[mMaterialCount];
 
 		for (int i = 0; i < mMaterialCount; ++i)
 		{
@@ -385,7 +395,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			auto tp = m.texturePath.GetText();
 			if (tp[0] != '\0')
 			{
-				texpath[i] = tp;
+				paths[i].tex = tp;
 				mMaterialInfo[i].texID = tCount;
 				tCount++;
 			}
@@ -400,14 +410,14 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
 		{
 			System::SafeDeleteArray(&material);
-			System::SafeDeleteArray(&texpath);
+			System::SafeDeleteArray(&paths);
 			return GUI::Result::FAIL;
 		}
 
 		if (CreateMaterialBuffer(material, mMaterialCount) == GUI::Result::FAIL)
 		{
 			System::SafeDeleteArray(&material);
-			System::SafeDeleteArray(&texpath);
+			System::SafeDeleteArray(&paths);
 			return GUI::Result::FAIL;
 		}
 
@@ -422,19 +432,28 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		int texID = 0;
 		for (int i = 0; i < mMaterialCount; ++i)
 		{
-			if (texpath[i] == nullptr) continue;
-
-			if (CreateTexture(file.GetDirectoryPath(), texpath[i], texID) == GUI::Result::FAIL)
+			if (paths[i].tex != nullptr)
 			{
-				System::SafeDeleteArray(&texpath);
-				return GUI::Result::FAIL;
+				if (CreateTexture(file.GetDirectoryPath(), paths[i].tex, texID) == GUI::Result::FAIL)
+				{
+					System::SafeDeleteArray(&paths);
+					return GUI::Result::FAIL;
+				}
+				texID++;
+			}
+			
+			if (paths[i].sph != nullptr)
+			{
 			}
 
-			texID++;
+			if (paths[i].spa != nullptr)
+			{
+
+			}
 		}	
 	}
 
-	System::SafeDeleteArray(&texpath);
+	System::SafeDeleteArray(&paths);
 
 	return GUI::Result::SUCCESS;
 }
