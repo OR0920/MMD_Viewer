@@ -6,14 +6,6 @@
 #include"MMD_VertexShasder.h"
 #include"MMD_PixelShader.h"
 
-#include<Shlwapi.h>
-#pragma comment(lib, "shlwapi.lib")
-
-const wchar_t* const GetExt(const wchar_t* const filepath)
-{
-	return PathFindExtension(filepath);
-}
-
 void Model::ModelVertex::Load(const MMDsdk::PmdFile::Vertex& data)
 {
 	position = System::strong_cast<MathUtil::float3>(data.position);
@@ -404,7 +396,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			{
 				wchar_t* wtp = nullptr;
 				System::newArray_CreateWideCharStrFromMultiByteStr(&wtp, tp);
-				auto* ext = GetExt(wtp);
+				auto* ext = System::GetExt(wtp);
 
 				auto& p = paths[i];
 				auto& mifo = mMaterialInfo[i];
