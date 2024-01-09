@@ -216,7 +216,7 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 	frameCount %= static_cast<int>(3600.f / (rotUnit * 10.f));
 	float rotation = rotUnit * frameCount;
 
-	// âÒì]ÇçsóÒÇ…îΩâf
+
 	ModelTransform* transform = nullptr;
 	mTransformBuffer.Map(reinterpret_cast<void**>(&transform));
 	transform->world = MathUtil::Matrix::GenerateMatrixRotationY(MathUtil::DegreeToRadian(rotation));
@@ -358,19 +358,23 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 	mMaterialCount = file.GetMaterialCount();
 
-	mDescriptorCount += mMaterialCount;
-
-	DebugOutParam(mMaterialCount);
-
-	if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
+	if (mMaterialCount == 0)
 	{
-		return GUI::Result::FAIL;
+		if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
+		{
+			return GUI::Result::FAIL;
+		}
 	}
+
+
+	const char** texpath = nullptr;
+	int tCount = 0;
 
 	if (mMaterialCount != 0)
 	{
 		Material* material = new Material[mMaterialCount];
 		mMaterialInfo = new MaterialInfo[mMaterialCount];
+		texpath = new const char* [mMaterialCount] { nullptr };
 
 		for (int i = 0; i < mMaterialCount; ++i)
 		{
@@ -378,14 +382,58 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			material[i].Load(m);
 			mMaterialInfo[i].Load(m);
 
+			if (m.texturePath.GetText()[0] != '\0')
+			{
+				texpath[i] = m.texturePath.GetText();
+				mMaterialInfo[i].texID = tCount;
+				tCount++;
+			}
+
 			DebugOutString(m.texturePath.GetText());
+		}
+
+		DebugOutParam(tCount);
+		DebugOutParam(mMaterialCount);
+
+		mDescriptorCount += mMaterialCount + tCount;
+		if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
+		{
+			System::SafeDeleteArray(&material);
+			System::SafeDeleteArray(&texpath);
+			return GUI::Result::FAIL;
 		}
 
 		if (CreateMaterialBuffer(material, mMaterialCount) == GUI::Result::FAIL)
 		{
+			System::SafeDeleteArray(&material);
+			System::SafeDeleteArray(&texpath);
 			return GUI::Result::FAIL;
 		}
+
+		System::SafeDeleteArray(&material);
 	}
+
+	if (tCount != 0)
+	{
+		mUniqueTexture = new GUI::Graphics::Texture2D[tCount];
+
+
+		int texID = 0;
+		for (int i = 0; i < mMaterialCount; ++i)
+		{
+			if (texpath[i] == nullptr) continue;
+
+			if (CreateTexture(file.GetDirectoryPath(), texpath[i], texID) == GUI::Result::FAIL)
+			{
+				System::SafeDeleteArray(&texpath);
+				return GUI::Result::FAIL;
+			}
+
+			texID++;
+		}	
+	}
+
+	System::SafeDeleteArray(&texpath);
 
 	return GUI::Result::SUCCESS;
 }
