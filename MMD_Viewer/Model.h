@@ -101,7 +101,8 @@ private:
 	GUI::Result CreateVertexBuffer(const ModelVertex vertex[], const int vertexCount);
 	GUI::Result CreateIndexBuffer(const int index[], const int indexCount);
 	GUI::Result CreateMaterialBuffer(const Material material[], const int materialCount);
-
+	GUI::Result CreateTexture(const char* const dirPath, const char* const filename, const int texID);
+	
 	GUI::Result isSuccessLoad;
 
 	std::vector<std::string> mTexPath;

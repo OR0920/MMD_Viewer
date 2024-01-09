@@ -421,8 +421,9 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 	}
 
 	mMaterialCount = file.GetMaterialCount();
+	auto tCount = file.GetTextureCount();
 
-	mDescriptorCount += mMaterialCount + file.GetTextureCount();
+	mDescriptorCount += mMaterialCount + tCount;
 
 	if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
 	{
@@ -451,29 +452,19 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 		System::SafeDeleteArray(&material);
 	}
 
-	mUniqueTexture = new GUI::Graphics::Texture2D[file.GetTextureCount()]{};
-	for (int i = 0; i < file.GetTextureCount(); ++i)
+	if (tCount != 0)
 	{
-		char* tFilePath = nullptr;
-		System::newArray_CopyAssetPath(&tFilePath, file.GetDirectoryPath(), file.GetTexturePath(i).GetText());
-		wchar_t* filepath = nullptr;
-		System::newArray_CreateWideCharStrFromMultiByteStr(&filepath, tFilePath);
+		mUniqueTexture = new GUI::Graphics::Texture2D[tCount];
 
-		if (mUniqueTexture[i].LoadFromFile(filepath) == GUI::Result::FAIL)
+		for (int i = 0; i < tCount; ++i)
 		{
-			System::SafeDeleteArray(&tFilePath);
-			System::SafeDeleteArray(&filepath);
-			return GUI::Result::FAIL;
+			if (CreateTexture(file.GetDirectoryPath(), file.GetTexturePath(i).GetText(), i) == GUI::Result::FAIL)
+			{
+				return GUI::Result::FAIL;
+			}
 		}
-
-		if (mDevice.CreateTexture2D(mUniqueTexture[i], mHeap) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
-
-		System::SafeDeleteArray(&tFilePath);
-		System::SafeDeleteArray(&filepath);
 	}
+	
 
 	return GUI::Result::SUCCESS;
 }
@@ -529,6 +520,31 @@ GUI::Result Model::CreateMaterialBuffer(const Material material[], const int mat
 
 	return GUI::Result::FAIL;
 }
+
+GUI::Result Model::CreateTexture(const char* const dirPath, const char* const filename, const int texID)
+{
+	char* tFilePath = nullptr;
+	System::newArray_CopyAssetPath(&tFilePath, dirPath, filename);
+
+	wchar_t* filepath = nullptr;
+	System::newArray_CreateWideCharStrFromMultiByteStr(&filepath, tFilePath);
+
+	if (mUniqueTexture[texID].LoadFromFile(filepath) == GUI::Result::FAIL)
+	{
+		System::SafeDeleteArray(&tFilePath);
+		System::SafeDeleteArray(&filepath);
+		return GUI::Result::FAIL;
+	}
+
+	System::SafeDeleteArray(&tFilePath);
+	System::SafeDeleteArray(&filepath);
+
+	if (mDevice.CreateTexture2D(mUniqueTexture[texID], mHeap) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+}
+
 
 GUI::Result Model::SetDefaultSceneData()
 {
