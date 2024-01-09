@@ -198,7 +198,7 @@ GUI::Result Model::IsSuccessLoad() const
 	return isSuccessLoad;
 }
 
-void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
+void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 {
 	command.SetGraphicsPipeline(mPipeline);
 	command.SetGraphicsRootSignature(mRootSignature);
@@ -208,6 +208,19 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command) const
 	command.SetConstantBuffer(mPS_DataBuffer, 1);
 
 	command.SetVertexBuffer(mVB, mIB);
+
+	// âÒì]äpåvéZ
+	static int frameCount = 0;
+	static float rotUnit = 1.f;
+	frameCount++;
+	frameCount %= static_cast<int>(3600.f / (rotUnit * 10.f));
+	float rotation = rotUnit * frameCount;
+
+	// âÒì]ÇçsóÒÇ…îΩâf
+	ModelTransform* transform = nullptr;
+	mTransformBuffer.Map(reinterpret_cast<void**>(&transform));
+	transform->world = MathUtil::Matrix::GenerateMatrixRotationY(MathUtil::DegreeToRadian(rotation));
+	mTransformBuffer.Unmap();
 
 	int indexOffs = 0;
 	for (int i = 0; i < mMaterialCount; ++i)

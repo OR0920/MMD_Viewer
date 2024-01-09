@@ -56,7 +56,7 @@ public:
 
 	GUI::Result SetDefaultSceneData();
 
-	void Draw(GUI::Graphics::GraphicsCommand& command) const;
+	void Draw(GUI::Graphics::GraphicsCommand& command);
 
 private:
 	GUI::Graphics::Device& mDevice;
