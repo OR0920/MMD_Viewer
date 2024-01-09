@@ -63,8 +63,8 @@ namespace System
 	void newArray_CreateMultiByteStrFromWideCharStr(char** cText, const wchar_t* const wText);
 	void newArray_CreateMultiByteStrFromWideCharStr(char** cText, const char16_t* const u16Text);
 
-	void newArray_CreateWideCharStrFromMultiByteStr(wchar_t** wText, const char* const);
-	void newArray_CreateWideCharStrFromMultiByteStr(char16_t** u16Text, const char* const);
+	void newArray_CreateWideCharStrFromMultiByteStr(wchar_t** wText, const char* const cText);
+	void newArray_CreateWideCharStrFromMultiByteStr(char16_t** u16Text, const char* const cText);
 
 	// 汎用ポインタを用いた強引な型変換
 	// 明らかにメモリ状のバイナリが一致している場合にのみ使用する

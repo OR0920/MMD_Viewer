@@ -6,6 +6,9 @@
 #include"MMD_VertexShasder.h"
 #include"MMD_PixelShader.h"
 
+#include<Shlwapi.h>
+#pragma comment(lib, "shlwapi.lib")
+
 void Model::ModelVertex::Load(const MMDsdk::PmdFile::Vertex& data)
 {
 	position = System::strong_cast<MathUtil::float3>(data.position);
@@ -395,9 +398,39 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			auto tp = m.texturePath.GetText();
 			if (tp[0] != '\0')
 			{
-				paths[i].tex = tp;
-				mMaterialInfo[i].texID = tCount;
-				tCount++;
+				wchar_t* wtp = nullptr;
+				System::newArray_CreateWideCharStrFromMultiByteStr(&wtp, tp);
+				wchar_t* ext = PathFindExtension(wtp);
+
+				DebugOutStringWide(ext);
+
+				if (System::StringEqual(L".sph", L".bmp") == true)
+				{
+					DebugMessage("Wrong Result");
+					DebugMessageNewLine();
+				}
+				auto& p = paths[i];
+				auto& mifo = mMaterialInfo[i];
+				if (System::StringEqual(ext, L".sph") == true)
+				{
+					p.sph = tp;
+					mifo.sphID = tCount;
+					tCount++;
+				}
+				else if (System::StringEqual(ext, L".spa") == true)
+				{
+					p.spa = tp;
+					mifo.spaID = tCount;
+					tCount++;
+				}
+				else
+				{
+					p.tex = tp;
+					mifo.texID = tCount;
+					tCount++;
+				}
+
+				System::SafeDeleteArray(&wtp);
 			}
 
 			DebugOutString(tp);
@@ -432,9 +465,14 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		int texID = 0;
 		for (int i = 0; i < mMaterialCount; ++i)
 		{
-			if (paths[i].tex != nullptr)
+			auto p = paths[i];
+			DebugOutString(p.tex);
+			DebugOutString(p.sph);
+			DebugOutString(p.spa);
+
+			if (p.tex != nullptr)
 			{
-				if (CreateTexture(file.GetDirectoryPath(), paths[i].tex, texID) == GUI::Result::FAIL)
+				if (CreateTexture(file.GetDirectoryPath(), p.tex, texID) == GUI::Result::FAIL)
 				{
 					System::SafeDeleteArray(&paths);
 					return GUI::Result::FAIL;
@@ -442,13 +480,22 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 				texID++;
 			}
 			
-			if (paths[i].sph != nullptr)
+			if (p.sph != nullptr)
 			{
+				if (CreateTexture(file.GetDirectoryPath(), p.sph, texID) == GUI::Result::FAIL)
+				{
+					System::SafeDeleteArray(&paths);
+					return GUI::Result::FAIL;
+				}
 			}
 
-			if (paths[i].spa != nullptr)
+			if (p.spa != nullptr)
 			{
-
+				if (CreateTexture(file.GetDirectoryPath(), p.spa, texID) == GUI::Result::FAIL)
+				{
+					System::SafeDeleteArray(&paths);
+					return GUI::Result::FAIL;
+				}
 			}
 		}	
 	}
