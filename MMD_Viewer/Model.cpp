@@ -382,14 +382,15 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			material[i].Load(m);
 			mMaterialInfo[i].Load(m);
 
-			if (m.texturePath.GetText()[0] != '\0')
+			auto tp = m.texturePath.GetText();
+			if (tp[0] != '\0')
 			{
-				texpath[i] = m.texturePath.GetText();
+				texpath[i] = tp;
 				mMaterialInfo[i].texID = tCount;
 				tCount++;
 			}
 
-			DebugOutString(m.texturePath.GetText());
+			DebugOutString(tp);
 		}
 
 		DebugOutParam(tCount);
