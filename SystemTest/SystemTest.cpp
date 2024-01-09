@@ -25,7 +25,11 @@ namespace SystemTest
 			Assert::IsTrue(StringEqual("agaraerafdasf", "agaraerafdasf"));
 			Assert::IsFalse(StringEqual("agaraerafdasf", "fasrerrefadfa"));
 			Assert::IsFalse(StringEqual("‚±‚ñ‚É‚¿‚Í", "‚±‚ñ‚Î‚ñ‚Í"));
+			Assert::IsFalse(StringEqual(L"‚±‚ñ‚É‚¿‚Í", L"‚±‚ñ‚Î‚ñ‚Í"));
 			Assert::IsFalse(StringEqual("abcdefg", "abcdef"));
+			Assert::IsFalse(StringEqual(".bmp", ".sph"));
+			Assert::IsFalse(StringEqual(L"!bmp", L"!sph"));
+			Assert::IsFalse(StringEqual(L".bmp", L".sph"));
 		}
 
 		TEST_METHOD(CopyDirectoryPathTest)

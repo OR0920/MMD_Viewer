@@ -34,7 +34,9 @@ namespace System
 	void CheckMemoryLeak();
 
 	// •¶Žš—ñ”äŠr
-	bool StringEqual(const void* const _str1, const void* const _str2);
+	bool StringEqual(const char* const _str1, const char* const _str2);
+	bool StringEqual(const wchar_t* const _str1, const wchar_t* const _str2);
+	bool StringEqual(const char16_t* const _str1, const char16_t* const _str2);
 
 	// NULL•¶Žš‚ðŠÜ‚Þ’·‚³‚ð•Ô‚·
 	int GetStringLength(const char* const text);

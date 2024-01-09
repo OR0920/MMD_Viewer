@@ -19,14 +19,28 @@ void System::CheckMemoryLeak()
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 }
 
-bool System::StringEqual(const void* const _str1, const void* const _str2)
+bool System::StringEqual(const char* const _str1, const char* const _str2)
 {
 	if (_str1 == nullptr && _str2 == nullptr) return true;
 	if (_str1 == nullptr) return false;
 	if (_str2 == nullptr) return false;
-	std::string str1(reinterpret_cast<const char*>(_str1));
-	std::string str2(reinterpret_cast<const char*>(_str2));
+	std::string str1(reinterpret_cast<const char* const>(_str1));
+	std::string str2(reinterpret_cast<const char* const>(_str2));
 	return str1 == str2;
+}
+
+bool System::StringEqual(const wchar_t* const _str1, const wchar_t* const _str2)
+{
+	if (_str1 == nullptr && _str2 == nullptr) return true;
+	else if (_str1 == nullptr || _str2 == nullptr) return false;
+	std::wstring str1(reinterpret_cast<const wchar_t* const>(_str1));
+	std::wstring str2(reinterpret_cast<const wchar_t* const>(_str2));
+	return str1 == str2;
+}
+
+bool System::StringEqual(const char16_t* const _str1, const char16_t* const _str2)
+{
+	return StringEqual(reinterpret_cast<const wchar_t* const>(_str1), reinterpret_cast<const wchar_t* const>(_str2));
 }
 
 void System::newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const filepath)

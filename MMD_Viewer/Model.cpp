@@ -404,7 +404,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 				DebugOutStringWide(ext);
 
-				if (System::StringEqual(L".sph", L".bmp") == true)
+				if (System::StringEqual(L"!!‚©‚«‚­‚¯‚±", L"!!‚ ‚¢‚¤‚¦‚¨") == true)
 				{
 					DebugMessage("Wrong Result");
 					DebugMessageNewLine();
