@@ -366,7 +366,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		}
 	}
 
-
+	// pmd‚ÌƒpƒX‚Ì’·‚³‚Í20ŒÅ’è
 	struct TexPaths
 	{
 		char tex[20] = { '\0' };
@@ -379,7 +379,6 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	struct SubString
 	{
 		const char* start = nullptr;
-		const char* end = nullptr;
 		int length = 0;
 	};
 
@@ -391,7 +390,6 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		void Load(const char* const str, const int length)
 		{
 			path[0].start = &str[0];
-			path[0].end = &str[length - 1];
 
 			path[0].length = length;
 
@@ -401,8 +399,6 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			{
 				if (str[i] == '*')
 				{
-					path[1].end = path[0].end;
-					path[0].end = &str[i];
 					path[1].start = &str[i + 1];
 
 					path[0].length = i;
@@ -427,7 +423,6 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	{
 		Material* material = new Material[mMaterialCount];
 		mMaterialInfo = new MaterialInfo[mMaterialCount];
-
 		texPathPerMaterial = new TexPaths[mMaterialCount];
 		pathSignature = new TexPathSignature[mMaterialCount];
 
@@ -437,11 +432,11 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			material[i].Load(m);
 			mMaterialInfo[i].Load(m);
 
-			auto tpLength = m.texturePath.GetLength();
 			auto tp = m.texturePath.GetText();
 
 			if (tp[0] == '\0') continue;
 
+			auto tpLength = m.texturePath.GetLength();
 			pathSignature[i].Load(tp, tpLength);
 
 			for (int j = 0; j < pathSignature[i].pathCount; ++j)
@@ -478,9 +473,6 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 					mifo.texID = tCount;
 					tCount++;
 				}
-				DebugOutString(p.tex);
-				DebugOutString(p.sph);
-				DebugOutString(p.spa);
 			}
 		}
 
@@ -506,15 +498,10 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	{
 		mUniqueTexture = new GUI::Graphics::Texture2D[tCount];
 
-
 		int texID = 0;
 		for (int i = 0; i < mMaterialCount; ++i)
 		{
 			auto p = texPathPerMaterial[i];
-
-			DebugOutString(p.tex);
-			DebugOutString(p.sph);
-			DebugOutString(p.spa);
 
 			if (p.tex[0] != '\0')
 			{
