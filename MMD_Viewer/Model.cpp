@@ -375,7 +375,8 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	};
 
 	TexPaths* texPathPerMaterial = nullptr;
-	
+
+
 	int tCount = 0;
 
 	if (mMaterialCount != 0)
@@ -392,30 +393,30 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			mMaterialInfo[i].Load(m);
 
 			auto tp = m.texturePath.GetText();
-			if (tp[0] != '\0')
-			{
-				auto* ext = System::GetExt(tp);
+			
+			if (tp[0] == '\0') continue;
+			
+			auto* ext = System::GetExt(tp);
 
-				auto& p = texPathPerMaterial[i];
-				auto& mifo = mMaterialInfo[i];
-				if (System::StringEqual(ext, ".sph") == true)
-				{
-					p.sph = tp;
-					mifo.sphID = tCount;
-					tCount++;
-				}
-				else if (System::StringEqual(ext, ".spa") == true)
-				{
-					p.spa = tp;
-					mifo.spaID = tCount;
-					tCount++;
-				}
-				else
-				{
-					p.tex = tp;
-					mifo.texID = tCount;
-					tCount++;
-				}
+			auto& p = texPathPerMaterial[i];
+			auto& mifo = mMaterialInfo[i];
+			if (System::StringEqual(ext, ".sph") == true)
+			{
+				p.sph = tp;
+				mifo.sphID = tCount;
+				tCount++;
+			}
+			else if (System::StringEqual(ext, ".spa") == true)
+			{
+				p.spa = tp;
+				mifo.spaID = tCount;
+				tCount++;
+			}
+			else
+			{
+				p.tex = tp;
+				mifo.texID = tCount;
+				tCount++;
 			}
 		}
 
@@ -446,7 +447,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		for (int i = 0; i < mMaterialCount; ++i)
 		{
 			auto p = texPathPerMaterial[i];
-			
+
 			if (p.tex != nullptr)
 			{
 				if (CreateTexture(file.GetDirectoryPath(), p.tex, texID) == GUI::Result::FAIL)
@@ -456,7 +457,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 				}
 				texID++;
 			}
-			
+
 			if (p.sph != nullptr)
 			{
 				if (CreateTexture(file.GetDirectoryPath(), p.sph, texID) == GUI::Result::FAIL)
@@ -476,7 +477,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 				}
 				texID++;
 			}
-		}	
+		}
 	}
 
 	System::SafeDeleteArray(&texPathPerMaterial);
