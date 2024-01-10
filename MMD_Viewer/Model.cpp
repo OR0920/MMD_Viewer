@@ -369,13 +369,57 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 	struct TexPaths
 	{
-		const char* tex = nullptr;
-		const char* sph = nullptr;
-		const char* spa = nullptr;
+		char tex[20] = { '\0' };
+		char sph[20] = { '\0' };
+		char spa[20] = { '\0' };
 	};
 
 	TexPaths* texPathPerMaterial = nullptr;
 
+	struct SubString
+	{
+		const char* start = nullptr;
+		const char* end = nullptr;
+		int length = 0;
+	};
+
+	struct TexPathSignature
+	{
+		SubString path[2];
+		int pathCount = 0;
+
+		void Load(const char* const str, const int length)
+		{
+			path[0].start = &str[0];
+			path[0].end = &str[length - 1];
+
+			path[0].length = length;
+
+			pathCount++;
+
+			for (int i = 0; i < length; ++i)
+			{
+				if (str[i] == '*')
+				{
+					path[1].end = path[0].end;
+					path[0].end = &str[i];
+					path[1].start = &str[i + 1];
+
+					path[0].length = i;
+					path[1].length = length - i;
+
+					pathCount++;
+					break;
+				}
+				if (str[i] == '\0')
+				{
+					return;
+				}
+			}
+		}
+	};
+
+	TexPathSignature* pathSignature = nullptr;
 
 	int tCount = 0;
 
@@ -385,6 +429,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		mMaterialInfo = new MaterialInfo[mMaterialCount];
 
 		texPathPerMaterial = new TexPaths[mMaterialCount];
+		pathSignature = new TexPathSignature[mMaterialCount];
 
 		for (int i = 0; i < mMaterialCount; ++i)
 		{
@@ -392,31 +437,50 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			material[i].Load(m);
 			mMaterialInfo[i].Load(m);
 
+			auto tpLength = m.texturePath.GetLength();
 			auto tp = m.texturePath.GetText();
-			
-			if (tp[0] == '\0') continue;
-			
-			auto* ext = System::GetExt(tp);
 
-			auto& p = texPathPerMaterial[i];
-			auto& mifo = mMaterialInfo[i];
-			if (System::StringEqual(ext, ".sph") == true)
+			if (tp[0] == '\0') continue;
+
+			pathSignature[i].Load(tp, tpLength);
+
+			for (int j = 0; j < pathSignature[i].pathCount; ++j)
 			{
-				p.sph = tp;
-				mifo.sphID = tCount;
-				tCount++;
-			}
-			else if (System::StringEqual(ext, ".spa") == true)
-			{
-				p.spa = tp;
-				mifo.spaID = tCount;
-				tCount++;
-			}
-			else
-			{
-				p.tex = tp;
-				mifo.texID = tCount;
-				tCount++;
+				char path[20] = { '\0' };
+				auto subStr = pathSignature[i].path[j];
+				for (int k = 0; k < subStr.length; ++k)
+				{
+					path[k] = subStr.start[k];
+				}
+				DebugOutString(path);
+
+				auto* ext = System::GetExt(path);
+				DebugOutString(ext);
+				DebugMessageNewLine();
+
+				auto& p = texPathPerMaterial[i];
+				auto& mifo = mMaterialInfo[i];
+				if (System::StringEqual(ext, ".sph") == true)
+				{
+					memcpy(p.sph, path, 20);
+					mifo.sphID = tCount;
+					tCount++;
+				}
+				else if (System::StringEqual(ext, ".spa") == true)
+				{
+					memcpy(p.spa, path, 20);
+					mifo.spaID = tCount;
+					tCount++;
+				}
+				else
+				{
+					memcpy(p.tex, path, 20);
+					mifo.texID = tCount;
+					tCount++;
+				}
+				DebugOutString(p.tex);
+				DebugOutString(p.sph);
+				DebugOutString(p.spa);
 			}
 		}
 
@@ -448,7 +512,11 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		{
 			auto p = texPathPerMaterial[i];
 
-			if (p.tex != nullptr)
+			DebugOutString(p.tex);
+			DebugOutString(p.sph);
+			DebugOutString(p.spa);
+
+			if (p.tex[0] != '\0')
 			{
 				if (CreateTexture(file.GetDirectoryPath(), p.tex, texID) == GUI::Result::FAIL)
 				{
@@ -458,7 +526,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 				texID++;
 			}
 
-			if (p.sph != nullptr)
+			if (p.sph[0] != '\0')
 			{
 				if (CreateTexture(file.GetDirectoryPath(), p.sph, texID) == GUI::Result::FAIL)
 				{
@@ -468,7 +536,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 				texID++;
 			}
 
-			if (p.spa != nullptr)
+			if (p.spa[0] != '\0')
 			{
 				if (CreateTexture(file.GetDirectoryPath(), p.spa, texID) == GUI::Result::FAIL)
 				{
@@ -481,6 +549,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	}
 
 	System::SafeDeleteArray(&texPathPerMaterial);
+	System::SafeDeleteArray(&pathSignature);
 
 	return GUI::Result::SUCCESS;
 }
