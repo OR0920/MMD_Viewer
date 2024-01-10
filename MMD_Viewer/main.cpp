@@ -32,7 +32,11 @@ int MAIN()
 		return -1;
 	}
 
-	
+	GUI::Canvas canvas;
+	if (canvas.Create(mainWindow) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
 
 	// ファイル取得ウィンドウの初期化
 	auto& fc = GUI::FileCatcher::Instance();

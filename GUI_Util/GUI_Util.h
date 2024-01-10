@@ -87,6 +87,30 @@ namespace GUI
 		WNDCLASSEX mWindowClass;
 	};
 
+	class Canvas : public ParentWindow
+	{
+	public:
+		Canvas(); ~Canvas();
+
+		Result Create
+		(
+			const ParentWindow& parent, 
+			const int width = -1, const int height = -1, 	
+			const int posX = -1, const int posY = -1
+		);
+
+		const HWND GetHandle() const;
+		const int GetWindowWidth() const;
+		const int GetWindowHeight() const;
+
+	private:
+		int mWidth;
+		int mHeight;
+
+		HWND mHandle;
+		WNDCLASSEX mWindowClass;
+	};
+
 	// ƒ{ƒ^ƒ“
 	class Button
 	{

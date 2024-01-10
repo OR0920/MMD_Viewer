@@ -217,6 +217,47 @@ MainWindow::~MainWindow()
 	UnregisterClass(mWindowClass.lpszClassName, mWindowClass.hInstance);
 }
 
+// Canvas
+Canvas::Canvas()
+	:
+	mWidth(0), mHeight(0),
+	mHandle(NULL), mWindowClass({})
+{
+
+}
+
+Canvas::~Canvas()
+{
+	UnregisterClass(mWindowClass.lpszClassName, mWindowClass.hInstance);
+}
+
+Result Canvas::Create
+(
+	const ParentWindow& parent,
+	const int width, const int height,
+	const int posX, const int posY
+)
+{
+	auto parentHandle = parent.GetHandle();
+
+	return FAIL;
+}
+
+const HWND Canvas::GetHandle() const
+{
+	return mHandle;
+}
+
+const int Canvas::GetWindowWidth() const
+{
+	return mWidth;
+}
+
+const int Canvas::GetWindowHeight() const
+{
+	return mHeight;
+}
+
 // Button
 HWND hwndButton = NULL;
 Result Button::Create
