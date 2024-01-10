@@ -32,6 +32,8 @@ int MAIN()
 		return -1;
 	}
 
+	
+
 	// ファイル取得ウィンドウの初期化
 	auto& fc = GUI::FileCatcher::Instance();
 
@@ -80,6 +82,12 @@ int MAIN()
 	// 深度ステンシル作成
 	GUI::Graphics::DepthStencilBuffer depthStencil;
 	if (device.CreateDepthBuffer(depthStencil, swapChain) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	GUI::Button button;
+	if (button.Create(mainWindow, L"回転ON/OFF", 100, 50, 10, 10) == GUI::Result::FAIL)
 	{
 		return -1;
 	}

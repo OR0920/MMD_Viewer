@@ -46,7 +46,7 @@ namespace GUI
 	{
 	public:
 		virtual ~ParentWindow();
-		virtual const HWND GetCurrentCPU_Handle() const = 0;
+		virtual const HWND GetHandle() const = 0;
 		virtual const int GetWindowWidth() const = 0;
 		virtual const int GetWindowHeight() const = 0;
 	protected:
@@ -75,7 +75,7 @@ namespace GUI
 		const int GetWindowHeight() const;
 
 		// ライブラリ側から呼び出す関数
-		const HWND GetCurrentCPU_Handle() const;
+		const HWND GetHandle() const;
 	private:
 		MainWindow();
 		~MainWindow();
@@ -85,6 +85,20 @@ namespace GUI
 
 		HWND mWindowHandle;
 		WNDCLASSEX mWindowClass;
+	};
+
+	// ボタン
+	class Button
+	{
+	public:
+		Result Create
+		(
+			const ParentWindow& parent,
+			const TCHAR* const buttonText,
+			const int width, const int height, 
+			const int posX, const int posY
+		);
+
 	};
 
 	// エラー表示用ダイアログボックス

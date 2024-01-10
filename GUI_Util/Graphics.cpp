@@ -681,7 +681,7 @@ Result SwapChain::Create
 	const int frameCount
 )
 {
-	if (targetWindow.GetCurrentCPU_Handle() == 0)
+	if (targetWindow.GetHandle() == 0)
 	{
 		DebugMessage("The Target Window Is not Exist !");
 
@@ -728,7 +728,7 @@ Result SwapChain::Create
 		factory4->CreateSwapChainForHwnd
 		(
 			device.mCommandQueue.Get(),
-			targetWindow.GetCurrentCPU_Handle(),
+			targetWindow.GetHandle(),
 			&swapChainDesc,
 			nullptr,
 			nullptr,

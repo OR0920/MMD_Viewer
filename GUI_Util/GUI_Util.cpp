@@ -197,7 +197,7 @@ const int MainWindow::GetWindowHeight() const
 }
 
 
-const HWND MainWindow::GetCurrentCPU_Handle() const
+const HWND MainWindow::GetHandle() const
 {
 	return mWindowHandle;
 }
@@ -215,6 +215,42 @@ MainWindow::MainWindow()
 MainWindow::~MainWindow()
 {
 	UnregisterClass(mWindowClass.lpszClassName, mWindowClass.hInstance);
+}
+
+// Button
+HWND hwndButton = NULL;
+Result Button::Create
+(
+	const ParentWindow& parent,
+	const TCHAR* const buttonText,
+	const int width, const int height,
+	const int posX, const int posY
+)
+{
+	hwndButton = CreateWindow
+	(
+		L"BUTTON",												// Predefined class; Unicode assumed 
+		buttonText,												// Button text 
+		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+		posX,														// x position 
+		posY,														// y position 
+		width,													// Button width
+		height,											        // Button height
+		parent.GetHandle(),													// Parent window
+		NULL,													// No menu.
+		(HINSTANCE)GetWindowLongPtr(parent.GetHandle(), GWLP_HINSTANCE),
+		NULL
+	);															
+
+	if (hwndButton == NULL)
+	{
+		DebugMessageFunctionError(CreateWindow(), Button::Create());
+		return GUI::Result::FAIL;
+	}
+
+	ShowWindow(hwndButton, SW_SHOW);
+
+	return GUI::Result::SUCCESS;
 }
 
 // ErrorBox
@@ -288,7 +324,7 @@ Result FileCatcher::Create(const ParentWindow& parent)
 		DebugMessage("Error at " << ToString(FileCatcher::Create()) " : The " << ToString(FileCatcher) << " is already Created !");
 		return FAIL;
 	}
-	auto parentHwnd = parent.GetCurrentCPU_Handle();
+	auto parentHwnd = parent.GetHandle();
 
 	auto& wc = mWindowClass;
 	wc.cbSize = sizeof(WNDCLASSEX);
