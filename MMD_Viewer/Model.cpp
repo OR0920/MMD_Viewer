@@ -394,19 +394,17 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			auto tp = m.texturePath.GetText();
 			if (tp[0] != '\0')
 			{
-				wchar_t* wtp = nullptr;
-				System::newArray_CreateWideCharStrFromMultiByteStr(&wtp, tp);
-				auto* ext = System::GetExt(wtp);
+				auto* ext = System::GetExt(tp);
 
 				auto& p = paths[i];
 				auto& mifo = mMaterialInfo[i];
-				if (System::StringEqual(ext, L".sph") == true)
+				if (System::StringEqual(ext, ".sph") == true)
 				{
 					p.sph = tp;
 					mifo.sphID = tCount;
 					tCount++;
 				}
-				else if (System::StringEqual(ext, L".spa") == true)
+				else if (System::StringEqual(ext, ".spa") == true)
 				{
 					p.spa = tp;
 					mifo.spaID = tCount;
@@ -418,8 +416,6 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 					mifo.texID = tCount;
 					tCount++;
 				}
-
-				System::SafeDeleteArray(&wtp);
 			}
 		}
 
