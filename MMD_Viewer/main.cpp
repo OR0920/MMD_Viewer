@@ -33,7 +33,13 @@ int MAIN()
 	}
 
 	GUI::Canvas canvas;
-	if (canvas.Create(mainWindow) == GUI::Result::FAIL)
+	if (canvas.Create(mainWindow, windowWidth - 100, windowHeight, 100, 0) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	GUI::Button button;
+	if (button.Create(mainWindow, L"回転ON/OFF", 100, 10, 0, 0) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
@@ -41,7 +47,7 @@ int MAIN()
 	// ファイル取得ウィンドウの初期化
 	auto& fc = GUI::FileCatcher::Instance();
 
-	if (fc.Create(mainWindow) == GUI::Result::FAIL)
+	if (fc.Create(canvas) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
@@ -71,7 +77,7 @@ int MAIN()
 	// スワップチェイン作成
 
 	GUI::Graphics::SwapChain swapChain;
-	if (swapChain.Create(command, mainWindow, 2) == GUI::Result::FAIL)
+	if (swapChain.Create(command, canvas, 2) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
@@ -90,14 +96,9 @@ int MAIN()
 		return -1;
 	}
 
-	GUI::Button button;
-	if (button.Create(mainWindow, L"回転ON/OFF", 100, 50, 10, 10) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
 
 	Model* model = nullptr;
-	
+
 
 	while (mainWindow.ProcessMessageNoWait() == GUI::Result::CONTINUE)
 	{
@@ -113,6 +114,7 @@ int MAIN()
 				GUI::ErrorBox(L"対応していないファイルです");
 				System::SafeDelete(&model);
 			}
+			model->SetDefaultSceneData(canvas.GetWindowWidth(), canvas.GetWindowHeight());
 		}
 
 		command.BeginDraw();
@@ -127,8 +129,7 @@ int MAIN()
 
 		if (model != nullptr)
 		{
-				model->SetDefaultSceneData();
-				model->Draw(command);
+			model->Draw(command);
 		}
 		command.LockRenderTarget(renderTarget);
 

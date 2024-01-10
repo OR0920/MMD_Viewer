@@ -96,7 +96,7 @@ namespace GUI
 		(
 			const ParentWindow& parent, 
 			const int width = -1, const int height = -1, 	
-			const int posX = -1, const int posY = -1
+			const int posX = 0, const int posY = 0
 		);
 
 		const HWND GetHandle() const;

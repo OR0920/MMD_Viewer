@@ -713,7 +713,7 @@ GUI::Result Model::CreateTexture(const char* const dirPath, const char* const fi
 }
 
 
-GUI::Result Model::SetDefaultSceneData()
+GUI::Result Model::SetDefaultSceneData(const int windowWidth, const int windowHeight)
 {
 	ModelTransform* mappedTransform = nullptr;
 	if (mTransformBuffer.Map(reinterpret_cast<void**>(&mappedTransform)) == GUI::Result::SUCCESS)
@@ -729,7 +729,7 @@ GUI::Result Model::SetDefaultSceneData()
 		mappedTransform->proj = MathUtil::Matrix::GenerateMatrixPerspectiveFovLH
 		(
 			DirectX::XM_PIDIV4,
-			static_cast<float>(1280) / static_cast<float>(720),
+			static_cast<float>(windowWidth) / static_cast<float>(windowHeight),
 			0.1f,
 			1000.f
 		);

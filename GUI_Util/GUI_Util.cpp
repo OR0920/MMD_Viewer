@@ -54,7 +54,7 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	case WM_PAINT:
 	{
 		hdc = BeginPaint(hwnd, &ps);
-		FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+		FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_BACKGROUND));
 		EndPaint(hwnd, &ps);
 		break;
 	}
@@ -95,6 +95,7 @@ Result MainWindow::Create(int width, int height)
 	wc.hInstance = GetModuleHandle(NULL);
 	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	//wc.hbrBackground = CreateSolidBrush(COLOR_MENUBAR);
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = _T(ToString(MainWindow));
 	wc.hIconSm = NULL;
@@ -196,7 +197,6 @@ const int MainWindow::GetWindowHeight() const
 	return mHeight;
 }
 
-
 const HWND MainWindow::GetHandle() const
 {
 	return mWindowHandle;
@@ -218,6 +218,7 @@ MainWindow::~MainWindow()
 }
 
 // Canvas
+
 Canvas::Canvas()
 	:
 	mWidth(0), mHeight(0),
@@ -240,7 +241,80 @@ Result Canvas::Create
 {
 	auto parentHandle = parent.GetHandle();
 
-	return FAIL;
+	if (width == -1)
+	{
+		RECT rect = {};
+		GetWindowRect(parentHandle, &rect);
+
+		mWidth = rect.right - rect.left;
+		mHeight = rect.bottom - rect.top;	
+	}
+	else
+	{
+		mWidth = width, mHeight = height;
+	}
+
+	auto& wc = mWindowClass;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = CS_HREDRAW | CS_VREDRAW;
+	wc.lpfnWndProc = DefWindowProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = GetModuleHandle(NULL);
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = _T(ToString(Canvas));
+	wc.hIconSm = NULL;
+	
+	if (RegisterClassEx(&wc) == NULL)
+	{
+		DebugMessageFunctionError(RegisterClassEx(), MainWindow::Create());
+
+		auto le = GetLastError();
+		wchar_t* messageBuff;
+		FormatMessage
+		(
+			FORMAT_MESSAGE_ALLOCATE_BUFFER |
+			FORMAT_MESSAGE_FROM_SYSTEM |
+			FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,
+			le,
+			0,
+			(LPWSTR)&messageBuff,
+			0,
+			NULL
+		);
+
+		DebugMessageWide(messageBuff);
+
+		return Result::FAIL;
+	}
+
+	mHandle = CreateWindowEx
+	(
+		NULL,
+		wc.lpszClassName,
+		NULL,
+		WS_CHILD | WS_VISIBLE | WS_OVERLAPPED | WS_CLIPCHILDREN,
+		posX,
+		posY,
+		mWidth,
+		mHeight,
+		parentHandle,
+		NULL,
+		wc.hInstance,
+		NULL
+	);
+
+	if (mHandle == NULL)
+	{
+		DebugMessageFunctionError(CreateWindowEx(), MainWindow::Create());
+
+		return Result::FAIL;
+	}
+
+	return SUCCESS;
 }
 
 const HWND Canvas::GetHandle() const
