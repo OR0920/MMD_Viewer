@@ -39,7 +39,7 @@ int MAIN()
 	}
 
 	GUI::Button button;
-	if (button.Create(mainWindow, L"‰ñ“]ON/OFF", 100, 10, 0, 0) == GUI::Result::FAIL)
+	if (button.Create(mainWindow, L"‰ñ“]ON/OFF", 100, 50, 0, 0) == GUI::Result::FAIL)
 	{
 		return -1;
 	}

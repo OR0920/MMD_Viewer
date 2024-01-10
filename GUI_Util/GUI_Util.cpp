@@ -296,7 +296,7 @@ Result Canvas::Create
 		NULL,
 		wc.lpszClassName,
 		NULL,
-		WS_CHILD | WS_VISIBLE | WS_OVERLAPPED | WS_CLIPCHILDREN,
+		WS_CHILD | WS_VISIBLE | WS_OVERLAPPED,
 		posX,
 		posY,
 		mWidth,
