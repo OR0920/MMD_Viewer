@@ -151,6 +151,23 @@ Result MainWindow::Create(int width, int height)
 	return Result::SUCCESS;
 }
 
+Result MainWindow::ProsessMessage()
+{
+	MSG msg = {};
+	if (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	if (msg.message == WM_QUIT)
+	{
+		return QUIT;
+	}
+
+	return CONTINUE;
+}
+
 Result MainWindow::ProcessMessageNoWait()
 {
 	MSG msg = {};

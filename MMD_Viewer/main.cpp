@@ -104,7 +104,7 @@ int MAIN()
 
 		command.SetRenderTarget(renderTarget, depthStencil);
 
-		command.ClearRenderTarget(GUI::Graphics::Color(0.5f, 0.5f, 0.5f));
+		command.ClearRenderTarget(GUI::Graphics::Color(0.3f, 0.3f, 0.3f));
 		command.ClearDepthBuffer();
 
 

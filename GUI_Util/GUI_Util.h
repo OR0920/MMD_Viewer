@@ -62,8 +62,11 @@ namespace GUI
 
 		// サイズを指定し生成
 		Result Create(int width, int height);
+		
 		// メッセージを処理する
 		// 閉じるボタンが押されるとfalseを返す
+		// メッセージを待つ
+		Result ProsessMessage();
 
 		// メッセージを待たない
 		Result ProcessMessageNoWait();
