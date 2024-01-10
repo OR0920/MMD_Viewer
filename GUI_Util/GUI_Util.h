@@ -87,6 +87,7 @@ namespace GUI
 		WNDCLASSEX mWindowClass;
 	};
 
+	// エラー表示用ダイアログボックス
 	void ErrorBox(const TCHAR* const message);
 
 	// 領域内にドロップされたファイルを認識するウィンドウ

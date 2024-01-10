@@ -96,6 +96,11 @@ int MAIN()
 			System::SafeDelete(&model);
 			model = new Model(device);
 			model->Load(fc.GetPath());
+			if (model->IsSuccessLoad() == GUI::Result::FAIL)
+			{
+				GUI::ErrorBox(L"‘Î‰ž‚µ‚Ä‚¢‚È‚¢ƒtƒ@ƒCƒ‹‚Å‚·");
+				System::SafeDelete(&model);
+			}
 		}
 
 		command.BeginDraw();
@@ -110,11 +115,8 @@ int MAIN()
 
 		if (model != nullptr)
 		{
-			if (model->IsSuccessLoad() == GUI::Result::SUCCESS)
-			{
 				model->SetDefaultSceneData();
 				model->Draw(command);
-			}
 		}
 		command.LockRenderTarget(renderTarget);
 
