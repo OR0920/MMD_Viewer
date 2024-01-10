@@ -374,7 +374,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		const char* spa = nullptr;
 	};
 
-	TexPaths* paths = nullptr;
+	TexPaths* texPathPerMaterial = nullptr;
 	
 	int tCount = 0;
 
@@ -383,7 +383,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		Material* material = new Material[mMaterialCount];
 		mMaterialInfo = new MaterialInfo[mMaterialCount];
 
-		paths = new TexPaths[mMaterialCount];
+		texPathPerMaterial = new TexPaths[mMaterialCount];
 
 		for (int i = 0; i < mMaterialCount; ++i)
 		{
@@ -396,7 +396,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			{
 				auto* ext = System::GetExt(tp);
 
-				auto& p = paths[i];
+				auto& p = texPathPerMaterial[i];
 				auto& mifo = mMaterialInfo[i];
 				if (System::StringEqual(ext, ".sph") == true)
 				{
@@ -423,14 +423,14 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
 		{
 			System::SafeDeleteArray(&material);
-			System::SafeDeleteArray(&paths);
+			System::SafeDeleteArray(&texPathPerMaterial);
 			return GUI::Result::FAIL;
 		}
 
 		if (CreateMaterialBuffer(material, mMaterialCount) == GUI::Result::FAIL)
 		{
 			System::SafeDeleteArray(&material);
-			System::SafeDeleteArray(&paths);
+			System::SafeDeleteArray(&texPathPerMaterial);
 			return GUI::Result::FAIL;
 		}
 
@@ -445,13 +445,13 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		int texID = 0;
 		for (int i = 0; i < mMaterialCount; ++i)
 		{
-			auto p = paths[i];
+			auto p = texPathPerMaterial[i];
 			
 			if (p.tex != nullptr)
 			{
 				if (CreateTexture(file.GetDirectoryPath(), p.tex, texID) == GUI::Result::FAIL)
 				{
-					System::SafeDeleteArray(&paths);
+					System::SafeDeleteArray(&texPathPerMaterial);
 					return GUI::Result::FAIL;
 				}
 				texID++;
@@ -461,7 +461,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			{
 				if (CreateTexture(file.GetDirectoryPath(), p.sph, texID) == GUI::Result::FAIL)
 				{
-					System::SafeDeleteArray(&paths);
+					System::SafeDeleteArray(&texPathPerMaterial);
 					return GUI::Result::FAIL;
 				}
 				texID++;
@@ -471,7 +471,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			{
 				if (CreateTexture(file.GetDirectoryPath(), p.spa, texID) == GUI::Result::FAIL)
 				{
-					System::SafeDeleteArray(&paths);
+					System::SafeDeleteArray(&texPathPerMaterial);
 					return GUI::Result::FAIL;
 				}
 				texID++;
@@ -479,7 +479,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		}	
 	}
 
-	System::SafeDeleteArray(&paths);
+	System::SafeDeleteArray(&texPathPerMaterial);
 
 	return GUI::Result::SUCCESS;
 }
