@@ -376,11 +376,14 @@ namespace GUI
 
 			// 描画終わりに呼び出す
 			void EndDraw();
+
+			// バックバッファに切り替え
+			void Flip();
 		private:
 			void SetViewportAndRect(const RenderTarget& renderTarget);
 
 			ID3D12Device* mDevice;
-			IDXGISwapChain4* mSwapChain;
+			SwapChain* mSwapChain;
 
 			ComPtr<ID3D12CommandQueue> mCommandQueue;
 			ComPtr<ID3D12CommandAllocator> mCommandAllocator;

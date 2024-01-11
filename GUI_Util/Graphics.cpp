@@ -743,7 +743,7 @@ Result SwapChain::Create
 		SwapChain::Create()
 	);
 
-	device.mSwapChain = mSwapChain.Get();
+	device.mSwapChain = this;
 
 	return SUCCESS;
 }
@@ -955,6 +955,12 @@ void GraphicsCommand::EndDraw()
 
 	} while (mFence->GetCompletedValue() < mFenceValue);
 }
+
+void GraphicsCommand::Flip()
+{
+	mSwapChain->Present();
+}
+
 
 void GraphicsCommand::SetViewportAndRect(const RenderTarget& renderTarget)
 {

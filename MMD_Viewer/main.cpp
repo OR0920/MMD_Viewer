@@ -34,14 +34,12 @@ int MAIN()
 
 	// ファイル取得ウィンドウの初期化
 	auto& fc = GUI::FileCatcher::Instance();
-
 	if (fc.Create(mainWindow) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
 
 	// 描画エンジン初期化
-
 	// デバッグモード　有効化
 	if (GUI::Graphics::EnalbleDebugLayer() == GUI::Result::FAIL)
 	{
@@ -63,7 +61,6 @@ int MAIN()
 	}
 
 	// スワップチェイン作成
-
 	GUI::Graphics::SwapChain swapChain;
 	if (swapChain.Create(command, mainWindow, 2) == GUI::Result::FAIL)
 	{
@@ -85,6 +82,7 @@ int MAIN()
 	}
 
 
+	// ここにモデルを作る
 	Model* model = nullptr;
 
 
@@ -94,36 +92,46 @@ int MAIN()
 		{
 			DebugOutString(fc.GetPath());
 
+			// モデル読み込み
 			System::SafeDelete(&model);
 			model = new Model(device);
 			model->Load(fc.GetPath());
+			
+			// 読み込み失敗
 			if (model->IsSuccessLoad() == GUI::Result::FAIL)
 			{
 				GUI::ErrorBox(L"対応していないファイルです");
 				System::SafeDelete(&model);
 			}
+
+			// シーン初期化、モデル1体のみなので、シーンクラスなどには分けない
 			model->SetDefaultSceneData(mainWindow.GetWindowWidth(), mainWindow.GetWindowHeight());
 		}
 
+		// 描画準備
 		command.BeginDraw();
-
+		// レンダーターゲットを書き込み可能に
 		command.UnlockRenderTarget(renderTarget);
-
+		
+		// レンダーターゲットのクリア
 		command.SetRenderTarget(renderTarget, depthStencil);
-
 		command.ClearRenderTarget(GUI::Graphics::Color(0.3f, 0.3f, 0.3f));
 		command.ClearDepthBuffer();
 
-
+		// モデル描画
 		if (model != nullptr)
 		{
 			model->Draw(command);
 		}
-		command.LockRenderTarget(renderTarget);
 
+		// レンダーターゲットを保護
+		command.LockRenderTarget(renderTarget);
+		
+		// 描画終了
 		command.EndDraw();
 
-		swapChain.Present();
+		// バックバッファ切り替え
+		command.Flip();
 	}
 
 	System::SafeDelete(&model);
