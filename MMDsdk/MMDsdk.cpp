@@ -1246,11 +1246,7 @@ PmxFile::PmxFile(const char* const filepath)
 	// インデックス読み込み
 	file.Read(mIndexCount);
 	mIndex = new int32_t[mIndexCount]{};
-	for (int i = 0; i < mIndexCount; ++i)
-	{
-		LoadID_AsInt32(file, mIndex[i], mHeader.vertexID_Size);
-	}
-	//file.ReadArray(mIndex, mIndexCount, mHeader.vertexID_Size);
+	file.ReadArray(mIndex, mIndexCount, mHeader.vertexID_Size);
 
 	// テクスチャ読み込み
 	file.Read(mTextureCount);
