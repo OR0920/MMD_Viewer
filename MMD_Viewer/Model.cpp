@@ -328,7 +328,6 @@ void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
 	}
 
 	materialIndexCount = data.vertexCount;
-	DebugMessageNewLine();
 }
 
 GUI::Result Model::LoadPMD(const char* const filepath)
@@ -596,8 +595,6 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 	{
 		return GUI::Result::FAIL;
 	}
-
-	file.DebugOutAllMaterial();
 
 	// 頂点データを読み込みバッファを作成
 	auto vCount = file.GetVertexCount();
