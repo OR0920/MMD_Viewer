@@ -19,6 +19,9 @@ VS_Output main(VS_Input input)
 {
     VS_Output output;
 
+    input.position.w = 1.f;
+    input.normal.w = 0.f;
+    
     float4 pos = input.position;
     pos = mul(world, pos);
 
