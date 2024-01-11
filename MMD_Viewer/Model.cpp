@@ -301,7 +301,7 @@ void Model::MaterialInfo::Load(const MMDsdk::PmdFile::Material& data)
 {
 	materialIndexCount = data.vertexCount;
 	toonID = static_cast<int>(data.toonIndex);
-	isShared == true;
+	isShared = true;
 }
 
 // PMXから読みこむ
@@ -328,6 +328,7 @@ void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
 	}
 
 	materialIndexCount = data.vertexCount;
+	DebugMessageNewLine();
 }
 
 GUI::Result Model::LoadPMD(const char* const filepath)
@@ -596,6 +597,8 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 		return GUI::Result::FAIL;
 	}
 
+	file.DebugOutAllMaterial();
+
 	// 頂点データを読み込みバッファを作成
 	auto vCount = file.GetVertexCount();
 	if (vCount != 0)
@@ -770,6 +773,8 @@ GUI::Result Model::CreateTexture(const char* const dirPath, const char* const fi
 	{
 		return GUI::Result::FAIL;
 	}
+
+	return GUI::Result::SUCCESS;
 }
 
 

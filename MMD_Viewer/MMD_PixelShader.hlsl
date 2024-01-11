@@ -24,7 +24,7 @@ float4 main(VS_Output input) : SV_TARGET
     float2 sphereUV = input.vnormal.xy;
     sphereUV = (sphereUV + float2(1.f, -1.f)) * float2(0.5f, -0.5f);
         
-    float4 finalColor = tex.Sample(smp, input.uv) * sph.Sample(smp, sphereUV) + float4(spa.Sample(smp, sphereUV).rgb, 0.f);
+    float4 finalColor = tex.Sample(smp, input.uv) * float4(sph.Sample(smp, sphereUV).rgb, 1.f) + float4(spa.Sample(smp, sphereUV).rgb, 0.f);
     
     float3 light = normalize(lightDir);
     
