@@ -418,6 +418,8 @@ namespace GUI
 		public:
 			RenderTarget(); ~RenderTarget();
 
+			const float GetAspectRatio() const;
+
 			// ライブラリから呼び出す関数
 			void GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, const int bufferID) const;
 			const ComPtr<ID3D12Resource> GetGPU_Address(const int bufferID) const;
@@ -433,6 +435,7 @@ namespace GUI
 
 			D3D12_VIEWPORT mViewPort;
 			D3D12_RECT mScissorRect;
+			float mAspectRatio;
 		};
 
 		// 深度バッファ

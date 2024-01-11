@@ -325,6 +325,8 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 	renderTarget.mViewIncrementSize
 		= mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
+	renderTarget.mAspectRatio = swapChain.GetAspectRatio();
+
 	return SUCCESS;
 }
 
@@ -1023,7 +1025,8 @@ RenderTarget::RenderTarget()
 	mBufferCount(0),
 	mViewIncrementSize(0),
 	mViewPort({}),
-	mScissorRect({})
+	mScissorRect({}),
+	mAspectRatio(0.f)
 {
 
 }
@@ -1036,6 +1039,11 @@ RenderTarget::~RenderTarget()
 	}
 
 	System::SafeDeleteArray(&mRT_Resource);
+}
+
+const float RenderTarget::GetAspectRatio() const
+{
+	return mAspectRatio;
 }
 
 void RenderTarget::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, const int bufferID) const

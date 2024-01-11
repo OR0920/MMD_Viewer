@@ -106,7 +106,7 @@ int MAIN()
 			}
 
 			// シーン初期化、モデル1体のみなので、シーンクラスなどには分けない
-			model->SetDefaultSceneData(swapChain.GetAspectRatio());
+			model->SetDefaultSceneData(renderTarget.GetAspectRatio());
 		}
 
 		// 描画準備
