@@ -102,6 +102,7 @@ int MAIN()
 			{
 				GUI::ErrorBox(L"対応していないファイルです");
 				System::SafeDelete(&model);
+				continue;
 			}
 
 			// シーン初期化、モデル1体のみなので、シーンクラスなどには分けない
