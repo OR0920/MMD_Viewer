@@ -3,7 +3,7 @@
 
 #include"GUI_Util.h"
 
-#include<vector>
+#include<array>
 #include<string>
 
 #include"MathUtil.h"
@@ -67,8 +67,8 @@ private:
 	static const int sDefaultTextureCount = 2;
 	static const int sDefaultToonTextureCount = 10;
 	static const int sSceneDataCount = 2;
-
 	int mDescriptorCount;
+
 	GUI::Graphics::DescriptorHeap mHeap;
 	GUI::Graphics::ConstantBuffer mTransformBuffer;
 	GUI::Graphics::ConstantBuffer mPS_DataBuffer;
@@ -96,6 +96,16 @@ private:
 	GUI::Graphics::GraphicsPipeline mPipeline;
 	GUI::Graphics::RootSignature mRootSignature;
 
+	GUI::Result isSuccessLoad;
+
+	static std::wstring mToonPath[10];
+
+	GUI::Graphics::Texture2D* mUniqueTexture;
+
+	GUI::Graphics::Texture2D mDefaultTextureWhite;
+	GUI::Graphics::Texture2D mDefaultTextureBlack;
+	GUI::Graphics::Texture2D mDefaultTextureToon[10];
+
 	GUI::Result LoadPMD(const char* const filepath);
 	GUI::Result LoadPMX(const char* const filepath);
 
@@ -103,18 +113,6 @@ private:
 	GUI::Result CreateIndexBuffer(const int index[], const int indexCount);
 	GUI::Result CreateMaterialBuffer(const Material material[], const int materialCount);
 	GUI::Result CreateTexture(const char* const dirPath, const char* const filename, const int texID);
-	
-	GUI::Result isSuccessLoad;
-
-	std::vector<std::string> mTexPath;
-	std::vector<std::wstring> mToonPath;
-
-	GUI::Graphics::Texture2D* mUniqueTexture;
-
-	// todo;
-	GUI::Graphics::Texture2D mDefaultTextureWhite;
-	GUI::Graphics::Texture2D mDefaultTextureBlack;
-	GUI::Graphics::Texture2D mDefaultTextureToon[10];
 };
 
 #endif // !_MODEL_H_

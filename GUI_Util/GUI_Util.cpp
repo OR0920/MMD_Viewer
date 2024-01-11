@@ -11,6 +11,28 @@
 // my lib
 #include "System.h"
 
+
+// エラー出力
+void OutputLastError()
+{
+	auto le = GetLastError();
+	wchar_t* messageBuff = nullptr;
+	FormatMessage
+	(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM |
+		FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,
+		le,
+		0,
+		(LPWSTR)&messageBuff,
+		0,
+		NULL
+	);
+	DebugMessageWide(messageBuff);
+}
+
+
 // ParentWindow
 using namespace GUI;
 
@@ -36,18 +58,14 @@ BOOL CALLBACK ParentResize(HWND hwnd, LPARAM lparam)
 	SendMessage(hwnd, WM_SIZE, NULL, NULL);
 	return true;
 }
+
 LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
 	PAINTSTRUCT ps;
 	HDC hdc;
+
 	switch (msg)
 	{
-		//case WM_CREATE:
-		//	DragAcceptFiles(hwnd, true);
-		//	break;
-		//case WM_DROPFILES:
-		//	DebugMessage("File Dropped");
-		//	break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
@@ -95,7 +113,6 @@ Result MainWindow::Create(int width, int height)
 	wc.hInstance = GetModuleHandle(NULL);
 	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	//wc.hbrBackground = CreateSolidBrush(COLOR_MENUBAR);
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = _T(ToString(MainWindow));
 	wc.hIconSm = NULL;
@@ -103,24 +120,7 @@ Result MainWindow::Create(int width, int height)
 	if (RegisterClassEx(&wc) == 0)
 	{
 		DebugMessageFunctionError(RegisterClassEx(), MainWindow::Create());
-
-		auto le = GetLastError();
-		wchar_t* messageBuff;
-		FormatMessage
-		(
-			FORMAT_MESSAGE_ALLOCATE_BUFFER |
-			FORMAT_MESSAGE_FROM_SYSTEM |
-			FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL,
-			le,
-			0,
-			(LPWSTR)&messageBuff,
-			0,
-			NULL
-		);
-
-		DebugMessageWide(messageBuff);
-
+		OutputLastError();
 		return Result::FAIL;
 	}
 
@@ -144,7 +144,6 @@ Result MainWindow::Create(int width, int height)
 	if (mWindowHandle == NULL)
 	{
 		DebugMessageFunctionError(CreateWindowEx(), MainWindow::Create());
-
 		return Result::FAIL;
 	}
 
@@ -155,6 +154,7 @@ Result MainWindow::Create(int width, int height)
 Result MainWindow::ProsessMessage()
 {
 	MSG msg = {};
+
 	if (GetMessage(&msg, NULL, 0, 0))
 	{
 		TranslateMessage(&msg);
@@ -283,11 +283,13 @@ LRESULT CALLBACK FileCatcher::FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LP
 
 Result FileCatcher::Create(const ParentWindow& parent)
 {
+	// 2重で作らせない
 	if (mWindowClass.lpszClassName != nullptr)
 	{
 		DebugMessage("Error at " << ToString(FileCatcher::Create()) " : The " << ToString(FileCatcher) << " is already Created !");
 		return FAIL;
 	}
+
 	auto parentHwnd = parent.GetHandle();
 
 	auto& wc = mWindowClass;
@@ -307,6 +309,7 @@ Result FileCatcher::Create(const ParentWindow& parent)
 	if (RegisterClassEx(&wc) == 0)
 	{
 		DebugMessageFunctionError(RegisterClassEx(), FileCatcher::Create());
+		OutputLastError();
 		return FAIL;
 	}
 
@@ -329,9 +332,6 @@ Result FileCatcher::Create(const ParentWindow& parent)
 		NULL
 	);
 
-	RECT child{};
-	GetWindowRect(hwnd, &child);
-
 
 	if (hwnd == NULL)
 	{
@@ -344,16 +344,17 @@ Result FileCatcher::Create(const ParentWindow& parent)
 
 bool FileCatcher::Update()
 {
+	// プロシージャーから更新されているかをもらう
 	if (sIsUpdated == false)
 	{
 		return false;
 	}
 
+	// ワイド文字からマルチバイトへ変換
 	char* filePath = nullptr;
 	System::newArray_CreateMultiByteStrFromWideCharStr(&filePath, sFilePath);
 
 	mFilePath = filePath;
-
 
 	System::SafeDeleteArray(&filePath);
 

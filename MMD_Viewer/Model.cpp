@@ -36,33 +36,61 @@ void Model::Material::Load(const MMDsdk::PmxFile::Material& data)
 	ambient = System::strong_cast<MathUtil::float3>(data.ambient);
 }
 
+std::wstring Model::mToonPath[] =
+{
+	L"DefaultTexture/toon01.bmp",
+	L"DefaultTexture/toon02.bmp",
+	L"DefaultTexture/toon03.bmp",
+	L"DefaultTexture/toon04.bmp",
+	L"DefaultTexture/toon05.bmp",
+	L"DefaultTexture/toon06.bmp",
+	L"DefaultTexture/toon07.bmp",
+	L"DefaultTexture/toon08.bmp",
+	L"DefaultTexture/toon09.bmp",
+	L"DefaultTexture/toon10.bmp",
+};
+
 Model::Model(GUI::Graphics::Device& device)
 	:
 	mDevice(device),
 	mVB(),
 	mIB(),
+	mDescriptorCount(0),
 	mHeap(),
 	mTransformBuffer(),
 	mPS_DataBuffer(),
 	mMaterialBuffer(),
+	mMaterialInfo(nullptr),
 	mMaterialCount(0),
 	inputLayout({}),
 	mPipeline({}),
 	mRootSignature({}),
 	isSuccessLoad(GUI::Result::FAIL),
-	mTexPath(),
-	mToonPath(10)
+	mUniqueTexture(nullptr),
+	mDefaultTextureWhite({}),
+	mDefaultTextureBlack({}),
+	mDefaultTextureToon()
 {
+	// 頂点レイアウトの設定
 	inputLayout.SetElementCount(3);
 	inputLayout.SetDefaultPositionDesc();
 	inputLayout.SetDefaultNormalDesc();
 	inputLayout.SetDefaultUV_Desc();
 
+	//　ルートシグネチャの作成
 	mRootSignature.SetParameterCount(7);
+
+	// param[0] : b0 : 行列類
+	// param[1] : b1 : シーンのデータ
+	// param[2] : b2 : マテリアルのデータ
 	mRootSignature.SetParamForCBV(0, 0);
 	mRootSignature.SetParamForCBV(1, 1);
 	mRootSignature.SetParamForCBV(2, 2);
 
+	// param[3] : t0 : 通常テクスチャ  
+	// param[4] : t1 : 乗算スフィアテクスチャ  
+	// param[5] : t2 : 加算スフィアテクスチャ  
+	// param[6] : t3 : Toonテクスチャ  
 	GUI::Graphics::DescriptorRange range;
 	range.SetRangeCount(1);
 	range.SetRangeForSRV(0, 0, 1);
@@ -83,38 +111,27 @@ Model::Model(GUI::Graphics::Device& device)
 	toonRange.SetRangeForSRV(0, 3, 1);
 	mRootSignature.SetParamForDescriptorTable(6, toonRange);
 
+	// s0 : 通常、乗算、加算テクスチャ用のサンプラー
+	// s1 : Toon用サンプラー　座標がループしない
 	mRootSignature.SetStaticSamplerCount(2);
 	mRootSignature.SetSamplerDefault(0, 0);
 	mRootSignature.SetSamplerUV_Clamp(1, 1);
 
 	mDevice.CreateRootSignature(mRootSignature);
 
+	// パイプライン設定
 	mPipeline.SetRootSignature(mRootSignature);
-	mPipeline.SetAlphaEnable();
-	mPipeline.SetCullDisable();
-	mPipeline.SetDepthEnable();
+	mPipeline.SetAlphaEnable(); // 透過ON
+	mPipeline.SetCullDisable(); // カリングOFF
+	mPipeline.SetDepthEnable(); // 深度有効
 	mPipeline.SetInputLayout(inputLayout);
 	mPipeline.SetVertexShader(gMMD_VS, _countof(gMMD_VS));
 	mPipeline.SetPixelShader(gMMD_PS, _countof(gMMD_PS));
 	mDevice.CreateGraphicsPipeline(mPipeline);
 
-	mToonPath =
-	{
-		L"DefaultTexture/toon01.bmp",
-		L"DefaultTexture/toon02.bmp",
-		L"DefaultTexture/toon03.bmp",
-		L"DefaultTexture/toon04.bmp",
-		L"DefaultTexture/toon05.bmp",
-		L"DefaultTexture/toon06.bmp",
-		L"DefaultTexture/toon07.bmp",
-		L"DefaultTexture/toon08.bmp",
-		L"DefaultTexture/toon09.bmp",
-		L"DefaultTexture/toon10.bmp",
-	};
-
-
+	// モデルによらず固定されたディスクリプターの数を設定
+	mDescriptorCount = sDefaultTextureCount + sDefaultToonTextureCount + sSceneDataCount;
 }
-
 
 Model::~Model()
 {
@@ -122,59 +139,47 @@ Model::~Model()
 	System::SafeDeleteArray(&mUniqueTexture);
 }
 
-
 GUI::Result Model::Load(const char* const filepath)
 {
 	isSuccessLoad = GUI::Result::FAIL;
 
-	mDescriptorCount = sDefaultTextureCount + sDefaultToonTextureCount + sSceneDataCount;
+	// すべての形式で読み込んでみる
+	if (LoadPMD(filepath) == GUI::Result::SUCCESS) { isSuccessLoad = GUI::Result::SUCCESS; }
+	else if (LoadPMX(filepath) == GUI::Result::SUCCESS) { isSuccessLoad = GUI::Result::SUCCESS; }
 
-	if (LoadPMD(filepath) == GUI::Result::SUCCESS)
-	{
-		isSuccessLoad = GUI::Result::SUCCESS;
-	}
-	else if (LoadPMX(filepath) == GUI::Result::SUCCESS)
-	{
-		isSuccessLoad = GUI::Result::SUCCESS;
-	}
-
-	if (isSuccessLoad == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
+	// 全フォーマットで読み込み失敗したらリターン
+	if (isSuccessLoad == GUI::Result::FAIL) { return GUI::Result::FAIL; }
 
 	DebugMessage("Model Load Succeeded !");
 
+	// シーン情報の初期化
 	if (mDevice.CreateConstantBuffer(mTransformBuffer, mHeap, sizeof(ModelTransform)) == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
 	}
-
+	
 	if (mDevice.CreateConstantBuffer(mPS_DataBuffer, mHeap, sizeof(PixelShaderData)) == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
 	}
 
+	// デフォルトのテクスチャを作る
 	if (mDefaultTextureWhite.LoadFromFile(L"DefaultTexture/White.png") == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
 	}
-
 	if (mDevice.CreateTexture2D(mDefaultTextureWhite, mHeap) == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
 	}
-
 	if (mDefaultTextureBlack.LoadFromFile(L"DefaultTexture/Black.png") == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
 	}
-
 	if (mDevice.CreateTexture2D(mDefaultTextureBlack, mHeap) == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
 	}
-
 	for (int i = 0; i < 10; ++i)
 	{
 		auto& t = mDefaultTextureToon[i];
@@ -190,7 +195,7 @@ GUI::Result Model::Load(const char* const filepath)
 		}
 	}
 
-	return isSuccessLoad;
+	return GUI::Result::SUCCESS;
 }
 
 GUI::Result Model::IsSuccessLoad() const
@@ -200,13 +205,16 @@ GUI::Result Model::IsSuccessLoad() const
 
 void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 {
+	// モデル描画用のパイプラインとルートシグネチャをセット
 	command.SetGraphicsPipeline(mPipeline);
 	command.SetGraphicsRootSignature(mRootSignature);
 
+	// ビューを用いてシーンのデータをバインド
 	command.SetDescriptorHeap(mHeap);
 	command.SetConstantBuffer(mTransformBuffer, 0);
 	command.SetConstantBuffer(mPS_DataBuffer, 1);
 
+	// 頂点バッファ、インデックスバッファをセット
 	command.SetVertexBuffer(mVB, mIB);
 
 	// 回転角計算
@@ -216,20 +224,24 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 	frameCount %= static_cast<int>(3600.f / (rotUnit * 10.f));
 	float rotation = rotUnit * frameCount;
 
-
+	// モデルを回転させる行列を書き込む
 	ModelTransform* transform = nullptr;
 	mTransformBuffer.Map(reinterpret_cast<void**>(&transform));
 	transform->world = MathUtil::Matrix::GenerateMatrixRotationY(MathUtil::DegreeToRadian(rotation));
 	mTransformBuffer.Unmap();
 
+	// マテリアル毎にメッシュを描画
 	int indexOffs = 0;
 	for (int i = 0; i < mMaterialCount; ++i)
 	{
 		auto& info = mMaterialInfo[i];
 		auto indexCount = info.materialIndexCount;
 
+		// マテリアルセット
 		command.SetConstantBuffer(mMaterialBuffer, 2, i);
 
+		// 各テクスチャをセット
+		// 固有テクスチャを持たない場合デフォルトのテクスチャを渡す
 		if (info.texID != -1)
 		{
 			command.SetDescriptorTable(mUniqueTexture[info.texID], 3);
@@ -256,7 +268,12 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 		{
 			command.SetDescriptorTable(mDefaultTextureBlack, 5);
 		}
-
+		
+		// トゥーンは
+		// ・固有テクスチャを持つもの(PMXのみの機能)
+		// ・共有テクスチャを持つもの
+		// ・トゥーンテクスチャを持たないもの
+		// がある
 		if (info.toonID != -1)
 		{
 			if (info.isShared == true)
@@ -273,11 +290,13 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 			command.SetDescriptorTable(mDefaultTextureWhite, 6);
 		}
 
+		// 前のマテリアルの続きから、メッシュを描画
 		command.DrawTriangleList(indexCount, indexOffs);
 		indexOffs += indexCount;
 	}
 }
 
+// PMDから読みこむ
 void Model::MaterialInfo::Load(const MMDsdk::PmdFile::Material& data)
 {
 	materialIndexCount = data.vertexCount;
@@ -285,6 +304,7 @@ void Model::MaterialInfo::Load(const MMDsdk::PmdFile::Material& data)
 	isShared == true;
 }
 
+// PMXから読みこむ
 void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
 {
 	texID = data.textureID;
@@ -312,12 +332,14 @@ void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
 
 GUI::Result Model::LoadPMD(const char* const filepath)
 {
+	// PMDとして開けなければ失敗
 	MMDsdk::PmdFile file(filepath);
 	if (file.IsSuccessLoad() == false)
 	{
 		return GUI::Result::FAIL;
 	}
 
+	// 頂点データを読み込み、バッファを作る
 	auto vCount = file.GetVertexCount();
 	if (vCount != 0)
 	{
@@ -336,7 +358,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		System::SafeDeleteArray(&mesh);
 	}
 
-
+	// インデックスデータを読み込み、バッファを作る
 	auto iCount = file.GetIndexCount();
 	if (iCount != 0)
 	{
@@ -355,9 +377,10 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		System::SafeDeleteArray(&index);
 	}
 
-
+	// マテリアル数を取得
 	mMaterialCount = file.GetMaterialCount();
 
+	// マテリアルが0なら、固有テクスチャも0なので、ヒープを作りリターン
 	if (mMaterialCount == 0)
 	{
 		if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
@@ -366,6 +389,11 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		}
 	}
 
+	// PMDの場合、テクスチャファイル名が
+	// tex1.bmp*tex2.sph　のように結合された状態で
+	// 各マテリアルに記録されている。
+	// 
+	// 種類ごとに分割し記録しておく
 	// pmdのパスの長さは20固定
 	struct TexPaths
 	{
@@ -376,39 +404,45 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 	TexPaths* texPathPerMaterial = nullptr;
 
+	// テクスチャを分割する際に使う構造体群
 	struct SubString
 	{
+		// テクスチャ名の長さと開始位置
 		const char* start = nullptr;
 		int length = 0;
 	};
 
+	// テクスチャ名を分割して記録する構造体
 	struct TexPathSignature
 	{
 		SubString path[2];
 		int pathCount = 0;
-
 		void Load(const char* const str, const int length)
 		{
+			// テクスチャ一つと仮定する
 			path[0].start = &str[0];
-
 			path[0].length = length;
 
 			pathCount++;
 
+			// 分割文字'*'を探す
 			for (int i = 0; i < length; ++i)
 			{
 				if (str[i] == '*')
 				{
+					// 各パスの長さと開始位置を記録しておく
 					path[1].start = &str[i + 1];
 
 					path[0].length = i;
 					path[1].length = length - i;
 
+					// テクスチャは2つ
 					pathCount++;
 					break;
 				}
 				if (str[i] == '\0')
 				{
+					// 末端にたどり着いたら一つだけ
 					return;
 				}
 			}
@@ -417,12 +451,16 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 	TexPathSignature* pathSignature = nullptr;
 
+	// テクスチャ数
 	int tCount = 0;
 
 	if (mMaterialCount != 0)
 	{
+		// シェーダーに置くマテリアル情報
 		Material* material = new Material[mMaterialCount];
+		// シェーダーに置かないマテリアル情報
 		mMaterialInfo = new MaterialInfo[mMaterialCount];
+
 		texPathPerMaterial = new TexPaths[mMaterialCount];
 		pathSignature = new TexPathSignature[mMaterialCount];
 
@@ -432,34 +470,37 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			material[i].Load(m);
 			mMaterialInfo[i].Load(m);
 
+			// テクスチャを取得
 			auto tp = m.texturePath.GetText();
 
+			// テクスチャを持たないマテリアル
 			if (tp[0] == '\0') continue;
 
 			auto tpLength = m.texturePath.GetLength();
 			pathSignature[i].Load(tp, tpLength);
 
+			// 各テクスチャを種類ごとにコピー
 			for (int j = 0; j < pathSignature[i].pathCount; ++j)
 			{
+				// Tex1.bmp*Tex2.sph　というように
+				// 一つ目にはNULL文字が存在しないため、一回バッファにコピーする
 				char path[20] = { '\0' };
 				auto subStr = pathSignature[i].path[j];
-				for (int k = 0; k < subStr.length; ++k)
-				{
-					path[k] = subStr.start[k];
-				}
-				DebugOutString(path);
+				
+				memcpy(&path[0], subStr.start, subStr.length);
 
+				// 拡張子で振り分け　
+				// PMDの仕様では、拡張子でテクスチャの機能が変わる
 				auto* ext = System::GetExt(path);
-				DebugOutString(ext);
-				DebugMessageNewLine();
 
 				auto& p = texPathPerMaterial[i];
 				auto& mifo = mMaterialInfo[i];
 				if (System::StringEqual(ext, ".sph") == true)
 				{
 					memcpy(p.sph, path, 20);
+					// テクスチャを読み込んだ順番とIDを対応させる
 					mifo.sphID = tCount;
-					tCount++;
+					tCount++;// テクスチャ数を数える
 				}
 				else if (System::StringEqual(ext, ".spa") == true)
 				{
@@ -469,6 +510,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 				}
 				else
 				{
+					//　上記以外の拡張子はすべて通常テクスチャとする
 					memcpy(p.tex, path, 20);
 					mifo.texID = tCount;
 					tCount++;
@@ -476,6 +518,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			}
 		}
 
+		// ディスクリプタの数を更新し、ヒープ作成
 		mDescriptorCount += mMaterialCount + tCount;
 		if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
 		{
@@ -484,6 +527,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			return GUI::Result::FAIL;
 		}
 
+		// マテリアルの定数バッファを作成
 		if (CreateMaterialBuffer(material, mMaterialCount) == GUI::Result::FAIL)
 		{
 			System::SafeDeleteArray(&material);
@@ -494,6 +538,8 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		System::SafeDeleteArray(&material);
 	}
 
+	// テクスチャを読み込む
+	// とりあえずシンプルにしておきたいので、同じテクスチャだろうがそのまま読み込む
 	if (tCount != 0)
 	{
 		mUniqueTexture = new GUI::Graphics::Texture2D[tCount];
@@ -550,7 +596,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 		return GUI::Result::FAIL;
 	}
 
-
+	// 頂点データを読み込みバッファを作成
 	auto vCount = file.GetVertexCount();
 	if (vCount != 0)
 	{
@@ -566,10 +612,10 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			return GUI::Result::FAIL;
 		}
 
-
 		System::SafeDeleteArray(&mesh);
 	}
 
+	// インデックスデータを読み込みバッファを作成
 	auto iCount = file.GetIndexCount();
 	if (iCount != 0)
 	{
@@ -588,6 +634,10 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 		System::SafeDeleteArray(&index);
 	}
 
+	// マテリアルとテクスチャを読み込む
+
+	// PMDと異なり、テクスチャとマテリアルが分離しているため
+	// この段階でディスクリプタ数が確定する
 	mMaterialCount = file.GetMaterialCount();
 	auto tCount = file.GetTextureCount();
 
@@ -598,6 +648,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 		return GUI::Result::FAIL;
 	}
 
+	// マテリアルを読み込みバッファを作成
 	if (mMaterialCount != 0)
 	{
 		Material* material = new Material[mMaterialCount];
@@ -620,6 +671,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 		System::SafeDeleteArray(&material);
 	}
 
+	// テクスチャを読み込みバッファを作成
 	if (tCount != 0)
 	{
 		mUniqueTexture = new GUI::Graphics::Texture2D[tCount];
@@ -638,6 +690,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 
 GUI::Result Model::CreateVertexBuffer(const ModelVertex vertex[], const int vertexCount)
 {
+	// バッファを作ってコピー
 	if (mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vertexCount) == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
@@ -653,6 +706,7 @@ GUI::Result Model::CreateVertexBuffer(const ModelVertex vertex[], const int vert
 
 GUI::Result Model::CreateIndexBuffer(const int index[], const int indexCount)
 {
+	// バッファを作ってコピー
 	if (mDevice.CreateIndexBuffer(mIB, sizeof(int), indexCount) == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
@@ -668,6 +722,7 @@ GUI::Result Model::CreateIndexBuffer(const int index[], const int indexCount)
 
 GUI::Result Model::CreateMaterialBuffer(const Material material[], const int materialCount)
 {
+	// バッファを作ってマップしてコピー
 	if (mDevice.CreateConstantBuffer(mMaterialBuffer, mHeap, sizeof(Material), materialCount) == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
@@ -679,6 +734,7 @@ GUI::Result Model::CreateMaterialBuffer(const Material material[], const int mat
 		for (int i = 0; i < materialCount; ++i)
 		{
 			*reinterpret_cast<Material*>(mappedMaterial) = material[i];
+			// 256バイトにアラインメントされているため、sizeof(Material)ではない
 			mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
 		}
 
@@ -690,12 +746,15 @@ GUI::Result Model::CreateMaterialBuffer(const Material material[], const int mat
 
 GUI::Result Model::CreateTexture(const char* const dirPath, const char* const filename, const int texID)
 {
+	// パスを結合
 	char* tFilePath = nullptr;
 	System::newArray_CopyAssetPath(&tFilePath, dirPath, filename);
 
+	// ワイド文字へ
 	wchar_t* filepath = nullptr;
 	System::newArray_CreateWideCharStrFromMultiByteStr(&filepath, tFilePath);
 
+	// テクスチャを読み込む
 	if (mUniqueTexture[texID].LoadFromFile(filepath) == GUI::Result::FAIL)
 	{
 		System::SafeDeleteArray(&tFilePath);
@@ -706,6 +765,7 @@ GUI::Result Model::CreateTexture(const char* const dirPath, const char* const fi
 	System::SafeDeleteArray(&tFilePath);
 	System::SafeDeleteArray(&filepath);
 
+	// テクスチャを作成
 	if (mDevice.CreateTexture2D(mUniqueTexture[texID], mHeap) == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
@@ -715,9 +775,12 @@ GUI::Result Model::CreateTexture(const char* const dirPath, const char* const fi
 
 GUI::Result Model::SetDefaultSceneData(const int windowWidth, const int windowHeight)
 {
+	// 行列データ、シーンデータをマップしコピー
+	// データは一つだけなので、そのままクラスのポインタを使用する。
 	ModelTransform* mappedTransform = nullptr;
 	if (mTransformBuffer.Map(reinterpret_cast<void**>(&mappedTransform)) == GUI::Result::SUCCESS)
 	{
+		// 視点
 		auto eye = MathUtil::Vector(0.f, 10.f, -30.f);
 		mappedTransform->world = MathUtil::Matrix::GenerateMatrixIdentity();
 		mappedTransform->view = MathUtil::Matrix::GenerateMatrixLookToLH
@@ -744,6 +807,7 @@ GUI::Result Model::SetDefaultSceneData(const int windowWidth, const int windowHe
 	PixelShaderData* mappedPS_Data = nullptr;
 	if (mPS_DataBuffer.Map(reinterpret_cast<void**>(&mappedPS_Data)) == GUI::Result::SUCCESS)
 	{
+		// ライトの方向
 		mappedPS_Data->lightDir = MathUtil::Vector(-1.f, -1.f, 1.f).GetFloat3();
 		mPS_DataBuffer.Unmap();
 	}

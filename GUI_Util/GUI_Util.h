@@ -445,7 +445,7 @@ namespace GUI
 
 		};
 
-		// ルートシグネチャ周りのインターフェイス (情報が少ないので推測を含む)
+		// ルートシグネチャ周りのインターフェイス
 		// 参考: https://learn.microsoft.com/ja-jp/windows/win32/direct3d12/pipelines-and-shaders-with-directx-12A
 		// 
 		// パイプラインに渡されるデータ(リソース)は4種類で、すべてビューを介して渡される
@@ -466,7 +466,7 @@ namespace GUI
 		// このうち4をどのように配置するかを記述したものがルートシグネチャ
 		//
 
-		// ディスクリプタテーブルを表すもの
+		// ディスクリプタテーブルの設定を行う
 		class DescriptorRange
 		{
 		public:
@@ -499,7 +499,9 @@ namespace GUI
 			void SetParameterCount(const int count);
 
 			// 何番目の引数に何を渡すか
-			// 定数バッファビュー
+			// ルートパラメータ(現状必要ないので必要になったら作る)
+	
+			// ルートディスクリプタ
 			void SetParamForCBV(const int paramID, const int registerID);
 			void SetParamForSRV(const int paramID, const int registerID);
 

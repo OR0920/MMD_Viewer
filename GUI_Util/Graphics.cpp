@@ -21,7 +21,7 @@
 #include "System.h"
 #include"MathUtil.h"
 
-
+// APIが失敗した場合に失敗を返す
 #define ReturnIfFailed(func, at)\
 {\
 	auto result = func;\
@@ -59,6 +59,7 @@ void SafeRelease(ComInterface** ptr)
 }
 
 // テクスチャデータの実装クラス
+// DirectX Texをラッピング
 namespace GUI
 {
 	namespace Graphics
@@ -79,6 +80,8 @@ namespace GUI
 
 			Result LoadFromFile(const wchar_t* const filepath)
 			{
+				// 各フォーマットで片っ端から読み込む
+				// 成功したらリターン
 				ReturnIfSuccess
 				(
 					DirectX::LoadFromWICFile
@@ -105,6 +108,8 @@ namespace GUI
 						&mMetaData, mImage
 					)
 				);
+
+				return FAIL;
 			}
 
 		private:
@@ -140,8 +145,7 @@ Color::Color()
 
 }
 
-// デバッグレイヤ
-
+// デバッグレイヤ有効化
 Result Graphics::EnalbleDebugLayer()
 {
 #ifdef _DEBUG
@@ -173,6 +177,7 @@ Device::~Device()
 
 Result Device::Create()
 {
+	// フィーチャーレベルはとりあえず12_0で作成
 	ReturnIfFailed
 	(
 		D3D12CreateDevice
@@ -189,8 +194,11 @@ Result Device::Create()
 
 Result Device::CreateGraphicsCommand(GraphicsCommand& command)
 {
+	// グラフィックス用のコマンドリスト
 	auto type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
+	// コマンドキュー　コマンド実行の順番を管理
+	// とりあえず一つだけ　複数のコマンドキューを管理する場合別クラス化を検討
 	D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {};
 	commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	commandQueueDesc.NodeMask = 0;
@@ -207,6 +215,7 @@ Result Device::CreateGraphicsCommand(GraphicsCommand& command)
 		Device::CreateGraphicsCommand()
 	);
 
+	// コマンドアロケーター　コマンドを記録するメモリを管理
 	ReturnIfFailed
 	(
 		mDevice->CreateCommandAllocator
@@ -217,6 +226,7 @@ Result Device::CreateGraphicsCommand(GraphicsCommand& command)
 		Device::CreateGraphicsCommand()
 	);
 
+	// コマンドリスト　これを介してコマンドを記録する
 	ReturnIfFailed
 	(
 		mDevice->CreateCommandList
@@ -230,6 +240,7 @@ Result Device::CreateGraphicsCommand(GraphicsCommand& command)
 		Device::CreateGraphicsCommand()
 	);
 
+	// フェンス、今のところ別クラスにする必要性がないので、ここに隠ぺい
 	ReturnIfFailed
 	(
 		mDevice->CreateFence
@@ -241,8 +252,10 @@ Result Device::CreateGraphicsCommand(GraphicsCommand& command)
 		Device::CreateFence()
 	);
 
+	// リストを閉じておく
 	command.mCommandList->Close();
 
+	// デバイスを取得しておく
 	command.mDevice = mDevice.Get();
 
 	return SUCCESS;
@@ -250,20 +263,22 @@ Result Device::CreateGraphicsCommand(GraphicsCommand& command)
 
 Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& swapChain)
 {
+	// スワップチェインの情報取得
 	DXGI_SWAP_CHAIN_DESC desc = {};
 	if (swapChain.GetDesc(&desc) == Result::FAIL)
 	{
 		return FAIL;
 	}
 
+	// バックバッファの情報を取得
 	auto& bufferCount = renderTarget.mBufferCount = desc.BufferCount;
 
+	// レンダーターゲットのビューを置くメモリ領域を作る
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	heapDesc.NodeMask = 0;
 	heapDesc.NumDescriptors = bufferCount;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-
 	ReturnIfFailed
 	(
 		mDevice->CreateDescriptorHeap
@@ -274,6 +289,7 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 		Device::CreateRenderTarget()
 	);
 
+	// スワップチェインから、描画先をもらい、ビューを作成する
 	renderTarget.mRT_Resource = new ComPtr<ID3D12Resource>[bufferCount] {nullptr};
 
 	D3D12_CPU_DESCRIPTOR_HANDLE mRTV_Handle
@@ -301,6 +317,7 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 			mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	}
 
+	// 描画時に必要になる情報をもらう
 	renderTarget.mViewPort = CD3DX12_VIEWPORT(renderTarget.mRT_Resource[0].Get());
 	renderTarget.mScissorRect
 		= CD3DX12_RECT(0, 0, desc.BufferDesc.Width, desc.BufferDesc.Width);
@@ -317,14 +334,17 @@ Result Device::CreateDepthBuffer
 	const SwapChain& swapChain
 )
 {
+	// スワップチェーンの情報を取得
 	DXGI_SWAP_CHAIN_DESC swDesc = {};
 	if (swapChain.GetDesc(&swDesc) == Result::FAIL)
 	{
 		return FAIL;
 	}
 
+	// 4バイト全部、深度値として使う
 	auto depthFormat = DXGI_FORMAT_D32_FLOAT;
 
+	// 深度バッファの設定、個別に設定したくなったらメソッド化
 	auto resDesc = CD3DX12_RESOURCE_DESC::Tex2D
 	(
 		depthFormat,
@@ -336,8 +356,10 @@ Result Device::CreateDepthBuffer
 
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
+	// クリアに使う値
 	auto clearValue = CD3DX12_CLEAR_VALUE(depthFormat, 1.f, 0);
 
+	// 深度バッファ作成
 	ReturnIfFailed
 	(
 		mDevice->CreateCommittedResource
@@ -352,6 +374,7 @@ Result Device::CreateDepthBuffer
 		Device::CreateDepthBuffer()
 	);
 
+	// ビューを作る場所を用意
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.NumDescriptors = 1;
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
@@ -367,6 +390,7 @@ Result Device::CreateDepthBuffer
 		Device::CreateDepthBuffer()
 	);
 
+	// ビューを作る
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
 	dsvDesc.Format = depthFormat;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
@@ -388,6 +412,7 @@ Result Device::CreateRootSignature(RootSignature& rootSignature)
 	ComPtr<ID3DBlob> signature;
 	ComPtr<ID3DBlob> error;
 
+	// ルートシグネチャのバイナリを作成
 	ReturnIfFailed
 	(
 		D3D12SerializeRootSignature
@@ -398,6 +423,7 @@ Result Device::CreateRootSignature(RootSignature& rootSignature)
 		Device::CreateRootSignature()
 	);
 
+	// バイナリをもとにシグネチャ作成
 	ReturnIfFailed
 	(
 		mDevice->CreateRootSignature
@@ -435,12 +461,10 @@ Result Device::CreateVertexBuffer
 {
 	if (elementCount == 0) return FAIL;
 
-	DebugOutParam(elementSize);
-	DebugOutParam(elementCount);
-
+	// バッファ全体のサイズ
 	auto bufferSize = elementSize * elementCount;
-	DebugOutParam(bufferSize);
 
+	// リソースを作成
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 
@@ -458,11 +482,12 @@ Result Device::CreateVertexBuffer
 		Device::CreateVertexBuffer()
 	);
 
-
+	// ビューを設定
 	vertexBuffer.mView.BufferLocation = vertexBuffer.mResource->GetGPUVirtualAddress();
 	vertexBuffer.mView.SizeInBytes = bufferSize;
 	vertexBuffer.mView.StrideInBytes = elementSize;
 
+	// 頂点数を記録しておく
 	vertexBuffer.mVertexCount = elementCount;
 
 	return SUCCESS;
@@ -477,12 +502,10 @@ Result Device::CreateIndexBuffer
 {
 	if (indexCount == 0) return FAIL;
 
-	DebugOutParam(indexTypeSize);
-	DebugOutParam(indexCount);
-
+	// バッファ全体のサイズ
 	auto bufferSize = indexTypeSize * indexCount;
-	DebugOutParam(bufferSize);
 
+	// リソースを作成
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 
@@ -500,10 +523,12 @@ Result Device::CreateIndexBuffer
 		Device::CreateIndexBuffer()
 	);
 
+	// ビューを設定
 	indexBuffer.mView.BufferLocation = indexBuffer.mResource->GetGPUVirtualAddress();
 	indexBuffer.mView.Format = DXGI_FORMAT_R32_UINT;
 	indexBuffer.mView.SizeInBytes = bufferSize;
 
+	// 頂点数を記録しておく
 	indexBuffer.mIndexCount = indexCount;
 
 	return SUCCESS;
@@ -517,10 +542,13 @@ Result Device::CreateConstantBuffer
 	const unsigned int bufferCount
 )
 {
+	// アラインメントされた要素一つ当たりのサイズ
 	auto bufferStructSizeAllignmented = D3D12Allignment(bufferStructSize);
 
+	// バッファ全体のサイズ
 	auto bufferSize = bufferStructSizeAllignmented * bufferCount;
 
+	// リソースを作成
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 
@@ -538,15 +566,14 @@ Result Device::CreateConstantBuffer
 		Device::CreateConstantBuffer()
 	);
 
+	// ディスクリプタヒープにビューを作成する
 	D3D12_CONSTANT_BUFFER_VIEW_DESC viewDesc = {};
 	viewDesc.BufferLocation = constantBuffer.mResource->GetGPUVirtualAddress();
 	viewDesc.SizeInBytes = bufferStructSizeAllignmented;
 
 	constantBuffer.mViewDesc = viewDesc;
-
 	constantBuffer.mCPU_Handle = viewHeap.GetCurrentCPU_Handle();
 	constantBuffer.mGPU_Handle = viewHeap.GetCurrentGPU_Handle();
-
 
 	for (unsigned int i = 0; i < bufferCount; ++i)
 	{
@@ -556,10 +583,8 @@ Result Device::CreateConstantBuffer
 		);
 
 		viewDesc.BufferLocation += bufferStructSizeAllignmented;
-
 		viewHeap.MoveToNextHeapPos();
 	}
-
 
 	constantBuffer.mViewIncrementSize =
 		mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -573,6 +598,7 @@ Result Device::CreateTexture2D
 	DescriptorHeap& viewHeap
 )
 {
+	// リソースを作成
 	D3D12_HEAP_PROPERTIES heapProp = {};
 	heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_CUSTOM;
 	heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
@@ -607,8 +633,10 @@ Result Device::CreateTexture2D
 		Device::CreateTexture2D();
 	);
 
+	// テクスチャのデータをコピーする
 	if (texture.WriteToSubresource() == FAIL) return FAIL;
 
+	// ビューを作成
 	auto& viewDesc = texture.mViewDesc;
 	viewDesc.Format = texture.mResource->GetDesc().Format;
 	viewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -676,11 +704,12 @@ SwapChain::~SwapChain()
 
 Result SwapChain::Create
 (
-	GraphicsCommand& device,
+	GraphicsCommand& command,
 	const ParentWindow& targetWindow,
 	const int frameCount
 )
 {
+	// ウィンドウがないと作れない
 	if (targetWindow.GetHandle() == 0)
 	{
 		DebugMessage("The Target Window Is not Exist !");
@@ -688,6 +717,7 @@ Result SwapChain::Create
 		return FAIL;
 	}
 
+	// DXGIのインターフェースを生成するインターフェース
 	ComPtr<IDXGIFactory> tFactory;
 	ReturnIfFailed
 	(
@@ -699,14 +729,15 @@ Result SwapChain::Create
 		SwapChain::Create();
 	);
 
+	// IDXGIFactoryから、IDXGIFactory4をもらう
 	ComPtr<IDXGIFactory4> factory4;
-
 	ReturnIfFailed
 	(
 		tFactory->QueryInterface(IID_PPV_ARGS(factory4.ReleaseAndGetAddressOf())),
 		SwapChain::Create()
 	);
 
+	// スワップチェインの設定、項目別に設定したくなったらメソッド化
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 	swapChainDesc.Width = targetWindow.GetWindowWidth();
 	swapChainDesc.Height = targetWindow.GetWindowHeight();
@@ -721,13 +752,13 @@ Result SwapChain::Create
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
+	// SwapChain1を作り、SwapChain4をもらう
 	ComPtr<IDXGISwapChain1> tSwCh1;
-
 	ReturnIfFailed
 	(
 		factory4->CreateSwapChainForHwnd
 		(
-			device.mCommandQueue.Get(),
+			command.mCommandQueue.Get(),
 			targetWindow.GetHandle(),
 			&swapChainDesc,
 			nullptr,
@@ -736,14 +767,14 @@ Result SwapChain::Create
 		),
 		SwapChain::Create()
 	);
-
 	ReturnIfFailed
 	(
 		tSwCh1->QueryInterface(mSwapChain.ReleaseAndGetAddressOf()),
 		SwapChain::Create()
 	);
 
-	device.mSwapChain = this;
+	// 描画時に必要になるため、コマンドに根回ししておく
+	command.mSwapChain = this;
 
 	return SUCCESS;
 }
@@ -803,10 +834,9 @@ GraphicsCommand::~GraphicsCommand()
 
 void GraphicsCommand::BeginDraw()
 {
+	// コマンドをリセット
 	mCommandAllocator->Reset();
 	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
-	float bf[] = {0.f, 0.f, 0.f, 0.f};
-	mCommandList->OMSetBlendFactor(bf);
 }
 
 void GraphicsCommand::SetGraphicsPipeline(const GraphicsPipeline& pipeline)
@@ -950,9 +980,10 @@ void GraphicsCommand::EndDraw()
 
 	mCommandQueue->Signal(mFence.Get(), ++mFenceValue);
 
+	// とりあえずシンプルにビジーループで待つ
 	do
 	{
-
+		
 	} while (mFence->GetCompletedValue() < mFenceValue);
 }
 
@@ -1082,6 +1113,7 @@ void DescriptorRange::SetRangeForCBV
 		assert(false);
 	}
 
+	// 定数バッファビュー用にレンジを設定
 	auto& r = mRange[rangeID];
 	r.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 	r.BaseShaderRegister = registerID;
@@ -1102,6 +1134,7 @@ void DescriptorRange::SetRangeForSRV
 		assert(false);
 	}
 
+	// シェーダーリソースビュー用にレンジを設定
 	auto& r = mRange[rangeID];
 	r = {};
 	r.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
@@ -1156,6 +1189,7 @@ void RootSignature::SetParamForCBV(const int paramID, const int registerID)
 {
 	if (IsParamSizeOver(paramID)) return;
 
+	// 指定されたルートパラメータを定数バッファビュー用に設定
 	auto& p = mRootParamter[paramID];
 	p.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	p.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
@@ -1166,6 +1200,8 @@ void RootSignature::SetParamForCBV(const int paramID, const int registerID)
 void RootSignature::SetParamForSRV(const int paramID, const int registerID)
 {
 	if (IsParamSizeOver(paramID)) return;
+
+	//指定されたルートパラメータをSRV用に設定
 	auto& p = mRootParamter[paramID];
 	p.ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
 	p.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
@@ -1181,6 +1217,7 @@ void RootSignature::SetParamForDescriptorTable
 {
 	if (IsParamSizeOver(paramID)) return;
 
+	// 指定されたパラメータをディスクリプタテーブル用に設定し、レンジをセット
 	auto& p = mRootParamter[paramID];
 	p.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	p.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
@@ -1202,6 +1239,7 @@ void RootSignature::SetSamplerDefault(const int samplerID, const int registerID)
 {
 	if (IsSamplerSizeOver(samplerID)) return;
 
+	// デフォルトのサンプラー
 	CD3DX12_STATIC_SAMPLER_DESC desc = {};
 	desc.Init(registerID);
 
@@ -1212,6 +1250,7 @@ void RootSignature::SetSamplerUV_Clamp(const int samplerID, const int registerID
 {
 	if (IsSamplerSizeOver(samplerID)) return;
 
+	// UVをループさせない
 	CD3DX12_STATIC_SAMPLER_DESC desc = {};
 	desc.Init
 	(
@@ -1377,11 +1416,7 @@ GraphicsPipeline::GraphicsPipeline()
 	mPipelineState(nullptr),
 	psoDesc({})
 {
-	//psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-	//psoDesc.pRootSignature = m_rootSignature.Get();
-	//psoDesc.VS = { reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
-	//psoDesc.PS = { reinterpret_cast<UINT8*>(pixelShader->GetBufferPointer()), pixelShader->GetBufferSize() };
-
+	// デフォルトの設定
 	psoDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -1392,9 +1427,11 @@ GraphicsPipeline::GraphicsPipeline()
 	psoDesc.DepthStencilState.StencilEnable = false;
 
 	psoDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
+
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
 	psoDesc.NumRenderTargets = 1;
+
 	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	psoDesc.SampleDesc.Count = 1;
@@ -1480,6 +1517,7 @@ Result VertexBuffer::Copy(const void* const data)
 {
 	if (mResource == nullptr) return FAIL;
 
+	// マップしてコピー
 	unsigned char* mappedVertex = nullptr;
 	auto range = CD3DX12_RANGE(0, 0);
 	ReturnIfFailed
@@ -1528,8 +1566,8 @@ Result IndexBuffer::Copy(const void* const data)
 {
 	if (mResource == nullptr) return FAIL;
 
+	// マップしてコピー
 	unsigned char* mappedIndex = nullptr;
-
 	auto range = CD3DX12_RANGE(0, 0);
 	ReturnIfFailed
 	(
@@ -1652,6 +1690,7 @@ const D3D12_GPU_DESCRIPTOR_HANDLE Texture2D::GetGPU_Handle(const int i) const
 
 Result Texture2D::WriteToSubresource()
 {
+	// リソースに書き込む
 	auto img = mData->GetImage().GetImage(0, 0, 0);
 	ReturnIfFailed
 	(
