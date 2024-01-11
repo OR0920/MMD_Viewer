@@ -27,7 +27,7 @@ int MAIN()
 	auto& mainWindow = GUI::MainWindow::Instance();
 
 	// ウィンドウを作成
-	if (mainWindow.Create(windowWidth, windowHeight) == GUI::Result::FAIL)
+	if (mainWindow.Create(FHD, FHD) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
