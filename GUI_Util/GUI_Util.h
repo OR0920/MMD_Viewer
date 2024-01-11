@@ -49,6 +49,8 @@ namespace GUI
 		virtual const HWND GetHandle() const = 0;
 		virtual const int GetWindowWidth() const = 0;
 		virtual const int GetWindowHeight() const = 0;
+		virtual	const int GetClientWidth() const = 0; 
+		virtual const int GetClientHeight() const = 0;
 	protected:
 	};
 
@@ -74,6 +76,9 @@ namespace GUI
 		const int GetWindowWidth() const;
 		const int GetWindowHeight() const;
 
+		const int GetClientWidth() const;
+		const int GetClientHeight() const;
+
 		// ライブラリ側から呼び出す関数
 		const HWND GetHandle() const;
 	private:
@@ -82,6 +87,8 @@ namespace GUI
 
 		int mWidth;
 		int mHeight;
+		int mClientWidth;
+		int mClientHeight;
 
 		HWND mWindowHandle;
 		WNDCLASSEX mWindowClass;
@@ -274,6 +281,8 @@ namespace GUI
 				const int frameCount
 			);
 
+			const float GetAspectRatio() const;
+
 			// 現在のバックバッファを取得する際に使用する
 			// 0 <= return < frameCount の値が返される
 			int GetCurrentBackBufferIndex() const;
@@ -287,6 +296,7 @@ namespace GUI
 		private:
 			ComPtr<IDXGISwapChain4> mSwapChain;
 
+			float mAspectRatio;
 		};
 
 		// 描画コマンドを発行する

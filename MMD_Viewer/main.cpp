@@ -106,7 +106,7 @@ int MAIN()
 			}
 
 			// シーン初期化、モデル1体のみなので、シーンクラスなどには分けない
-			model->SetDefaultSceneData(mainWindow.GetWindowWidth(), mainWindow.GetWindowHeight());
+			model->SetDefaultSceneData(swapChain.GetAspectRatio());
 		}
 
 		// 描画準備

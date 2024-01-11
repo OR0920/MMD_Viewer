@@ -54,7 +54,7 @@ public:
 	GUI::Result	Load(const char* const filepath);
 	GUI::Result IsSuccessLoad() const;
 
-	GUI::Result SetDefaultSceneData(const int windowWidth, const int windowHeight);
+	GUI::Result SetDefaultSceneData(const float aspectRatio);
 
 	void Draw(GUI::Graphics::GraphicsCommand& command);
 

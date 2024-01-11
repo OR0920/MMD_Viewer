@@ -147,6 +147,11 @@ Result MainWindow::Create(int width, int height)
 		return Result::FAIL;
 	}
 
+	RECT cr = {};
+	GetClientRect(mWindowHandle, &cr);
+
+	mClientWidth = cr.right - cr.left;
+	mClientHeight = cr.bottom - cr.top;
 
 	return Result::SUCCESS;
 }
@@ -197,6 +202,16 @@ const int MainWindow::GetWindowHeight() const
 	return mHeight;
 }
 
+const int MainWindow::GetClientWidth() const
+{
+	return mClientWidth;
+}
+
+const int MainWindow::GetClientHeight() const
+{
+	return mClientHeight;
+}
+
 const HWND MainWindow::GetHandle() const
 {
 	return mWindowHandle;
@@ -206,6 +221,8 @@ MainWindow::MainWindow()
 	:
 	mWidth(0),
 	mHeight(0),
+	mClientWidth(0),
+	mClientHeight(0),
 	mWindowHandle(NULL),
 	mWindowClass({})
 {
@@ -313,9 +330,6 @@ Result FileCatcher::Create(const ParentWindow& parent)
 		return FAIL;
 	}
 
-	RECT parentRect = {};
-	GetClientRect(parentHwnd, &parentRect);
-
 	auto hwnd = CreateWindowEx
 	(
 		WS_EX_ACCEPTFILES,
@@ -324,8 +338,8 @@ Result FileCatcher::Create(const ParentWindow& parent)
 		WS_CHILD | WS_VISIBLE | WS_BORDER,
 		0,
 		0,
-		parentRect.right - parentRect.left,
-		parentRect.bottom - parentRect.top,
+		parent.GetClientWidth(),
+		parent.GetClientHeight(),
 		parentHwnd,
 		NULL,
 		wc.hInstance,

@@ -122,7 +122,7 @@ Model::Model(GUI::Graphics::Device& device)
 	// パイプライン設定
 	mPipeline.SetRootSignature(mRootSignature);
 	mPipeline.SetAlphaEnable(); // 透過ON
-	mPipeline.SetCullDisable(); // カリングOFF
+	//mPipeline.SetCullDisable(); // カリングOFF
 	mPipeline.SetDepthEnable(); // 深度有効
 	mPipeline.SetInputLayout(inputLayout);
 	mPipeline.SetVertexShader(gMMD_VS, _countof(gMMD_VS));
@@ -584,6 +584,12 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	System::SafeDeleteArray(&texPathPerMaterial);
 	System::SafeDeleteArray(&pathSignature);
 
+	mPipeline.SetCullDisable();
+	if (mDevice.CreateGraphicsPipeline(mPipeline) == GUI::Result::FAIL)
+	{
+		return GUI::Result::FAIL;
+	}
+
 	return GUI::Result::SUCCESS;
 }
 
@@ -775,7 +781,7 @@ GUI::Result Model::CreateTexture(const char* const dirPath, const char* const fi
 }
 
 
-GUI::Result Model::SetDefaultSceneData(const int windowWidth, const int windowHeight)
+GUI::Result Model::SetDefaultSceneData(const float aspectRatio)
 {
 	// 行列データ、シーンデータをマップしコピー
 	// データは一つだけなので、そのままクラスのポインタを使用する。
@@ -791,10 +797,11 @@ GUI::Result Model::SetDefaultSceneData(const int windowWidth, const int windowHe
 			MathUtil::Vector::basicZ,
 			MathUtil::Vector::basicY
 		);
+		DebugOutParam(aspectRatio);
 		mappedTransform->proj = MathUtil::Matrix::GenerateMatrixPerspectiveFovLH
 		(
 			DirectX::XM_PIDIV4,
-			static_cast<float>(windowWidth) / static_cast<float>(windowHeight),
+			aspectRatio,
 			0.1f,
 			1000.f
 		);

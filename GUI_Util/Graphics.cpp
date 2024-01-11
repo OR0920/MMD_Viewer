@@ -692,7 +692,8 @@ Result Device::CreateDescriptorHeap
 
 SwapChain::SwapChain()
 	:
-	mSwapChain(nullptr)
+	mSwapChain(nullptr),
+	mAspectRatio(0.f)
 {
 
 }
@@ -717,6 +718,10 @@ Result SwapChain::Create
 		return FAIL;
 	}
 
+	mAspectRatio = 
+		static_cast<float>(targetWindow.GetClientWidth()) 
+		/ static_cast<float>(targetWindow.GetClientHeight());
+
 	// DXGIのインターフェースを生成するインターフェース
 	ComPtr<IDXGIFactory> tFactory;
 	ReturnIfFailed
@@ -739,8 +744,8 @@ Result SwapChain::Create
 
 	// スワップチェインの設定、項目別に設定したくなったらメソッド化
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-	swapChainDesc.Width = targetWindow.GetWindowWidth();
-	swapChainDesc.Height = targetWindow.GetWindowHeight();
+	swapChainDesc.Width = targetWindow.GetClientWidth();
+	swapChainDesc.Height = targetWindow.GetClientHeight();
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.Stereo = false;
 	swapChainDesc.SampleDesc.Count = 1;
@@ -777,6 +782,11 @@ Result SwapChain::Create
 	command.mSwapChain = this;
 
 	return SUCCESS;
+}
+
+const float SwapChain::GetAspectRatio() const
+{
+	return mAspectRatio;
 }
 
 int SwapChain::GetCurrentBackBufferIndex() const
@@ -983,7 +993,7 @@ void GraphicsCommand::EndDraw()
 	// とりあえずシンプルにビジーループで待つ
 	do
 	{
-		
+
 	} while (mFence->GetCompletedValue() < mFenceValue);
 }
 
@@ -1420,9 +1430,9 @@ GraphicsPipeline::GraphicsPipeline()
 	psoDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	
+
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	
+
 	psoDesc.DepthStencilState.DepthEnable = false;
 	psoDesc.DepthStencilState.StencilEnable = false;
 
@@ -1462,7 +1472,7 @@ void GraphicsPipeline::SetAlphaEnable()
 	psoDesc.BlendState.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
 	psoDesc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
 	psoDesc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
-	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;	
+	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 }
 
 void GraphicsPipeline::SetCullDisable()
