@@ -276,11 +276,6 @@ LRESULT CALLBACK FileCatcher::FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LP
 		sIsUpdated = true;
 		break;
 	}
-	case WM_LBUTTONDOWN:
-	{
-		DebugMessage("test");
-		break;
-	}
 	case WM_SIZE:
 	{
 		auto parentHwnd = GetParent(hwnd);

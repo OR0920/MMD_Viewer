@@ -122,7 +122,6 @@ Model::Model(GUI::Graphics::Device& device)
 	// パイプライン設定
 	mPipeline.SetRootSignature(mRootSignature);
 	mPipeline.SetAlphaEnable(); // 透過ON
-	//mPipeline.SetCullDisable(); // カリングOFF
 	mPipeline.SetDepthEnable(); // 深度有効
 	mPipeline.SetInputLayout(inputLayout);
 	mPipeline.SetVertexShader(gMMD_VS, _countof(gMMD_VS));
@@ -584,6 +583,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	System::SafeDeleteArray(&texPathPerMaterial);
 	System::SafeDeleteArray(&pathSignature);
 
+	//　デフォルトでカリングをオフにしておく
 	mPipeline.SetCullDisable();
 	if (mDevice.CreateGraphicsPipeline(mPipeline) == GUI::Result::FAIL)
 	{

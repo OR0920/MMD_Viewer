@@ -9,10 +9,8 @@ using namespace std;
 
 #include"Model.h"
 
-static const int HD = 720;
-static const int FHD = 1080;
-static const int windowHeight = HD;
-static const int windowWidth = windowHeight / 9 * 16;
+static const int windowHeight = 1000;
+static const int windowWidth = 1000;
 
 
 int MAIN()
@@ -27,7 +25,7 @@ int MAIN()
 	auto& mainWindow = GUI::MainWindow::Instance();
 
 	// ウィンドウを作成
-	if (mainWindow.Create(FHD, FHD) == GUI::Result::FAIL)
+	if (mainWindow.Create(windowWidth, windowHeight) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
