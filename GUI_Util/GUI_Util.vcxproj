@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{b22557ab-c958-43e9-94e3-bf0a2fde683e}</ProjectGuid>
-    <RootNamespace>System</RootNamespace>
+    <ProjectGuid>{678b1c2b-8e09-4104-b8f9-35152b76d635}</ProjectGuid>
+    <RootNamespace>GUIUtil</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -71,16 +71,16 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)$(platform)\$(configuration)\$(projectname)\</OutDir>
+    <OutDir>$(solutiondir)$(platform)\$(configuration)\$(projectname)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)$(platform)\$(configuration)\$(projectname)\</OutDir>
+    <OutDir>$(solutiondir)$(platform)\$(configuration)\$(projectname)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)$(platform)\$(configuration)\$(projectname)\</OutDir>
+    <OutDir>$(solutiondir)$(platform)\$(configuration)\$(projectname)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)$(platform)\$(configuration)\$(projectname)\</OutDir>
+    <OutDir>$(solutiondir)$(platform)\$(configuration)\$(projectname)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -88,12 +88,17 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(solutiondir)MMDsdk;$(solutiondir)MathUtil;$(solutiondir)System;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
       </SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\mmdsdk\;$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration)\system\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -103,6 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(solutiondir)MMDsdk;$(solutiondir)MathUtil;$(solutiondir)System;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -111,6 +117,10 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\mmdsdk\;$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration)\system\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -118,13 +128,17 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(solutiondir)MMDsdk;$(solutiondir)MathUtil;$(solutiondir)System;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
       </SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>D:\Projects\MMD_Viewer\packages\directxtex_desktop_win10.2023.10.31.1\native\lib\x64\Debug;$(solutiondir)$(platform)\$(configuration)\mmdsdk\;$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration)\system\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -134,7 +148,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(solutiondir)MMDsdk;$(solutiondir)MathUtil;$(solutiondir)System;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -143,16 +157,18 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>D:\Projects\MMD_Viewer\packages\directxtex_desktop_win10.2023.10.31.1\native\lib\x64\Release;$(solutiondir)$(platform)\$(configuration)\mmdsdk\;$(solutiondir)$(platform)\$(configuration)\mathutil\;$(solutiondir)$(platform)\$(configuration)\system\;$(solutiondir)$(platform)\$(configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MMDsdk.lib;MathUtil.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="DebugMessage.h" />
-    <ClInclude Include="File.h" />
-    <ClInclude Include="System.h" />
-    <ClInclude Include="ToString.h" />
+    <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="GUI_Util.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="File.cpp" />
-    <ClCompile Include="System.cpp" />
+    <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="GUI_Util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

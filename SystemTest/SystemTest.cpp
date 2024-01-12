@@ -6,6 +6,8 @@
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace System;
 
+#include<windows.h>
+
 namespace SystemTest
 {
 	TEST_CLASS(SystemTest)
@@ -23,7 +25,19 @@ namespace SystemTest
 			Assert::IsTrue(StringEqual("agaraerafdasf", "agaraerafdasf"));
 			Assert::IsFalse(StringEqual("agaraerafdasf", "fasrerrefadfa"));
 			Assert::IsFalse(StringEqual("こんにちは", "こんばんは"));
+			Assert::IsFalse(StringEqual(L"こんにちは", L"こんばんは"));
 			Assert::IsFalse(StringEqual("abcdefg", "abcdef"));
+			Assert::IsFalse(StringEqual(".bmp", ".sph"));
+			Assert::IsFalse(StringEqual(L"!bmp", L"!sph"));
+			Assert::IsFalse(StringEqual(L".bmp", L".sph"));
+		}
+
+		TEST_METHOD(GetExtTest)
+		{
+			Assert::IsTrue(StringEqual(".ext", GetExt("filename.ext")));
+			Assert::IsFalse(StringEqual(".ext", GetExt("filename.text")));
+			Assert::IsTrue(StringEqual(L".ext", GetExt(L"filename.ext")));
+			Assert::IsFalse(StringEqual(L".ext", GetExt(L"filename.text")));
 		}
 
 		TEST_METHOD(CopyDirectoryPathTest)
@@ -436,4 +450,7 @@ namespace SystemTest
 		// 配列　サイズ指定　ポインタで受け取り
 		// //
 	};
+
+	
+
 }

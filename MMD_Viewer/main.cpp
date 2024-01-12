@@ -1,57 +1,137 @@
-#include<iostream>
-#include<iomanip>
-
-#include<array>
-#include<string>
-
 #include"MathUtil.h"
 #include"System.h"
 #include"MMDsdk.h"
+#include"GUI_Util.h"
 using namespace std;
 
-using namespace System;
+#include"MMD_VertexShasder.h"
+#include"MMD_PixelShader.h"
+
+#include"Model.h"
+
+static const int windowHeight = 1000;
+static const int windowWidth = 1000;
 
 
-const char* testModelFilePath[] =
+int MAIN()
 {
-	"Test/Model/PMD/MEIKO.pmd",
-	"Test/Model/PMD/カイト.pmd",
-	"Test/Model/PMD/ダミーボーン.pmd",
-	"Test/Model/PMD/鏡音リン.pmd",
-	"Test/Model/PMD/鏡音レン.pmd",
-	"Test/Model/PMD/弱音ハク.pmd",
-	"Test/Model/PMD/巡音ルカ.pmd",
-	"Test/Model/PMD/初音ミクVer2.pmd",
-	"Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx",
-	"Test/Model/PMX/ハシビロコウ/ハシビロコウ.pmx",
-	"Test/Model/PMX/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx",
-	"Test/Model/PMX/キョウシュウエリアver1.0/キョウシュウエリア/1話ゲートのみ.pmx"
-};
-
-const auto kabanPath = "Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
-const auto mikuPath = "Test/Model/PMD/初音ミクVer2.pmd";
-
-void LoadAndCout(const char* filepath)
-{
-	MMDsdk::PmdFile model(filepath);
-}
-
-using namespace MathUtil;
-
-int main()
-{
+	// デバッグ表示を日本語に対応させる
 	SET_JAPANESE_ENABLE;
 
-	float2 f = { 3.f, 4.f }, xf{};
-	auto v = Vector::GenerateVectorNormalized(f);
+	// メモリリークのデバッグを有効化
+	System::CheckMemoryLeak();
 
-	auto xv = DirectX::XMVector2Normalize(DirectX::XMVectorSet(3.f, 4.f, 0.f, 0.f));
-	DirectX::XMStoreFloat2(&xf, xv);
+	//　メインウィンドウのインスタンスを取得
+	auto& mainWindow = GUI::MainWindow::Instance();
+
+	// ウィンドウを作成
+	if (mainWindow.Create(windowWidth, windowHeight) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	// ファイル取得ウィンドウの初期化
+	auto& fc = GUI::FileCatcher::Instance();
+	if (fc.Create(mainWindow) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	// 描画エンジン初期化
+	// デバッグモード　有効化
+	if (GUI::Graphics::EnalbleDebugLayer() == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	// デバイス作成
+	GUI::Graphics::Device device;
+	if (device.Create() == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	// コマンドオブジェクト作成
+	GUI::Graphics::GraphicsCommand command;
+	if (device.CreateGraphicsCommand(command) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	// スワップチェイン作成
+	GUI::Graphics::SwapChain swapChain;
+	if (swapChain.Create(command, mainWindow, 2) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	// レンダーターゲット作成
+	GUI::Graphics::RenderTarget renderTarget;
+	if (device.CreateRenderTarget(renderTarget, swapChain) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	// 深度ステンシル作成
+	GUI::Graphics::DepthStencilBuffer depthStencil;
+	if (device.CreateDepthBuffer(depthStencil, swapChain) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
 
 
-	Vector v2 = f;
-	v2.Vector2Normalize();
+	// ここにモデルを作る
+	Model* model = nullptr;
 
-	DebugOutVector(v2);
-	DebugOutFloat2(xf);
+
+	while (mainWindow.ProcessMessageNoWait() == GUI::Result::CONTINUE)
+	{
+		if (fc.Update() == true)
+		{
+			DebugOutString(fc.GetPath());
+
+			// モデル読み込み
+			System::SafeDelete(&model);
+			model = new Model(device);
+			model->Load(fc.GetPath());
+			
+			// 読み込み失敗
+			if (model->IsSuccessLoad() == GUI::Result::FAIL)
+			{
+				GUI::ErrorBox(L"対応していないファイルです");
+				System::SafeDelete(&model);
+				continue;
+			}
+
+			// シーン初期化、モデル1体のみなので、シーンクラスなどには分けない
+			model->SetDefaultSceneData(renderTarget.GetAspectRatio());
+		}
+
+		// 描画準備
+		command.BeginDraw();
+		// レンダーターゲットを書き込み可能に
+		command.UnlockRenderTarget(renderTarget);
+		
+		// レンダーターゲットのクリア
+		command.SetRenderTarget(renderTarget, depthStencil);
+		command.ClearRenderTarget(GUI::Graphics::Color(0.3f, 0.3f, 0.3f));
+		command.ClearDepthBuffer();
+
+		// モデル描画
+		if (model != nullptr)
+		{
+			model->Draw(command);
+		}
+
+		// レンダーターゲットを保護
+		command.LockRenderTarget(renderTarget);
+		
+		// 描画終了
+		command.EndDraw();
+
+		// バックバッファ切り替え
+		command.Flip();
+	}
+
+	System::SafeDelete(&model);
 }

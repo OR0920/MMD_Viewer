@@ -1,7 +1,13 @@
+// header
 #include"System.h"
+
+// std
 #include<string>
 
+// winapi
 #include<Windows.h>
+#include<Shlwapi.h>
+#pragma comment(lib, "shlwapi.lib")
 
 #define IS_USED_PTR(ptr)\
 if(ptr != nullptr)\
@@ -10,14 +16,43 @@ if(ptr != nullptr)\
 	return;\
 }
 
-bool System::StringEqual(const void* const _str1, const void* const _str2)
+void System::CheckMemoryLeak()
+{
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+}
+
+bool System::StringEqual(const char* const _str1, const char* const _str2)
 {
 	if (_str1 == nullptr && _str2 == nullptr) return true;
 	if (_str1 == nullptr) return false;
 	if (_str2 == nullptr) return false;
-	std::string str1(reinterpret_cast<const char*>(_str1));
-	std::string str2(reinterpret_cast<const char*>(_str2));
+	std::string str1(reinterpret_cast<const char* const>(_str1));
+	std::string str2(reinterpret_cast<const char* const>(_str2));
 	return str1 == str2;
+}
+
+bool System::StringEqual(const wchar_t* const _str1, const wchar_t* const _str2)
+{
+	if (_str1 == nullptr && _str2 == nullptr) return true;
+	else if (_str1 == nullptr || _str2 == nullptr) return false;
+	std::wstring str1(reinterpret_cast<const wchar_t* const>(_str1));
+	std::wstring str2(reinterpret_cast<const wchar_t* const>(_str2));
+	return str1 == str2;
+}
+
+bool System::StringEqual(const char16_t* const _str1, const char16_t* const _str2)
+{
+	return StringEqual(reinterpret_cast<const wchar_t* const>(_str1), reinterpret_cast<const wchar_t* const>(_str2));
+}
+
+const char* const System::GetExt(const char* const filename)
+{
+	return PathFindExtensionA(filename);
+}
+
+const wchar_t* const System::GetExt(const wchar_t* const filename)
+{
+	return PathFindExtension(filename);
 }
 
 void System::newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const filepath)
@@ -30,7 +65,7 @@ void System::newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const
 
 	for (int i = pathLastID; i >= 0; --i)
 	{
-		if (filepath[i] == '/')
+		if (filepath[i] == '/' || filepath[i] == '\\')
 		{
 			// ファイル名の最後のディレクトリ名までの文字数
 			// 最後の'/'までの文字数 + NULL文字分　//
@@ -46,6 +81,7 @@ void System::newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const
 			break;
 		}
 	}
+
 }
 
 // NULL文字を含む文字列の長さを返す	

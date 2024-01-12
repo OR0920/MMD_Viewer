@@ -9,8 +9,6 @@
 #include"File.h"
 #include"DebugMessage.h"
 
-
-
 namespace System
 {
 	template <class T>
@@ -33,12 +31,20 @@ namespace System
 		}
 	}
 
+	void CheckMemoryLeak();
+
 	// 文字列比較
-	bool StringEqual(const void* const _str1, const void* const _str2);
+	bool StringEqual(const char* const _str1, const char* const _str2);
+	bool StringEqual(const wchar_t* const _str1, const wchar_t* const _str2);
+	bool StringEqual(const char16_t* const _str1, const char16_t* const _str2);
 
 	// NULL文字を含む長さを返す
 	int GetStringLength(const char* const text);
 	int GetStringLength(const wchar_t* const text);
+
+	// ファイルの拡張を取得する
+	const char* const GetExt(const char* const filename);
+	const wchar_t* const GetExt(const wchar_t* const filename);
 
 	// ディレクトリのパスを取得する関数
 	// dirpath	:ディレクトリのパスを受け取るポインタ nullptrであること。内部でnew[]されるので、必ずdelete[]すること
@@ -63,8 +69,17 @@ namespace System
 	void newArray_CreateMultiByteStrFromWideCharStr(char** cText, const wchar_t* const wText);
 	void newArray_CreateMultiByteStrFromWideCharStr(char** cText, const char16_t* const u16Text);
 
-	void newArray_CreateWideCharStrFromMultiByteStr(wchar_t** wText, const char* const);
-	void newArray_CreateWideCharStrFromMultiByteStr(char16_t** u16Text, const char* const);
+	void newArray_CreateWideCharStrFromMultiByteStr(wchar_t** wText, const char* const cText);
+	void newArray_CreateWideCharStrFromMultiByteStr(char16_t** u16Text, const char* const cText);
+
+	// 汎用ポインタを用いた強引な型変換
+	// 明らかにメモリ状のバイナリが一致している場合にのみ使用する
+	template <class To, class From>
+	To strong_cast(From from)
+	{
+		assert(sizeof(To) == sizeof(From));
+		return *(static_cast<To*>(static_cast<void*>(&from)));
+	}
 }
 
 #endif // _SYSTEM_H_
