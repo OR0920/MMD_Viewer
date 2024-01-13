@@ -35,6 +35,7 @@ namespace MMDsdk
 		float z = 0.f;
 		float w = 0.f;
 	};
+	// .pmd, .pmx　共通の列挙子
 
 	// 内部文字列のエンコード方式
 	enum EncodeType : uint8_t
@@ -43,9 +44,8 @@ namespace MMDsdk
 		UTF8 = 1,
 		INIT = 0xff
 	};
-
-	//　.pmd, .pmx　共通の列挙子
 	
+	// 表情データのタイプ
 	// 0：base、1：まゆ、2：目、3：リップ、4：その他
 	enum MorphType : uint8_t
 	{
@@ -57,6 +57,7 @@ namespace MMDsdk
 		MT_NONE
 	};
 
+	// 物理演算の剛体タイプ
 	enum RigitbodyShapeType : uint8_t
 	{
 		RST_SPHERE = 0,
@@ -65,6 +66,7 @@ namespace MMDsdk
 		RST_NONE,
 	};
 
+	// 物理演算のタイプ
 	enum RigitbodyType : uint8_t
 	{
 		RT_BONE_FOLLOW = 0,
@@ -76,7 +78,6 @@ namespace MMDsdk
 	// テキスト取得マクロ
 	// 旧　GetText　設計ミスの名残
 	// 互換性保持のため一応残している
-#define GetTextMacro(textBuffer) textBuffer.GetText()
 
 	// テキストを格納、扱うクラス
 	// 可変長 //
