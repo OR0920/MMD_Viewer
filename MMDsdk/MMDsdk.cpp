@@ -101,7 +101,7 @@ void LoadTextBufferFixed(System::FileReadBin& file, TextBufferFixed<size>& text)
 	// 上記理由により const_cast を採用。
 	file.ReadArray
 	(
-		const_cast<char*>(GetTextMacro(text)),
+		const_cast<char*>(text.GetText()),
 		text.GetLength()
 	);
 }
@@ -410,14 +410,14 @@ void PmdFile::Header::DebugOut() const
 {
 #ifdef _DEBUG
 	DebugMessage("PMDFile /////////////////////////////////////////");
-	DebugMessage(GetTextMacro(modelInfoJP.modelName));
+	DebugMessage(modelInfoJP.modelName.GetText());
 	DebugMessageNewLine();
-	DebugMessage(GetTextMacro(modelInfoJP.comment));
+	DebugMessage(modelInfoJP.comment.GetText());
 	DebugMessageNewLine();
 	if (isEngAvailable == 1)
 	{
-		DebugMessage(GetTextMacro(modelInfoEng.modelName));
-		DebugMessage(GetTextMacro(modelInfoEng.comment));
+		DebugMessage(modelInfoEng.modelName.GetText());
+		DebugMessage(modelInfoEng.comment.GetText());
 	}
 	DebugMessageNewLine();
 	DebugOutParam(version);
@@ -550,7 +550,7 @@ void PmdFile::Material::DebugOut() const
 	DebugOutParamI(toonIndex);
 	DebugOutParamI(edgeFlag);
 	DebugOutParamI(vertexCount);
-	DebugOutString(GetTextMacro(texturePath));
+	DebugOutString(texturePath.GetText());
 	DebugMessageNewLine();
 }
 
@@ -592,8 +592,8 @@ const uint16_t& PmdFile::GetBoneCount() const
 
 void PmdFile::Bone::DebugOut() const
 {
-	DebugOutString(GetTextMacro(name));
-	DebugOutString(GetTextMacro(nameEng));
+	DebugOutString(name.GetText());
+	DebugOutString(nameEng.GetText());
 	DebugOutParamI(parentIndex);
 	DebugOutParamI(childIndex);
 	DebugOutParamI(type);
@@ -745,8 +745,8 @@ void PmdFile::Morph::LoadSkinVertex(void* _file)
 void PmdFile::Morph::DebugOut(bool isOutVertexData) const
 {
 #ifdef _DEBUG
-	DebugOutString(GetTextMacro(name));
-	DebugOutString(GetTextMacro(nameEng));
+	DebugOutString(name.GetText());
+	DebugOutString(nameEng.GetText());
 	DebugOutParamI(offsCount);
 	DebugOutParamI(type);
 	if (isOutVertexData == true)
@@ -833,10 +833,7 @@ void PmdFile::DebugOutMorphIndexForDisplay(const uint8_t i) const
 	DebugMessage
 	(
 		" -> " <<
-		GetTextMacro
-		(
-			GetMorph(GetMorphIndexForDisplay(i)).name
-		)
+		GetMorph(GetMorphIndexForDisplay(i)).name.GetText()		
 	);
 	DebugMessageNewLine();
 }
@@ -878,8 +875,8 @@ const TextBufferFixed<50>& PmdFile::GetBoneNameForDisplayEng(const uint8_t i) co
 
 void PmdFile::DebugOutBoneNameForDisplay(const uint8_t i) const
 {
-	DebugMessage(ToString(mBoneNameForDisplay) << "[" << static_cast<int>(i) << "] = " << GetTextMacro(GetBoneNameForDisplay(i)));
-	DebugMessage(ToString(mBoneNameForDisplayEng) << "[" << static_cast<int>(i) << "] = " << GetTextMacro(GetBoneNameForDisplayEng(i)));
+	DebugMessage(ToString(mBoneNameForDisplay) << "[" << static_cast<int>(i) << "] = " << GetBoneNameForDisplay(i).GetText());
+	DebugMessage(ToString(mBoneNameForDisplayEng) << "[" << static_cast<int>(i) << "] = " << GetBoneNameForDisplayEng(i).GetText());
 	DebugMessageNewLine();
 }
 
@@ -944,7 +941,7 @@ const TextBufferFixed<100>& PmdFile::GetToonTexturePath(const uint8_t i) const
 
 void PmdFile::DebugOutToonTexturePath(const uint8_t i) const
 {
-	DebugMessage(ToString(mToonTexturePath) << "[" << static_cast<int>(i) << "] = " << GetTextMacro(GetToonTexturePath(i)));
+	DebugMessage(ToString(mToonTexturePath) << "[" << static_cast<int>(i) << "] = " << GetToonTexturePath(i).GetText());
 	DebugMessageNewLine();
 }
 
@@ -990,7 +987,7 @@ inline const float3 DegreeToRagianFloat3(float3 f3)
 
 void PmdFile::Rigitbody::DebugOut() const
 {
-	DebugOutString(GetTextMacro(name));
+	DebugOutString(name.GetText());
 	DebugOutParamI(relationshipBoneID);
 	DebugOutParamI(group);
 	DebugOutParamBin(groupTarget, 16);
@@ -1048,7 +1045,7 @@ const uint32_t& PmdFile::GetJointCount() const
 
 void PmdFile::Joint::DebugOut() const
 {
-	DebugOutString(GetTextMacro(name));
+	DebugOutString(name.GetText());
 
 	DebugOutParamI(rigitbodyIndexA);
 	DebugOutParamI(rigitbodyIndexB);
@@ -1483,15 +1480,15 @@ void PmxFile::Header::DebugOut() const
 {
 	DebugMessage("PMXFile /////////////////////////////////////////");
 	DebugMessage("<<<<ModelName>>>");
-	DebugMessage(GetTextMacro(modelInfoJP.modelName));
+	DebugMessage(modelInfoJP.modelName.GetText());
 	DebugMessage("<<<<ModelName Eng>>>");
-	DebugMessage(GetTextMacro(modelInfoEng.modelName));
+	DebugMessage(modelInfoEng.modelName.GetText());
 	DebugMessageNewLine();
 	DebugMessage("<<<<Comment>>>");
-	DebugMessage(GetTextMacro(modelInfoJP.comment));
+	DebugMessage(modelInfoJP.comment.GetText());
 	DebugMessageNewLine();
 	DebugMessage("<<<<Comment Eng>>>");
-	DebugMessage(GetTextMacro(modelInfoEng.comment));
+	DebugMessage(modelInfoEng.comment.GetText());
 	DebugMessageNewLine();
 	DebugOutParam(version);
 	DebugOutParamI(encode);
@@ -1700,7 +1697,7 @@ const int32_t PmxFile::GetLastTextureID() const
 void PmxFile::DebugOutTexturePath(const int32_t i) const
 {
 	DebugMessage("Texture [" << i << "]");
-	DebugMessage(GetTextMacro(GetTexturePath(i)));
+	DebugMessage(GetTexturePath(i).GetText());
 	DebugMessageNewLine();
 }
 
@@ -1726,8 +1723,8 @@ bool PmxFile::Material::GetDrawConfig(DrawConfig bitflag) const
 
 void PmxFile::Material::DebugOut() const
 {
-	DebugMessage(GetTextMacro(name));
-	DebugMessage(GetTextMacro(nameEng));
+	DebugMessage(name.GetText());
+	DebugMessage(nameEng.GetText());
 	DebugOutFloat4(diffuse);
 	DebugOutFloat3(specular);
 	DebugOutParam(specularity);
@@ -1741,7 +1738,7 @@ void PmxFile::Material::DebugOut() const
 	DebugOutParamI(toonMode);
 	DebugOutParamI(toonTextureID);
 	DebugMessage("<<< memo >>>");
-	DebugMessage(GetTextMacro(memo));
+	DebugMessage(memo.GetText());
 	DebugOutParamI(vertexCount / 3);
 	DebugMessageNewLine();
 }
@@ -1822,8 +1819,8 @@ void PmxFile::Bone::LoadIK_Link(void* _file, const size_t boneID_Size)
 void PmxFile::Bone::DebugOut() const
 {
 #ifdef _DEBUG
-	DebugMessage(GetTextMacro(name));
-	DebugMessage(GetTextMacro(nameEng));
+	DebugMessage(name.GetText());
+	DebugMessage(nameEng.GetText());
 	DebugOutFloat3(position);
 	DebugOutParamI(parentBoneID);
 	DebugOutParamI(transformHierarchy);
@@ -2043,8 +2040,8 @@ void PmxFile::Morph::LoadOffsData(void* _file, const size_t idByteSize)
 void PmxFile::Morph::DebugOut(bool isOutOffsData) const
 {
 #ifdef _DEBUG
-	DebugMessage(GetTextMacro(name));
-	DebugMessage(GetTextMacro(nameEng));
+	DebugMessage(name.GetText());
+	DebugMessage(nameEng.GetText());
 	switch (type)
 	{
 	case MorphType::MT_BASE:
@@ -2212,8 +2209,8 @@ void PmxFile::DisplayFrame::LoadFrameElement(void* _file, const size_t boneID_Si
 void PmxFile::DisplayFrame::DebugOut() const
 {
 #ifdef _DEBUG
-	DebugMessage(GetTextMacro(name));
-	DebugMessage(GetTextMacro(nameEng));
+	DebugMessage(name.GetText());
+	DebugMessage(nameEng.GetText());
 	switch (type)
 	{
 	case MMDsdk::PmxFile::DisplayFrame::DFT_NORMAL:
@@ -2291,8 +2288,8 @@ const int32_t& PmxFile::GetRigitbodyCount() const
 
 void PmxFile::Rigitbody::DebugOut() const
 {
-	DebugOutString(GetTextMacro(name));
-	DebugOutString(GetTextMacro(nameEng));
+	DebugOutString(name.GetText());
+	DebugOutString(nameEng.GetText());
 	DebugOutParamI(relationshipBoneID);
 	DebugOutParamI(group);
 	DebugOutParamBin(groupTarget, 16);
@@ -2352,8 +2349,8 @@ const int32_t& PmxFile::GetJointCount() const
 void PmxFile::Joint::DebugOut() const
 {
 #ifdef _DEBUG
-	DebugOutString(GetTextMacro(name));
-	DebugOutString(GetTextMacro(nameEng));
+	DebugOutString(name.GetText());
+	DebugOutString(nameEng.GetText());
 
 	switch (type)
 	{
