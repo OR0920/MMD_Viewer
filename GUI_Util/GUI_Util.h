@@ -86,11 +86,6 @@ namespace GUI
 		MainWindow();
 		~MainWindow();
 
-		int mWidth;
-		int mHeight;
-		int mClientWidth;
-		int mClientHeight;
-
 		HWND mWindowHandle;
 		WNDCLASSEX mWindowClass;
 	};

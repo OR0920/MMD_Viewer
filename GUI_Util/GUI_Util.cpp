@@ -101,9 +101,6 @@ Result MainWindow::Create(int width, int height)
 		return FAIL;
 	}
 
-	mWidth = width;
-	mHeight = height;
-
 	auto& wc = mWindowClass;
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = CS_HREDRAW | CS_VREDRAW;
@@ -147,12 +144,6 @@ Result MainWindow::Create(int width, int height)
 		return Result::FAIL;
 	}
 
-	RECT cr = {};
-	GetClientRect(mWindowHandle, &cr);
-
-	mClientWidth = cr.right - cr.left;
-	mClientHeight = cr.bottom - cr.top;
-
 	return Result::SUCCESS;
 }
 
@@ -194,22 +185,34 @@ Result MainWindow::ProcessMessageNoWait()
 
 const int MainWindow::GetWindowWidth() const
 {
-	return mWidth;
+	RECT wr = {};
+	GetWindowRect(mWindowHandle, &wr);
+	
+	return wr.right - wr.left;
 }
 
 const int MainWindow::GetWindowHeight() const
 {
-	return mHeight;
+	RECT wr = {};
+	GetWindowRect(mWindowHandle, &wr);
+
+	return wr.bottom - wr.right;
 }
 
 const int MainWindow::GetClientWidth() const
 {
-	return mClientWidth;
+	RECT cr = {};
+	GetClientRect(mWindowHandle, &cr);
+
+	return cr.right - cr.left;
 }
 
 const int MainWindow::GetClientHeight() const
 {
-	return mClientHeight;
+	RECT cr = {};
+	GetClientRect(mWindowHandle, &cr);
+
+	return cr.bottom - cr.top;
 }
 
 const HWND MainWindow::GetHandle() const
@@ -219,10 +222,6 @@ const HWND MainWindow::GetHandle() const
 
 MainWindow::MainWindow()
 	:
-	mWidth(0),
-	mHeight(0),
-	mClientWidth(0),
-	mClientHeight(0),
 	mWindowHandle(NULL),
 	mWindowClass({})
 {
