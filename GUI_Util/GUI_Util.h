@@ -51,7 +51,6 @@ namespace GUI
 		virtual const int GetWindowHeight() const = 0;
 		virtual	const int GetClientWidth() const = 0; 
 		virtual const int GetClientHeight() const = 0;
-	protected:
 	};
 
 	// メインウィンドウ
@@ -73,9 +72,11 @@ namespace GUI
 		// メッセージを待たない
 		Result ProcessMessageNoWait();
 
+		// ウィンドウそのもののサイズ
 		const int GetWindowWidth() const;
 		const int GetWindowHeight() const;
 
+		// ウィンドウの描画領域のサイズ
 		const int GetClientWidth() const;
 		const int GetClientHeight() const;
 
@@ -123,12 +124,11 @@ namespace GUI
 		};
 		const DropPos& GetDropPos() const;
 
-
-		// コールバック関数。　ユーザーからは呼び出さない。
-		static LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
 	private:
-		// コールバック関数からパスを取得する都合上、
-		// 複数あると面倒なのでシングルトン
+		// コールバック関数
+		static LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
+
+		// コールバック関数からパスを取得する都合上、シングルトン
 		FileCatcher(); ~FileCatcher();
 
 		WNDCLASSEX mWindowClass;
@@ -586,8 +586,7 @@ namespace GUI
 
 			// 深度バッファ有効化
 			void SetDepthEnable();
-			// ステンシルも使う場合。　現在使う予定はないため未実装
-			void SetDepthStencilEnable();
+			// ステンシルも使う場合。別のAPIを作る
 
 			// 透過有効化　呼び出さない場合無効
 			void SetAlphaEnable();
@@ -628,10 +627,10 @@ namespace GUI
 
 			// 頂点データをコピー
 			Result Copy(const void* const data);
+			const int GetVertexCount() const;
 
 			// ライブラリから呼び出す関数
 			const D3D12_VERTEX_BUFFER_VIEW* const GetView() const;
-			const int GetVertexCount() const;
 		private:
 			ComPtr<ID3D12Resource> mResource;
 			D3D12_VERTEX_BUFFER_VIEW mView;
@@ -651,10 +650,10 @@ namespace GUI
 			IndexBuffer(); ~IndexBuffer();
 
 			Result Copy(const void* const data);
+			const int GetIndexCount() const;
 
 			// ライブラリから呼び出す関数
 			const D3D12_INDEX_BUFFER_VIEW* const GetView() const;
-			const int GetIndexCount() const;
 		private:
 			ComPtr<ID3D12Resource> mResource;
 			D3D12_INDEX_BUFFER_VIEW mView;
@@ -778,7 +777,6 @@ namespace GUI
 			int mDescriptorCount;
 			int mViewIncrementSize;
 			int mLastID;
-
 		};
 	}
 }
