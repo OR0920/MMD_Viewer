@@ -145,6 +145,12 @@ Color::Color()
 
 }
 
+static const DXGI_FORMAT gDxgiFormat[Format::FORMAT_COUNT] =
+{
+	DXGI_FORMAT_R8G8B8A8_UNORM,
+	DXGI_FORMAT_R32G32B32A32_FLOAT
+};
+
 // デバッグレイヤ有効化
 Result Graphics::EnalbleDebugLayer()
 {
@@ -329,6 +335,56 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 
 	return SUCCESS;
 }
+
+Result Device::CreateSubRenderTarget
+(
+	RenderTarget& subRenderTarget,
+	const RenderTarget& mainRenderTarget,
+	const Format format[],
+	const int count
+)
+{
+	subRenderTarget.mRT_Resource = new ComPtr<ID3D12Resource>[count];
+
+	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+	D3D12_RESOURCE_DESC resDesc = {};
+	resDesc.MipLevels = 1;
+	resDesc.Width = mainRenderTarget.GetWidth();
+	resDesc.Height = mainRenderTarget.GetHeight();
+	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	resDesc.DepthOrArraySize = 1;
+	resDesc.SampleDesc.Count = 1;
+	resDesc.SampleDesc.Quality = 0;
+	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+
+	D3D12_CLEAR_VALUE clearValue = {};
+	clearValue.Color[0] = 0.5f;
+	clearValue.Color[1] = 0.5f;
+	clearValue.Color[2] = 0.5f;
+	clearValue.Color[3] = 1.f;
+	clearValue.DepthStencil.Depth = 1.f;
+	clearValue.DepthStencil.Stencil = 0;
+
+	for (int i = 0; i < count; ++i)
+	{
+		resDesc.Format = clearValue.Format = gDxgiFormat[format[i]];
+		ReturnIfFailed
+		(
+			mDevice->CreateCommittedResource
+			(
+				&heapProp,
+				D3D12_HEAP_FLAG_NONE,
+				&resDesc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				&clearValue,
+				IID_PPV_ARGS(subRenderTarget.mRT_Resource[i].ReleaseAndGetAddressOf())
+			),
+			Device::CreateSubRenderTarget()
+		);
+	}
+}
+
 
 Result Device::CreateDepthBuffer
 (
@@ -1067,12 +1123,27 @@ const ComPtr<ID3D12Resource> RenderTarget::GetGPU_Address(const int bufferID) co
 	return mRT_Resource[bufferID];
 }
 
-D3D12_VIEWPORT RenderTarget::GetViewPort() const
+const DXGI_FORMAT RenderTarget::GetFormat() const
+{
+	return mRT_Resource[0]->GetDesc().Format;
+}
+
+const int RenderTarget::GetWidth() const
+{
+	return mRT_Resource[0]->GetDesc().Width;
+}
+
+const int RenderTarget::GetHeight() const
+{
+	return mRT_Resource[0]->GetDesc().Height;
+}
+
+const D3D12_VIEWPORT& RenderTarget::GetViewPort() const
 {
 	return mViewPort;
 }
 
-D3D12_RECT RenderTarget::GetRect() const
+const D3D12_RECT& RenderTarget::GetRect() const
 {
 	return mScissorRect;
 }

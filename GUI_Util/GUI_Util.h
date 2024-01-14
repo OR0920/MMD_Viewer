@@ -159,6 +159,13 @@ namespace GUI
 			Color();
 		};
 
+		enum Format : unsigned int
+		{
+			COLOR_8_4 = 0,	// 色 32bitColor 
+			FLOAT_32_4,		// float4
+			FORMAT_COUNT
+		};
+
 		// デバッグモードを有効にする
 		Result EnalbleDebugLayer();
 
@@ -190,10 +197,24 @@ namespace GUI
 			// 各種インターフェイス生成関数
 			Result CreateGraphicsCommand(GraphicsCommand& graphicsCommand);
 
+			// レンダーターゲット作成
 			Result CreateRenderTarget
 			(
 				RenderTarget& renderTarget,
 				const SwapChain& swapChain
+			);
+
+			// マルチパス用のレンダーターゲット作成
+			// renderTarget		: 出力	: マルチパス用のレンダーターゲット
+			// mainRenderTarget	: 入力	: 最終的に画面へ出力されるレンダーターゲット
+			// format			: 入力	: 各レンダーターゲットのフォーマット
+			// count			: 入力	: ターゲット数
+			Result CreateSubRenderTarget
+			(
+				RenderTarget& renderTarget,
+				const RenderTarget& mainRenderTarget,
+				const Format format[],
+				const int count
 			);
 
 			// 深度バッファのみ使用する場合
@@ -209,7 +230,7 @@ namespace GUI
 			// 頂点バッファを生成する
 			// vertexBuffer		: 出力	: 頂点バッファのインターフェイス
 			// vertexTypeSize	: 入力	: 頂点構造体のサイズ
-			// vertesCount		: 入力	: 頂点数
+			// vertexCount		: 入力	: 頂点数
 			Result CreateVertexBuffer
 			(
 				VertexBuffer& vertexBuffer,
@@ -406,9 +427,13 @@ namespace GUI
 		// ユーザー側からメンバを呼び出す必要はない
 		class RenderTarget
 		{
-			friend Result Device::CreateRenderTarget
+			friend Result Device::CreateRenderTarget(RenderTarget&, const SwapChain&);
+			friend Result Device::CreateSubRenderTarget
 			(
-				RenderTarget&, const SwapChain&
+				RenderTarget&,
+				const RenderTarget&,
+				const Format[],
+				const int 
 			);
 		public:
 			RenderTarget(); ~RenderTarget();
@@ -419,8 +444,12 @@ namespace GUI
 			void GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, const int bufferID) const;
 			const ComPtr<ID3D12Resource> GetGPU_Address(const int bufferID) const;
 
-			D3D12_VIEWPORT GetViewPort() const;
-			D3D12_RECT GetRect() const;
+			const DXGI_FORMAT GetFormat() const;
+			const int GetWidth() const;
+			const int GetHeight() const;
+
+			const D3D12_VIEWPORT& GetViewPort() const;
+			const D3D12_RECT& GetRect() const;
 		private:
 			ComPtr<ID3D12DescriptorHeap> mRTV_Heaps;
 			ComPtr<ID3D12Resource>* mRT_Resource;
