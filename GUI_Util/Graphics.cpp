@@ -344,6 +344,20 @@ Result Device::CreateSubRenderTarget
 	const int count
 )
 {
+	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+	heapDesc.NumDescriptors = count;
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	ReturnIfFailed
+	(
+		mDevice->CreateDescriptorHeap
+		(
+			&heapDesc,
+			IID_PPV_ARGS(subRenderTarget.mRTV_Heaps.ReleaseAndGetAddressOf())
+		),
+		Device::CreateSubRenderTarget()
+	);
+
 	subRenderTarget.mRT_Resource = new ComPtr<ID3D12Resource>[count];
 
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);

@@ -72,8 +72,9 @@ int MAIN()
 		return -1;
 	}
 
+	// マルチパス用のレンダーターゲット
 	GUI::Graphics::RenderTarget subRenderTarget;
-	GUI::Graphics::Format format[] =
+	GUI::Graphics::Format format[] = 
 	{
 		GUI::Graphics::Format::COLOR_8_4,
 		GUI::Graphics::Format::FLOAT_32_4,
