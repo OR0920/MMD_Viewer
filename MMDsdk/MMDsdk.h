@@ -260,7 +260,6 @@ namespace MMDsdk
 			int8_t toonIndex = 0;
 
 			// 輪郭を表示するか 
-			// なぜか頂点データとフラグが逆。何故？ //
 			enum EdgeEnable : uint8_t
 			{
 				MEE_ENABLE = 1,
