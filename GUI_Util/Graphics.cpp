@@ -720,8 +720,8 @@ Result SwapChain::Create
 		return FAIL;
 	}
 
-	mAspectRatio = 
-		static_cast<float>(targetWindow.GetClientWidth()) 
+	mAspectRatio =
+		static_cast<float>(targetWindow.GetClientWidth())
 		/ static_cast<float>(targetWindow.GetClientHeight());
 
 	// DXGIのインターフェースを生成するインターフェース
@@ -1690,13 +1690,24 @@ Texture2D::~Texture2D()
 
 Result Texture2D::LoadFromFile(const wchar_t* const filepath)
 {
+	System::SafeDelete(&mData);
 	mData = new TextureData();
-	if (mData->LoadFromFile(filepath) == FAIL)
-	{
-		return FAIL;
-	}
+	return mData->LoadFromFile(filepath);
+}
 
-	return SUCCESS;
+Result Texture2D::LoadFromFile(const char* const filepath)
+{
+	System::SafeDelete(&mData);
+
+	mData = new TextureData();
+
+	TCHAR* wPath = nullptr;
+	System::newArray_CreateWideCharStrFromMultiByteStr(&wPath, filepath);
+
+	auto result = mData->LoadFromFile(wPath);
+	System::SafeDeleteArray(&wPath);
+
+	return result;
 }
 
 const D3D12_GPU_DESCRIPTOR_HANDLE Texture2D::GetGPU_Handle(const int i) const

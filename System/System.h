@@ -31,6 +31,46 @@ namespace System
 		}
 	}
 
+	template <class T>
+	class varray
+	{
+	public:
+		varray(const int count)
+			:
+			mLength(count),
+			mData(new T[count])
+		{
+
+		}
+
+		~varray()
+		{
+			SafeDeleteArray(&mData);
+		}
+
+		T& operator[](const int i)
+		{
+			return mData[i];
+		}
+
+		const T& operator[](const int i) const
+		{
+			return mData[i];
+		}
+
+		const T* GetStart() const
+		{
+			return &mData[0];
+		}
+
+	private:
+		varray();
+		varray(const varray& other);
+		const varray& operator=(const varray& other) const;
+		const int mLength;
+		T* mData;
+	};
+
 	void CheckMemoryLeak();
 
 	// •¶Žš—ñ”äŠr
