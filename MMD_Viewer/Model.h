@@ -4,7 +4,6 @@
 #include"GUI_Util.h"
 
 #include<array>
-#include<string>
 
 #include"MathUtil.h"
 #include"MMDsdk.h"
@@ -98,7 +97,7 @@ private:
 
 	GUI::Result isSuccessLoad;
 
-	static std::wstring mToonPath[10];
+	static const wchar_t* mToonPath[10];
 
 	GUI::Graphics::Texture2D* mUniqueTexture;
 

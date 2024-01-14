@@ -36,7 +36,7 @@ void Model::Material::Load(const MMDsdk::PmxFile::Material& data)
 	ambient = System::strong_cast<MathUtil::float3>(data.ambient);
 }
 
-std::wstring Model::mToonPath[] =
+const wchar_t* Model::mToonPath[] =
 {
 	L"DefaultTexture/toon01.bmp",
 	L"DefaultTexture/toon02.bmp",
@@ -183,7 +183,7 @@ GUI::Result Model::Load(const char* const filepath)
 	{
 		auto& t = mDefaultTextureToon[i];
 
-		if (t.LoadFromFile(mToonPath[i].c_str()) == GUI::Result::FAIL)
+		if (t.LoadFromFile(mToonPath[i]) == GUI::Result::FAIL)
 		{
 			return GUI::Result::FAIL;
 		}
