@@ -156,7 +156,7 @@ GUI::Result Model::Load(const char* const filepath)
 	{
 		return GUI::Result::FAIL;
 	}
-	
+
 	if (mDevice.CreateConstantBuffer(mPS_DataBuffer, mHeap, sizeof(PixelShaderData)) == GUI::Result::FAIL)
 	{
 		return GUI::Result::FAIL;
@@ -267,7 +267,7 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 		{
 			command.SetDescriptorTable(mDefaultTextureBlack, 5);
 		}
-		
+
 		// トゥーンは
 		// ・固有テクスチャを持つもの(PMXのみの機能)
 		// ・共有テクスチャを持つもの
@@ -476,7 +476,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 				// 一つ目にはNULL文字が存在しないため、一回バッファにコピーする
 				char path[20] = { '\0' };
 				auto subStr = pathSignature[i].path[j];
-				
+
 				memcpy(&path[0], subStr.start, subStr.length);
 
 				// 拡張子で振り分け　
@@ -723,24 +723,26 @@ GUI::Result Model::CreateMaterialBuffer(const Material material[], const int mat
 
 GUI::Result Model::CreateTexture(const char* const dirPath, const char* const filename, const int texID)
 {
-	// パスを結合
-	char* tFilePath = nullptr;
-	System::newArray_CopyAssetPath(&tFilePath, dirPath, filename);
+	// ディレクトリがnullptrはありえない
+	if (dirPath == nullptr)	return GUI::Result::FAIL;
 
-	// ワイド文字へ
-	wchar_t* filepath = nullptr;
-	System::newArray_CreateWideCharStrFromMultiByteStr(&filepath, tFilePath);
+	// テクスチャがない場合は、失敗ではないので成功として返す
+	if (filename == nullptr) return GUI::Result::SUCCESS;
+	if (texID == -1) return GUI::Result::SUCCESS;
+
+	// パスを結合
+	char* filepath = nullptr;
+	System::newArray_CopyAssetPath(&filepath, dirPath, filename);
 
 	// テクスチャを読み込む
-	if (mUniqueTexture[texID].LoadFromFile(filepath) == GUI::Result::FAIL)
+	auto result = mUniqueTexture[texID].LoadFromFile(filepath);
+	
+	System::SafeDeleteArray(&filepath);
+
+	if (result == GUI::Result::FAIL)
 	{
-		System::SafeDeleteArray(&tFilePath);
-		System::SafeDeleteArray(&filepath);
 		return GUI::Result::FAIL;
 	}
-
-	System::SafeDeleteArray(&tFilePath);
-	System::SafeDeleteArray(&filepath);
 
 	// テクスチャを作成
 	if (mDevice.CreateTexture2D(mUniqueTexture[texID], mHeap) == GUI::Result::FAIL)

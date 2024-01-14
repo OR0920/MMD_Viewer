@@ -720,6 +720,7 @@ namespace GUI
 			~Texture2D();
 
 			Result LoadFromFile(const wchar_t* const filePath);
+			Result LoadFromFile(const char* const filepath);
 
 			// ƒ‰ƒCƒuƒ‰ƒŠ‚©‚çŒÄ‚Ño‚·ŠÖ”
 			const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle(const int i = 0) const;
