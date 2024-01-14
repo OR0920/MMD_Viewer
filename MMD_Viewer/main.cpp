@@ -77,10 +77,8 @@ int MAIN()
 	GUI::Graphics::Format format[] = 
 	{
 		GUI::Graphics::Format::COLOR_8_4,
-		GUI::Graphics::Format::FLOAT_32_4,
-		GUI::Graphics::Format::FLOAT_32_4
 	};
-	if (device.CreateSubRenderTarget(subRenderTarget, renderTarget, format, 3) == GUI::Result::FAIL)
+	if (device.CreateSubRenderTarget(subRenderTarget, renderTarget, format, 1) == GUI::Result::FAIL)
 	{
 		return -1;
 	}

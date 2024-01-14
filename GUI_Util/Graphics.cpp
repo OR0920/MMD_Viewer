@@ -397,6 +397,8 @@ Result Device::CreateSubRenderTarget
 			Device::CreateSubRenderTarget()
 		);
 	}
+
+	return SUCCESS;
 }
 
 
