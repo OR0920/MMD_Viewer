@@ -178,7 +178,7 @@ namespace GUI
 		class GraphicsPipeline;
 		class VertexBuffer;
 		class IndexBuffer;
-		class SignaturedBuffer;
+		class SignateBuffer;
 		class ConstantBuffer;
 		class Texture2D;
 		 
@@ -374,7 +374,7 @@ namespace GUI
 
 			void SetDescriptorTable
 			(
-				const SignaturedBuffer& buffer,
+				const SignateBuffer& buffer,
 				const int rootParamID,
 				const int bufferID = 0
 			);
@@ -442,7 +442,7 @@ namespace GUI
 
 			// ライブラリから呼び出す関数
 			void GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, const int bufferID) const;
-			const ComPtr<ID3D12Resource> GetGPU_Address(const int bufferID) const;
+			const ComPtr<ID3D12Resource> GetRenderTargetResource(const int bufferID) const;
 
 			const DXGI_FORMAT GetFormat() const;
 			const int GetWidth() const;
@@ -687,17 +687,17 @@ namespace GUI
 
 		// 定数バッファ、テクスチャ等、ルートシグネチャ経由でバインドされる
 		// リソースのインターフェース
-		class SignaturedBuffer
+		class SignateBuffer
 		{
 		public:
-			virtual ~SignaturedBuffer();
+			virtual ~SignateBuffer();
 
 			virtual const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle(const int i = 0) const = 0;
 		private:
 		};
 
 		// 定数バッファ
-		class ConstantBuffer : public SignaturedBuffer
+		class ConstantBuffer : public SignateBuffer
 		{
 			friend Result Device::CreateConstantBuffer
 			(
@@ -738,7 +738,7 @@ namespace GUI
 
 		class TextureData;
 
-		class Texture2D : public SignaturedBuffer
+		class Texture2D : public SignateBuffer
 		{
 			friend Result Device::CreateTexture2D
 			(

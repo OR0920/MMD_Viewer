@@ -398,6 +398,8 @@ Result Device::CreateSubRenderTarget
 		);
 	}
 
+	
+
 	return SUCCESS;
 }
 
@@ -932,7 +934,7 @@ void GraphicsCommand::UnlockRenderTarget(const RenderTarget& renderTarget)
 {
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition
 	(
-		renderTarget.GetGPU_Address(mSwapChain->GetCurrentBackBufferIndex()).Get(),
+		renderTarget.GetRenderTargetResource(mSwapChain->GetCurrentBackBufferIndex()).Get(),
 		D3D12_RESOURCE_STATE_PRESENT,
 		D3D12_RESOURCE_STATE_RENDER_TARGET
 	);
@@ -998,7 +1000,7 @@ void GraphicsCommand::SetConstantBuffer
 
 void GraphicsCommand::SetDescriptorTable
 (
-	const SignaturedBuffer& buffer,
+	const SignateBuffer& buffer,
 	const int paramID,
 	const int bufferID
 )
@@ -1048,7 +1050,7 @@ void GraphicsCommand::LockRenderTarget(const RenderTarget& renderTarget)
 {
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition
 	(
-		renderTarget.GetGPU_Address(mSwapChain->GetCurrentBackBufferIndex()).Get(),
+		renderTarget.GetRenderTargetResource(mSwapChain->GetCurrentBackBufferIndex()).Get(),
 		D3D12_RESOURCE_STATE_RENDER_TARGET,
 		D3D12_RESOURCE_STATE_PRESENT
 	);
@@ -1129,7 +1131,7 @@ void RenderTarget::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, cons
 	handle.ptr += mViewIncrementSize * bufferID;
 }
 
-const ComPtr<ID3D12Resource> RenderTarget::GetGPU_Address(const int bufferID) const
+const ComPtr<ID3D12Resource> RenderTarget::GetRenderTargetResource(const int bufferID) const
 {
 	if (bufferID < 0 || mBufferCount <= bufferID)
 	{
