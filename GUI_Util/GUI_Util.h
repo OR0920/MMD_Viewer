@@ -340,6 +340,9 @@ namespace GUI
 			void UnlockRenderTarget(const RenderTarget& renderTarget);
 			void UnlockRenderTarget(const SubRenderTarget& subRenderTarget);
 
+			// ビューポートとシザー矩形をセットする。
+			void SetViewportAndRect(const RenderTarget& renderTarget);
+
 			// レンダーターゲットをセットする
 			void SetRenderTarget
 			(
@@ -351,6 +354,11 @@ namespace GUI
 			(
 				const RenderTarget& renderTarget,
 				const DepthStencilBuffer& depthStenilBuffer
+			);
+			void SetRenderTarget
+			(
+				const SubRenderTarget& renderTarget,
+				const DepthStencilBuffer& depthStencilBuffer
 			);
 
 			// レンダーターゲットを塗りつぶす
@@ -408,7 +416,6 @@ namespace GUI
 			// バックバッファに切り替え
 			void Flip();
 		private:
-			void SetViewportAndRect(const RenderTarget& renderTarget);
 
 			ID3D12Device* mDevice;
 			SwapChain* mSwapChain;
@@ -437,7 +444,7 @@ namespace GUI
 			const float GetAspectRatio() const;
 
 			// ライブラリから呼び出す関数
-			void GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, const int bufferID) const;
+			const D3D12_CPU_DESCRIPTOR_HANDLE GetDescriptorHandle(const int bufferID) const;
 			const ComPtr<ID3D12Resource> GetRenderTargetResource(const int bufferID) const;
 
 			const DXGI_FORMAT GetFormat() const;
@@ -474,6 +481,7 @@ namespace GUI
 			// ライブラリから呼び出す関数
 			const int GetTargetCount() const;
 			const ComPtr<ID3D12Resource> GetRenderTargetResource(const int i) const;
+			const D3D12_CPU_DESCRIPTOR_HANDLE& GetRTV_DescriptorHandle() const;
 
 		private:
 			ComPtr<ID3D12DescriptorHeap> mRTV_Heaps;
@@ -495,7 +503,7 @@ namespace GUI
 			DepthStencilBuffer(); ~DepthStencilBuffer();
 
 			// ライブラリから呼び出す関数
-			void GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle) const;
+			const D3D12_CPU_DESCRIPTOR_HANDLE& GetDescriptorHandle() const;
 		private:
 			ComPtr<ID3D12Resource> mDSB_Resource;
 			ComPtr<ID3D12DescriptorHeap> mDSV_Heap;

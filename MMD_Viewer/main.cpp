@@ -120,6 +120,8 @@ int MAIN()
 
 		// 描画準備
 		command.BeginDraw();
+		command.SetViewportAndRect(renderTarget);
+
 		// レンダーターゲットを書き込み可能に
 		command.UnlockRenderTarget(renderTarget);
 		

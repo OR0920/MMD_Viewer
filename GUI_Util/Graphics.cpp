@@ -1018,7 +1018,7 @@ void GraphicsCommand::SetRenderTarget
 	const RenderTarget& renderTarget
 )
 {
-	this->SetViewportAndRect(renderTarget);
+	mRTV_Handle = renderTarget.GetDescriptorHandle(mSwapChain->GetCurrentBackBufferIndex());
 	mCommandList->OMSetRenderTargets(1, &mRTV_Handle, 0, nullptr);
 }
 
@@ -1028,9 +1028,20 @@ void GraphicsCommand::SetRenderTarget
 	const DepthStencilBuffer& depthStencilBuffer
 )
 {
-	this->SetViewportAndRect(renderTarget);
-	depthStencilBuffer.GetDescriptorHandle(mDSV_Handle);
+	mRTV_Handle = renderTarget.GetDescriptorHandle(mSwapChain->GetCurrentBackBufferIndex());
+	mDSV_Handle = depthStencilBuffer.GetDescriptorHandle();
 	mCommandList->OMSetRenderTargets(1, &mRTV_Handle, 1, &mDSV_Handle);
+}
+
+void GraphicsCommand::SetRenderTarget
+(
+	const SubRenderTarget& renderTarget,
+	const DepthStencilBuffer& depthStencilBuffer
+)
+{
+	mRTV_Handle = renderTarget.GetRTV_DescriptorHandle();
+	mDSV_Handle = depthStencilBuffer.GetDescriptorHandle();
+	mCommandList->OMSetRenderTargets(renderTarget.GetTargetCount(), &mRTV_Handle, 1, &mDSV_Handle);
 }
 
 void GraphicsCommand::ClearRenderTarget(const Color& color)
@@ -1156,8 +1167,6 @@ void GraphicsCommand::SetViewportAndRect(const RenderTarget& renderTarget)
 	mCommandList->RSSetViewports(1, &viewport);
 	auto rect = renderTarget.GetRect();
 	mCommandList->RSSetScissorRects(1, &rect);
-
-	renderTarget.GetDescriptorHandle(mRTV_Handle, mSwapChain->GetCurrentBackBufferIndex());
 }
 
 
@@ -1191,15 +1200,16 @@ const float RenderTarget::GetAspectRatio() const
 	return mAspectRatio;
 }
 
-void RenderTarget::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, const int bufferID) const
+const D3D12_CPU_DESCRIPTOR_HANDLE RenderTarget::GetDescriptorHandle(const int bufferID) const
 {
 	if (bufferID < 0 || mBufferCount <= bufferID)
 	{
 		DebugMessage("ERROR: The ID is Out of Range !");
-		return;
+		assert(false);
 	}
-	handle = mHeaps->GetCPUDescriptorHandleForHeapStart();
-	handle.ptr += mViewIncrementSize * bufferID;
+	auto h = mHeaps->GetCPUDescriptorHandleForHeapStart();
+	h.ptr += mViewIncrementSize * bufferID;
+	return h;
 }
 
 const ComPtr<ID3D12Resource> RenderTarget::GetRenderTargetResource(const int bufferID) const
@@ -1262,6 +1272,11 @@ const ComPtr<ID3D12Resource> SubRenderTarget::GetRenderTargetResource(const int 
 	return mResource[i];
 }
 
+const D3D12_CPU_DESCRIPTOR_HANDLE& SubRenderTarget::GetRTV_DescriptorHandle() const
+{
+	return mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
+}
+
 // 深度ステンシルバッファ
 DepthStencilBuffer::DepthStencilBuffer()
 	:
@@ -1276,9 +1291,9 @@ DepthStencilBuffer::~DepthStencilBuffer()
 
 }
 
-void DepthStencilBuffer::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle) const
+const D3D12_CPU_DESCRIPTOR_HANDLE& DepthStencilBuffer::GetDescriptorHandle() const
 {
-	handle = mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
+	return mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
 }
 
 
