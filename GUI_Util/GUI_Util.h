@@ -22,7 +22,7 @@
 // エントリポイントを隠蔽
 // デバッグ情報をコンソールへ
 #ifdef _DEBUG
-#define MAIN main 
+#define MAIN() main() 
 #else
 #define MAIN() WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif // _DEBUG
