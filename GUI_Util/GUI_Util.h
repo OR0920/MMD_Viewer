@@ -338,6 +338,7 @@ namespace GUI
 
 			// レンダーターゲットを書き込み可能にする
 			void UnlockRenderTarget(const RenderTarget& renderTarget);
+			void UnlockRenderTarget(const SubRenderTarget& subRenderTarget);
 
 			// レンダーターゲットをセットする
 			void SetRenderTarget
@@ -470,11 +471,16 @@ namespace GUI
 			SubRenderTarget();
 			~SubRenderTarget();
 
+			// ライブラリから呼び出す関数
+			const int GetTargetCount() const;
+			const ComPtr<ID3D12Resource> GetRenderTargetResource(const int i) const;
+
 		private:
 			ComPtr<ID3D12DescriptorHeap> mRTV_Heaps;
 			ComPtr<ID3D12DescriptorHeap> mSRV_Heaps;
 			ComPtr<ID3D12Resource>* mResource;
 
+			int mTargetCount;
 		};
 
 		// 深度バッファ

@@ -344,6 +344,8 @@ Result Device::CreateSubRenderTarget
 	const int count
 )
 {
+	subRenderTarget.mTargetCount = count;
+
 	// ディスクリプタヒープ作成(レンダーターゲット用)
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.NumDescriptors = count;
@@ -410,9 +412,9 @@ Result Device::CreateSubRenderTarget
 
 	for (int i = 0; i < count; ++i)
 	{
-		resDesc.Format 
-			= clearValue.Format 
-			= srvDesc.Format 
+		resDesc.Format
+			= clearValue.Format
+			= srvDesc.Format
 			= gDxgiFormat[format[i]];
 
 		ReturnIfFailed
@@ -436,7 +438,7 @@ Result Device::CreateSubRenderTarget
 			rtvHeapHandle
 		);
 
-		rtvHeapHandle.ptr += 
+		rtvHeapHandle.ptr +=
 			mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 		mDevice->CreateShaderResourceView
@@ -992,6 +994,25 @@ void GraphicsCommand::UnlockRenderTarget(const RenderTarget& renderTarget)
 	mCommandList->ResourceBarrier(1, &barrier);
 }
 
+void GraphicsCommand::UnlockRenderTarget(const SubRenderTarget& renderTarget)
+{
+	auto targetCount = renderTarget.GetTargetCount();
+	D3D12_RESOURCE_BARRIER* barreir = new D3D12_RESOURCE_BARRIER[targetCount]{};
+
+	for (int i = 0; i < targetCount; ++i)
+	{
+		barreir[i] = CD3DX12_RESOURCE_BARRIER::Transition
+		(
+			renderTarget.GetRenderTargetResource(i).Get(),
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			D3D12_RESOURCE_STATE_RENDER_TARGET
+		);
+
+	}
+	mCommandList->ResourceBarrier(targetCount, barreir);
+
+}
+
 void GraphicsCommand::SetRenderTarget
 (
 	const RenderTarget& renderTarget
@@ -1183,11 +1204,8 @@ void RenderTarget::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, cons
 
 const ComPtr<ID3D12Resource> RenderTarget::GetRenderTargetResource(const int bufferID) const
 {
-	if (bufferID < 0 || mBufferCount <= bufferID)
-	{
-		DebugMessage("ERROR: The ID is Out of Range !");
-		return nullptr;
-	}
+	IS_OUT_OF_RANGE(mResource, bufferID, mBufferCount);
+
 	return mResource[bufferID];
 }
 
@@ -1221,7 +1239,8 @@ SubRenderTarget::SubRenderTarget()
 	:
 	mRTV_Heaps(nullptr),
 	mSRV_Heaps(nullptr),
-	mResource(nullptr)
+	mResource(nullptr),
+	mTargetCount(0)
 {
 
 }
@@ -1229,6 +1248,18 @@ SubRenderTarget::SubRenderTarget()
 SubRenderTarget::~SubRenderTarget()
 {
 	System::SafeDeleteArray(&mResource);
+}
+
+const int SubRenderTarget::GetTargetCount() const
+{
+	return mTargetCount;
+}
+
+const ComPtr<ID3D12Resource> SubRenderTarget::GetRenderTargetResource(const int i) const
+{
+	IS_OUT_OF_RANGE(mResource, i, mTargetCount);
+
+	return mResource[i];
 }
 
 // 深度ステンシルバッファ
