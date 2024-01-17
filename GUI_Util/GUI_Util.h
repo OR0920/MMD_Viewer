@@ -215,7 +215,8 @@ namespace GUI
 				SubRenderTarget& renderTarget,
 				const RenderTarget& mainRenderTarget,
 				const Format format[],
-				const int count
+				const int count,
+				const Color& clearColor = Color(0.5f, 0.5f, 0.5f)
 			);
 
 			// 深度バッファのみ使用する場合
@@ -393,6 +394,9 @@ namespace GUI
 				const int bufferID = 0
 			);
 
+			void SetSubRenderTargetAsTexture(const SubRenderTarget& subRenderTarget, const int paramID);
+
+
 			// 頂点のみで描画
 			void SetVertexBuffer
 			(
@@ -477,7 +481,8 @@ namespace GUI
 				SubRenderTarget&,
 				const RenderTarget&,
 				const Format[],
-				const int
+				const int,
+				const Color&
 			);
 		public:
 			SubRenderTarget();
@@ -487,6 +492,7 @@ namespace GUI
 			const int GetTargetCount() const;
 			const ComPtr<ID3D12Resource> GetRenderTargetResource(const int i) const;
 			const D3D12_CPU_DESCRIPTOR_HANDLE& GetRTV_DescriptorHandle() const;
+			const ComPtr<ID3D12DescriptorHeap> GetSRV_Heap() const;
 
 		private:
 			ComPtr<ID3D12DescriptorHeap> mRTV_Heaps;
@@ -659,6 +665,8 @@ namespace GUI
 			// ヘッダへ書き出したものをバインドする場合
 			void SetVertexShader(const unsigned char* const vertexShader, const int length);
 			void SetPixelShader(const unsigned char* const pixelShader, const int length);
+#define SetShader(shader) shader, _countof(shader)
+
 
 			// ファイルを呼び出す場合(未実装)
 

@@ -341,7 +341,8 @@ Result Device::CreateSubRenderTarget
 	SubRenderTarget& subRenderTarget,
 	const RenderTarget& mainRenderTarget,
 	const Format format[],
-	const int count
+	const int count,
+	const Color& clearColor
 )
 {
 	subRenderTarget.mTargetCount = count;
@@ -363,6 +364,7 @@ Result Device::CreateSubRenderTarget
 
 	// ディスクリプタヒープ作成(テクスチャ用)
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ReturnIfFailed
 	(
 		mDevice->CreateDescriptorHeap
@@ -390,12 +392,12 @@ Result Device::CreateSubRenderTarget
 
 	// 初期値の設定
 	D3D12_CLEAR_VALUE clearValue = {};
-	clearValue.Color[0] = 0.5f;
-	clearValue.Color[1] = 0.5f;
-	clearValue.Color[2] = 0.5f;
-	clearValue.Color[3] = 1.f;
-	clearValue.DepthStencil.Depth = 1.f;
-	clearValue.DepthStencil.Stencil = 0;
+	clearValue.Color[0] = clearColor.r;
+	clearValue.Color[1] = clearColor.g;
+	clearValue.Color[2] = clearColor.b;
+	clearValue.Color[3] = clearColor.a;
+	//clearValue.DepthStencil.Depth = 1.f;
+	//clearValue.DepthStencil.Stencil = 0;
 
 	auto rtvHeapHandle =
 		subRenderTarget.mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
@@ -1098,6 +1100,19 @@ void GraphicsCommand::SetDescriptorTable
 	);
 }
 
+void GraphicsCommand::SetSubRenderTargetAsTexture
+(
+	const SubRenderTarget& subRenderTarget,
+	const int paramID
+)
+{
+	auto heap = subRenderTarget.GetSRV_Heap();
+	ID3D12DescriptorHeap* heaps[] = { heap.Get() };
+
+	mCommandList->SetDescriptorHeaps(1, heaps);
+	mCommandList->SetGraphicsRootDescriptorTable(paramID, heap->GetGPUDescriptorHandleForHeapStart());
+}
+
 void GraphicsCommand::SetVertexBuffer
 (
 	const VertexBuffer& vertex
@@ -1288,13 +1303,17 @@ const int SubRenderTarget::GetTargetCount() const
 const ComPtr<ID3D12Resource> SubRenderTarget::GetRenderTargetResource(const int i) const
 {
 	IS_OUT_OF_RANGE(mResource, i, mTargetCount);
-
 	return mResource[i];
 }
 
 const D3D12_CPU_DESCRIPTOR_HANDLE& SubRenderTarget::GetRTV_DescriptorHandle() const
 {
 	return mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
+}
+
+const ComPtr<ID3D12DescriptorHeap> SubRenderTarget::GetSRV_Heap() const
+{
+	return mSRV_Heaps;
 }
 
 // 深度ステンシルバッファ
