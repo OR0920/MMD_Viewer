@@ -348,6 +348,10 @@ namespace GUI
 			(
 				const RenderTarget& renderTarget
 			);
+			void SetRenderTarget
+			(
+				const SubRenderTarget& renderTarget
+			);
 
 			// レンダーターゲットと深度バッファをセットする
 			void SetRenderTarget

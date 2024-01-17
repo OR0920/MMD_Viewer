@@ -1024,6 +1024,15 @@ void GraphicsCommand::SetRenderTarget
 
 void GraphicsCommand::SetRenderTarget
 (
+	const SubRenderTarget& renderTarget
+)
+{
+	mRTV_Handle = renderTarget.GetRTV_DescriptorHandle();
+	mCommandList->OMSetRenderTargets(renderTarget.GetTargetCount(), &mRTV_Handle, 0, nullptr);
+}
+
+void GraphicsCommand::SetRenderTarget
+(
 	const RenderTarget& renderTarget,
 	const DepthStencilBuffer& depthStencilBuffer
 )
