@@ -996,21 +996,17 @@ void GraphicsCommand::UnlockRenderTarget(const RenderTarget& renderTarget)
 
 void GraphicsCommand::UnlockRenderTarget(const SubRenderTarget& renderTarget)
 {
-	auto targetCount = renderTarget.GetTargetCount();
-	D3D12_RESOURCE_BARRIER* barreir = new D3D12_RESOURCE_BARRIER[targetCount]{};
-
-	for (int i = 0; i < targetCount; ++i)
+	for (int i = 0; i < renderTarget.GetTargetCount(); ++i)
 	{
-		barreir[i] = CD3DX12_RESOURCE_BARRIER::Transition
+		auto barreir = CD3DX12_RESOURCE_BARRIER::Transition
 		(
 			renderTarget.GetRenderTargetResource(i).Get(),
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			D3D12_RESOURCE_STATE_RENDER_TARGET
 		);
 
+		mCommandList->ResourceBarrier(1, &barreir);
 	}
-	mCommandList->ResourceBarrier(targetCount, barreir);
-
 }
 
 void GraphicsCommand::SetRenderTarget
@@ -1146,6 +1142,21 @@ void GraphicsCommand::LockRenderTarget(const RenderTarget& renderTarget)
 		D3D12_RESOURCE_STATE_PRESENT
 	);
 	mCommandList->ResourceBarrier(1, &barrier);
+}
+
+void GraphicsCommand::LockRenderTarget(const SubRenderTarget& renderTarget)
+{
+	for (int i = 0; i < renderTarget.GetTargetCount(); ++i)
+	{
+		auto barreir = CD3DX12_RESOURCE_BARRIER::Transition
+		(
+			renderTarget.GetRenderTargetResource(i).Get(),
+			D3D12_RESOURCE_STATE_RENDER_TARGET,
+			D3D12_RESOURCE_STATE_GENERIC_READ
+		);
+		
+		mCommandList->ResourceBarrier(1, &barreir);
+	}
 }
 
 void GraphicsCommand::EndDraw()

@@ -413,6 +413,7 @@ namespace GUI
 
 			// レンダーターゲットを書き込み不可にする
 			void LockRenderTarget(const RenderTarget& renderTarget);
+			void LockRenderTarget(const SubRenderTarget& renderTarget);
 
 			// 描画終わりに呼び出す
 			void EndDraw();
