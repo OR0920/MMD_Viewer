@@ -290,16 +290,16 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 		mDevice->CreateDescriptorHeap
 		(
 			&heapDesc,
-			IID_PPV_ARGS(renderTarget.mRTV_Heaps.ReleaseAndGetAddressOf())
+			IID_PPV_ARGS(renderTarget.mHeaps.ReleaseAndGetAddressOf())
 		),
 		Device::CreateRenderTarget()
 	);
 
 	// スワップチェインから、描画先をもらい、ビューを作成する
-	renderTarget.mRT_Resource = new ComPtr<ID3D12Resource>[bufferCount] {nullptr};
+	renderTarget.mResource = new ComPtr<ID3D12Resource>[bufferCount] {nullptr};
 
 	D3D12_CPU_DESCRIPTOR_HANDLE mRTV_Handle
-		= renderTarget.mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
+		= renderTarget.mHeaps->GetCPUDescriptorHandleForHeapStart();
 
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
 	rtvDesc.Format = desc.BufferDesc.Format;
@@ -309,7 +309,7 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 	{
 		auto result = swapChain.GetBuffer
 		(
-			i, renderTarget.mRT_Resource[i].ReleaseAndGetAddressOf()
+			i, renderTarget.mResource[i].ReleaseAndGetAddressOf()
 		);
 
 		if (result == Result::FAIL)
@@ -317,14 +317,14 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 			return FAIL;
 		}
 
-		rtvDesc.Format = renderTarget.mRT_Resource[i]->GetDesc().Format;
-		mDevice->CreateRenderTargetView(renderTarget.mRT_Resource[i].Get(), &rtvDesc, mRTV_Handle);
+		rtvDesc.Format = renderTarget.mResource[i]->GetDesc().Format;
+		mDevice->CreateRenderTargetView(renderTarget.mResource[i].Get(), &rtvDesc, mRTV_Handle);
 		mRTV_Handle.ptr +=
 			mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	}
 
 	// 描画時に必要になる情報をもらう
-	renderTarget.mViewPort = CD3DX12_VIEWPORT(renderTarget.mRT_Resource[0].Get());
+	renderTarget.mViewPort = CD3DX12_VIEWPORT(renderTarget.mResource[0].Get());
 	renderTarget.mScissorRect
 		= CD3DX12_RECT(0, 0, desc.BufferDesc.Width, desc.BufferDesc.Width);
 
@@ -338,12 +338,13 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 
 Result Device::CreateSubRenderTarget
 (
-	RenderTarget& subRenderTarget,
+	SubRenderTarget& subRenderTarget,
 	const RenderTarget& mainRenderTarget,
 	const Format format[],
 	const int count
 )
 {
+	// ディスクリプタヒープ作成(レンダーターゲット用)
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.NumDescriptors = count;
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
@@ -358,10 +359,23 @@ Result Device::CreateSubRenderTarget
 		Device::CreateSubRenderTarget()
 	);
 
-	subRenderTarget.mRT_Resource = new ComPtr<ID3D12Resource>[count];
+	// ディスクリプタヒープ作成(テクスチャ用)
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	ReturnIfFailed
+	(
+		mDevice->CreateDescriptorHeap
+		(
+			&heapDesc,
+			IID_PPV_ARGS(subRenderTarget.mSRV_Heaps.ReleaseAndGetAddressOf())
+		),
+		Device::CreateSubRenderTarget()
+	);
+
+	subRenderTarget.mResource = new ComPtr<ID3D12Resource>[count];
 
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
+	// リソースの設定
 	D3D12_RESOURCE_DESC resDesc = {};
 	resDesc.MipLevels = 1;
 	resDesc.Width = mainRenderTarget.GetWidth();
@@ -372,6 +386,7 @@ Result Device::CreateSubRenderTarget
 	resDesc.SampleDesc.Quality = 0;
 	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
+	// 初期値の設定
 	D3D12_CLEAR_VALUE clearValue = {};
 	clearValue.Color[0] = 0.5f;
 	clearValue.Color[1] = 0.5f;
@@ -380,9 +395,26 @@ Result Device::CreateSubRenderTarget
 	clearValue.DepthStencil.Depth = 1.f;
 	clearValue.DepthStencil.Stencil = 0;
 
+	auto rtvHeapHandle =
+		subRenderTarget.mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
+
+
+	// テクスチャとして利用する際のビューの設定
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+
+	auto srvHeapHandle =
+		subRenderTarget.mSRV_Heaps->GetCPUDescriptorHandleForHeapStart();
+
 	for (int i = 0; i < count; ++i)
 	{
-		resDesc.Format = clearValue.Format = gDxgiFormat[format[i]];
+		resDesc.Format 
+			= clearValue.Format 
+			= srvDesc.Format 
+			= gDxgiFormat[format[i]];
+
 		ReturnIfFailed
 		(
 			mDevice->CreateCommittedResource
@@ -392,13 +424,31 @@ Result Device::CreateSubRenderTarget
 				&resDesc,
 				D3D12_RESOURCE_STATE_GENERIC_READ,
 				&clearValue,
-				IID_PPV_ARGS(subRenderTarget.mRT_Resource[i].ReleaseAndGetAddressOf())
+				IID_PPV_ARGS(subRenderTarget.mResource[i].ReleaseAndGetAddressOf())
 			),
 			Device::CreateSubRenderTarget()
 		);
-	}
 
-	
+		mDevice->CreateRenderTargetView
+		(
+			subRenderTarget.mResource[i].Get(),
+			NULL,
+			rtvHeapHandle
+		);
+
+		rtvHeapHandle.ptr += 
+			mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+		mDevice->CreateShaderResourceView
+		(
+			subRenderTarget.mResource[i].Get(),
+			&srvDesc,
+			srvHeapHandle
+		);
+
+		srvHeapHandle.ptr +=
+			mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	}
 
 	return SUCCESS;
 }
@@ -1094,8 +1144,8 @@ void GraphicsCommand::SetViewportAndRect(const RenderTarget& renderTarget)
 
 RenderTarget::RenderTarget()
 	:
-	mRTV_Heaps(nullptr),
-	mRT_Resource(nullptr),
+	mHeaps(nullptr),
+	mResource(nullptr),
 	mBufferCount(0),
 	mViewIncrementSize(0),
 	mViewPort({}),
@@ -1109,10 +1159,10 @@ RenderTarget::~RenderTarget()
 {
 	for (int i = 0; i < mBufferCount; ++i)
 	{
-		SafeRelease(mRT_Resource[i].GetAddressOf());
+		SafeRelease(mResource[i].GetAddressOf());
 	}
 
-	System::SafeDeleteArray(&mRT_Resource);
+	System::SafeDeleteArray(&mResource);
 }
 
 const float RenderTarget::GetAspectRatio() const
@@ -1127,7 +1177,7 @@ void RenderTarget::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, cons
 		DebugMessage("ERROR: The ID is Out of Range !");
 		return;
 	}
-	handle = mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
+	handle = mHeaps->GetCPUDescriptorHandleForHeapStart();
 	handle.ptr += mViewIncrementSize * bufferID;
 }
 
@@ -1138,22 +1188,22 @@ const ComPtr<ID3D12Resource> RenderTarget::GetRenderTargetResource(const int buf
 		DebugMessage("ERROR: The ID is Out of Range !");
 		return nullptr;
 	}
-	return mRT_Resource[bufferID];
+	return mResource[bufferID];
 }
 
 const DXGI_FORMAT RenderTarget::GetFormat() const
 {
-	return mRT_Resource[0]->GetDesc().Format;
+	return mResource[0]->GetDesc().Format;
 }
 
 const int RenderTarget::GetWidth() const
 {
-	return mRT_Resource[0]->GetDesc().Width;
+	return mResource[0]->GetDesc().Width;
 }
 
 const int RenderTarget::GetHeight() const
 {
-	return mRT_Resource[0]->GetDesc().Height;
+	return mResource[0]->GetDesc().Height;
 }
 
 const D3D12_VIEWPORT& RenderTarget::GetViewPort() const
@@ -1164,6 +1214,21 @@ const D3D12_VIEWPORT& RenderTarget::GetViewPort() const
 const D3D12_RECT& RenderTarget::GetRect() const
 {
 	return mScissorRect;
+}
+
+// マルチパス用レンダーターゲット
+SubRenderTarget::SubRenderTarget()
+	:
+	mRTV_Heaps(nullptr),
+	mSRV_Heaps(nullptr),
+	mResource(nullptr)
+{
+
+}
+
+SubRenderTarget::~SubRenderTarget()
+{
+	System::SafeDeleteArray(&mResource);
 }
 
 // 深度ステンシルバッファ
@@ -1701,7 +1766,7 @@ const int IndexBuffer::GetIndexCount() const
 
 // ルートシグネチャでバインドされるリソース
 
-SignaturedBuffer::~SignaturedBuffer() {}
+SignateBuffer::~SignateBuffer() {}
 
 //　定数バッファ
 

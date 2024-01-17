@@ -172,6 +172,7 @@ namespace GUI
 		class GraphicsCommand;
 		class SwapChain;
 		class RenderTarget;
+		class SubRenderTarget;
 		class DepthStencilBuffer;
 		class RootSignature;
 		class InputElementDesc;
@@ -211,7 +212,7 @@ namespace GUI
 			// count			: 入力	: ターゲット数
 			Result CreateSubRenderTarget
 			(
-				RenderTarget& renderTarget,
+				SubRenderTarget& renderTarget,
 				const RenderTarget& mainRenderTarget,
 				const Format format[],
 				const int count
@@ -428,13 +429,7 @@ namespace GUI
 		class RenderTarget
 		{
 			friend Result Device::CreateRenderTarget(RenderTarget&, const SwapChain&);
-			friend Result Device::CreateSubRenderTarget
-			(
-				RenderTarget&,
-				const RenderTarget&,
-				const Format[],
-				const int 
-			);
+		
 		public:
 			RenderTarget(); ~RenderTarget();
 
@@ -451,8 +446,8 @@ namespace GUI
 			const D3D12_VIEWPORT& GetViewPort() const;
 			const D3D12_RECT& GetRect() const;
 		private:
-			ComPtr<ID3D12DescriptorHeap> mRTV_Heaps;
-			ComPtr<ID3D12Resource>* mRT_Resource;
+			ComPtr<ID3D12DescriptorHeap> mHeaps;
+			ComPtr<ID3D12Resource>* mResource;
 			int mBufferCount;
 
 			int mViewIncrementSize;
@@ -460,6 +455,26 @@ namespace GUI
 			D3D12_VIEWPORT mViewPort;
 			D3D12_RECT mScissorRect;
 			float mAspectRatio;
+		};
+
+		class SubRenderTarget
+		{
+			friend Result Device::CreateSubRenderTarget
+			(
+				SubRenderTarget&,
+				const RenderTarget&,
+				const Format[],
+				const int
+			);
+		public:
+			SubRenderTarget();
+			~SubRenderTarget();
+
+		private:
+			ComPtr<ID3D12DescriptorHeap> mRTV_Heaps;
+			ComPtr<ID3D12DescriptorHeap> mSRV_Heaps;
+			ComPtr<ID3D12Resource>* mResource;
+
 		};
 
 		// 深度バッファ
@@ -478,8 +493,6 @@ namespace GUI
 		private:
 			ComPtr<ID3D12Resource> mDSB_Resource;
 			ComPtr<ID3D12DescriptorHeap> mDSV_Heap;
-
-
 		};
 
 		// ルートシグネチャ周りのインターフェイス
@@ -500,7 +513,7 @@ namespace GUI
 		//		・定数バッファ、テクスチャ等のディスクリプタ	(ルートディスクリプタ)
 		//		・複数のディスクリプタをまとめたテーブル		(ディスクリプタテーブル)
 		// 
-		// このうち4をどのように配置するかを記述したものがルートシグネチャ
+		// このうち4をどのように使用するかを記述したものがルートシグネチャ
 		//
 
 		// ディスクリプタテーブルの設定を行う
