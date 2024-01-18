@@ -1,4 +1,4 @@
-#include"MMD_VS_Output.hlsli"
+#include"MMD_ShaderStructs.hlsli"
 
 
 cbuffer PS_Data : register(b1)

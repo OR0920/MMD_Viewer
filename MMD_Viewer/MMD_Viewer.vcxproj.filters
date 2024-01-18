@@ -25,8 +25,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="MMD_ShaderStructs.hlsli" />
-    <None Include="MMD_VS_Output.hlsli" />
-    <None Include="MMD_VS_Structs.hlsli" />
+    <None Include="OutlineStruct.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="MMD_VertexShader.hlsl" />

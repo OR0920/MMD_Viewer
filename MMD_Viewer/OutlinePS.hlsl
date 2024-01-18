@@ -1,4 +1,4 @@
-#include"MMD_VS_Output.hlsli"
+#include"OutlineStruct.hlsli"
 
 float4 main(VS_Output input) : SV_TARGET
 {

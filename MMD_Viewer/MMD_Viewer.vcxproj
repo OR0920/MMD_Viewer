@@ -168,8 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="MMD_ShaderStructs.hlsli" />
-    <None Include="MMD_VS_Output.hlsli" />
-    <None Include="MMD_VS_Structs.hlsli" />
+    <None Include="OutlineStruct.hlsli" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
