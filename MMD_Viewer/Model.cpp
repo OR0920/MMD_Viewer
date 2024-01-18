@@ -150,14 +150,10 @@ Model::Model(GUI::Graphics::Device& device)
 
 
 	// —ÖŠsü—p‚Ìİ’è
-	mOutlineSignature.SetParameterCount(2);
-	mOutlineSignature.SetParamForCBV(0, 0);
-	mOutlineSignature.SetParamForCBV(1, 1);
-	mDevice.CreateRootSignature(mOutlineSignature);
-	
+
 	mOutlinePipeline.SetInputLayout(inputLayout);
 	mOutlinePipeline.SetFrontCullEnable();
-	mOutlinePipeline.SetRootSignature(mOutlineSignature);
+	mOutlinePipeline.SetRootSignature(mRootSignature);
 	mOutlinePipeline.SetDepthEnable();
 	mOutlinePipeline.SetAlphaEnable();
 	mOutlinePipeline.SetVertexShader(SetShader(gOutlineVS));
@@ -330,7 +326,6 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 
 	// —ÖŠsü•`‰æ
 	command.SetGraphicsPipeline(mOutlinePipeline);
-	command.SetGraphicsRootSignature(mOutlineSignature);
 
 	indexOffs = 0;
 	for (int i = 0; i < mMaterialCount; ++i)
@@ -341,7 +336,6 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 			continue;
 		}
 
-		command.SetConstantBuffer(mMaterialBuffer, 1, i);
 		command.DrawTriangleList(mMaterialInfo[i].materialIndexCount, indexOffs);
 		indexOffs += mMaterialInfo[i].materialIndexCount;
 	}

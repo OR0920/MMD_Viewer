@@ -1,13 +1,6 @@
-struct VS_Output
+// —ÖŠsü‚ÍˆÊ’u‚¾‚¯‚Å‚¢‚¢
+struct OutlineVS_Output
 {
     float4 position : SV_POSITION;
 };
 
-cbuffer Material : register(b1)
-{
-    float4 diffuse;
-    float4 specular;
-    float3 ambient;
-    float4 edgeColor;
-    float edgeSize;
-};

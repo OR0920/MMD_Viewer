@@ -1,30 +1,19 @@
 #include"OutlineStruct.hlsli"
+#include"MMD_ShaderStructs.hlsli"
 
-struct VS_Input
+// 輪郭線を描画
+// 表面をカリングしたモデルを、少し拡大し、重ねて描画
+OutlineVS_Output main(VS_Input input)
 {
-    float4 position : POSITION;
-    float4 normal : NORMAL;
-    float2 uv : UV;
-    float edgeRate : EDGE_RATE;
-};
-
-cbuffer Transform : register(b0)
-{
-    matrix world;
-    matrix view;
-    matrix proj;
-    float3 eyePos;
-}
-
-VS_Output main(VS_Input input)
-{
-    VS_Output output;
+    OutlineVS_Output output;
     
     float4 position = input.position;
     position.w = 1.f;
     
+    // 法線方向に頂点を少しだけ動かす
     position.xyz += normalize(input.normal.xyz) * 0.025f * edgeSize * input.edgeRate;
     
+    // 普通に座標変換
     position = mul(world, position);
     position = mul(view, position);
     position = mul(proj, position);
