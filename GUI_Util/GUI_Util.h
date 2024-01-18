@@ -22,7 +22,7 @@
 // エントリポイントを隠蔽
 // デバッグ情報をコンソールへ
 #ifdef _DEBUG
-#define MAIN main 
+#define MAIN() main() 
 #else
 #define MAIN() WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif // _DEBUG
@@ -159,6 +159,13 @@ namespace GUI
 			Color();
 		};
 
+		enum Format : unsigned int
+		{
+			COLOR_8_4 = 0,	// 色 32bitColor 
+			FLOAT_32_4,		// float4
+			FORMAT_COUNT
+		};
+
 		// デバッグモードを有効にする
 		Result EnalbleDebugLayer();
 
@@ -171,7 +178,7 @@ namespace GUI
 		class GraphicsPipeline;
 		class VertexBuffer;
 		class IndexBuffer;
-		class SignaturedBuffer;
+		class SignateBuffer;
 		class ConstantBuffer;
 		class Texture2D;
 		 
@@ -190,12 +197,14 @@ namespace GUI
 			// 各種インターフェイス生成関数
 			Result CreateGraphicsCommand(GraphicsCommand& graphicsCommand);
 
+			// レンダーターゲット作成
 			Result CreateRenderTarget
 			(
 				RenderTarget& renderTarget,
 				const SwapChain& swapChain
 			);
 
+		
 			// 深度バッファのみ使用する場合
 			Result CreateDepthBuffer
 			(
@@ -209,7 +218,7 @@ namespace GUI
 			// 頂点バッファを生成する
 			// vertexBuffer		: 出力	: 頂点バッファのインターフェイス
 			// vertexTypeSize	: 入力	: 頂点構造体のサイズ
-			// vertesCount		: 入力	: 頂点数
+			// vertexCount		: 入力	: 頂点数
 			Result CreateVertexBuffer
 			(
 				VertexBuffer& vertexBuffer,
@@ -317,6 +326,9 @@ namespace GUI
 			// レンダーターゲットを書き込み可能にする
 			void UnlockRenderTarget(const RenderTarget& renderTarget);
 
+			// ビューポートとシザー矩形をセットする。
+			void SetViewportAndRect(const RenderTarget& renderTarget);
+
 			// レンダーターゲットをセットする
 			void SetRenderTarget
 			(
@@ -332,10 +344,7 @@ namespace GUI
 
 			// レンダーターゲットを塗りつぶす
 			// デフォルトはグレー
-			void ClearRenderTarget
-			(
-				const Color& color = Color(0.5f, 0.5f, 0.5f)
-			);
+			void ClearRenderTarget(const Color& color);
 
 			// 深度バッファを初期化する
 			void ClearDepthBuffer();
@@ -353,7 +362,7 @@ namespace GUI
 
 			void SetDescriptorTable
 			(
-				const SignaturedBuffer& buffer,
+				const SignateBuffer& buffer,
 				const int rootParamID,
 				const int bufferID = 0
 			);
@@ -385,7 +394,6 @@ namespace GUI
 			// バックバッファに切り替え
 			void Flip();
 		private:
-			void SetViewportAndRect(const RenderTarget& renderTarget);
 
 			ID3D12Device* mDevice;
 			SwapChain* mSwapChain;
@@ -406,24 +414,26 @@ namespace GUI
 		// ユーザー側からメンバを呼び出す必要はない
 		class RenderTarget
 		{
-			friend Result Device::CreateRenderTarget
-			(
-				RenderTarget&, const SwapChain&
-			);
+			friend Result Device::CreateRenderTarget(RenderTarget&, const SwapChain&);
+		
 		public:
 			RenderTarget(); ~RenderTarget();
 
 			const float GetAspectRatio() const;
 
 			// ライブラリから呼び出す関数
-			void GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, const int bufferID) const;
-			const ComPtr<ID3D12Resource> GetGPU_Address(const int bufferID) const;
+			const D3D12_CPU_DESCRIPTOR_HANDLE GetDescriptorHandle(const int bufferID) const;
+			const ComPtr<ID3D12Resource> GetRenderTargetResource(const int bufferID) const;
 
-			D3D12_VIEWPORT GetViewPort() const;
-			D3D12_RECT GetRect() const;
+			const DXGI_FORMAT GetFormat() const;
+			const int GetWidth() const;
+			const int GetHeight() const;
+
+			const D3D12_VIEWPORT& GetViewPort() const;
+			const D3D12_RECT& GetRect() const;
 		private:
-			ComPtr<ID3D12DescriptorHeap> mRTV_Heaps;
-			ComPtr<ID3D12Resource>* mRT_Resource;
+			ComPtr<ID3D12DescriptorHeap> mHeaps;
+			ComPtr<ID3D12Resource>* mResource;
 			int mBufferCount;
 
 			int mViewIncrementSize;
@@ -445,12 +455,10 @@ namespace GUI
 			DepthStencilBuffer(); ~DepthStencilBuffer();
 
 			// ライブラリから呼び出す関数
-			void GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle) const;
+			const D3D12_CPU_DESCRIPTOR_HANDLE& GetDescriptorHandle() const;
 		private:
 			ComPtr<ID3D12Resource> mDSB_Resource;
 			ComPtr<ID3D12DescriptorHeap> mDSV_Heap;
-
-
 		};
 
 		// ルートシグネチャ周りのインターフェイス
@@ -471,7 +479,7 @@ namespace GUI
 		//		・定数バッファ、テクスチャ等のディスクリプタ	(ルートディスクリプタ)
 		//		・複数のディスクリプタをまとめたテーブル		(ディスクリプタテーブル)
 		// 
-		// このうち4をどのように配置するかを記述したものがルートシグネチャ
+		// このうち4をどのように使用するかを記述したものがルートシグネチャ
 		//
 
 		// ディスクリプタテーブルの設定を行う
@@ -556,6 +564,9 @@ namespace GUI
 			// UV
 			void SetDefaultUV_Desc(const char* const semantics = "UV");
 
+			// 任意の4バイト浮動小数点
+			void SetFloatParam(const char* const semantics);
+
 			void DebugOutLayout() const;
 
 			// ライブラリが呼び出す関数
@@ -586,8 +597,11 @@ namespace GUI
 			// 透過有効化　呼び出さない場合無効
 			void SetAlphaEnable();
 
-			// カリング無効化　呼び出さない場合有効
+			// カリング無効化　呼び出さない場合背面カリング有効
 			void SetCullDisable();
+
+			// 前面カリング有効
+			void SetFrontCullEnable();
 
 			// 頂点レイアウト
 			void SetInputLayout(const InputElementDesc& inputElementDesc);
@@ -598,6 +612,8 @@ namespace GUI
 			// ヘッダへ書き出したものをバインドする場合
 			void SetVertexShader(const unsigned char* const vertexShader, const int length);
 			void SetPixelShader(const unsigned char* const pixelShader, const int length);
+#define SetShader(shader) shader, _countof(shader)
+
 
 			// ファイルを呼び出す場合(未実装)
 
@@ -658,17 +674,17 @@ namespace GUI
 
 		// 定数バッファ、テクスチャ等、ルートシグネチャ経由でバインドされる
 		// リソースのインターフェース
-		class SignaturedBuffer
+		class SignateBuffer
 		{
 		public:
-			virtual ~SignaturedBuffer();
+			virtual ~SignateBuffer();
 
 			virtual const D3D12_GPU_DESCRIPTOR_HANDLE GetGPU_Handle(const int i = 0) const = 0;
 		private:
 		};
 
 		// 定数バッファ
-		class ConstantBuffer : public SignaturedBuffer
+		class ConstantBuffer : public SignateBuffer
 		{
 			friend Result Device::CreateConstantBuffer
 			(
@@ -709,7 +725,7 @@ namespace GUI
 
 		class TextureData;
 
-		class Texture2D : public SignaturedBuffer
+		class Texture2D : public SignateBuffer
 		{
 			friend Result Device::CreateTexture2D
 			(

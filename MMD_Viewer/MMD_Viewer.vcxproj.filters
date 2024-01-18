@@ -25,10 +25,13 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="MMD_ShaderStructs.hlsli" />
+    <None Include="OutlineStruct.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="MMD_VertexShader.hlsl" />
     <FxCompile Include="MMD_PixelShader.hlsl" />
+    <FxCompile Include="OutlineVS.hlsl" />
+    <FxCompile Include="OutlinePS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Model.h">

@@ -6,11 +6,22 @@
 #include"MMD_VertexShasder.h"
 #include"MMD_PixelShader.h"
 
+#include"OutlineVS.h"
+#include"OutlinePS.h"
+
 void Model::ModelVertex::Load(const MMDsdk::PmdFile::Vertex& data)
 {
 	position = System::strong_cast<MathUtil::float3>(data.position);
 	normal = System::strong_cast<MathUtil::float3>(data.normal);
 	uv = System::strong_cast<MathUtil::float2>(data.uv);
+	if (data.edgeFlag == MMDsdk::PmdFile::Vertex::EdgeEnable::VEE_ENABLE)
+	{
+		edgeRate = 1.f;
+	}
+	else
+	{
+		edgeRate = 0.f;
+	}
 }
 
 void Model::ModelVertex::Load(const MMDsdk::PmxFile::Vertex& data)
@@ -18,6 +29,7 @@ void Model::ModelVertex::Load(const MMDsdk::PmxFile::Vertex& data)
 	position = System::strong_cast<MathUtil::float3>(data.position);
 	normal = System::strong_cast<MathUtil::float3>(data.normal);
 	uv = System::strong_cast<MathUtil::float2>(data.uv);
+	edgeRate = data.edgeRate;
 }
 
 void Model::Material::Load(const MMDsdk::PmdFile::Material& data)
@@ -26,6 +38,8 @@ void Model::Material::Load(const MMDsdk::PmdFile::Material& data)
 	specular = System::strong_cast<MathUtil::float3>(data.specular);
 	specularity = data.specularity;
 	ambient = System::strong_cast<MathUtil::float3>(data.ambient);
+	edgeColor = { 0.f, 0.f, 0.f, 1.f };
+	edgeSize = 1.f;
 }
 
 void Model::Material::Load(const MMDsdk::PmxFile::Material& data)
@@ -34,6 +48,8 @@ void Model::Material::Load(const MMDsdk::PmxFile::Material& data)
 	specular = System::strong_cast<MathUtil::float3>(data.specular);
 	specularity = data.specularity;
 	ambient = System::strong_cast<MathUtil::float3>(data.ambient);
+	edgeColor = System::strong_cast<MathUtil::float4>(data.edgeColor);
+	edgeSize = data.edgeSize;
 }
 
 const wchar_t* Model::mToonPath[] =
@@ -72,11 +88,12 @@ Model::Model(GUI::Graphics::Device& device)
 	mDefaultTextureToon()
 {
 	// 頂点レイアウトの設定
-	inputLayout.SetElementCount(3);
+	inputLayout.SetElementCount(4);
 	inputLayout.SetDefaultPositionDesc();
 	inputLayout.SetDefaultNormalDesc();
 	inputLayout.SetDefaultUV_Desc();
-
+	inputLayout.SetFloatParam("EDGE_RATE");
+	
 	//　ルートシグネチャの作成
 	mRootSignature.SetParameterCount(7);
 
@@ -130,6 +147,18 @@ Model::Model(GUI::Graphics::Device& device)
 
 	// モデルによらず固定されたディスクリプターの数を設定
 	mDescriptorCount = sDefaultTextureCount + sDefaultToonTextureCount + sSceneDataCount;
+
+
+	// 輪郭線用の設定
+
+	mOutlinePipeline.SetInputLayout(inputLayout);
+	mOutlinePipeline.SetFrontCullEnable();
+	mOutlinePipeline.SetRootSignature(mRootSignature);
+	mOutlinePipeline.SetDepthEnable();
+	mOutlinePipeline.SetAlphaEnable();
+	mOutlinePipeline.SetVertexShader(SetShader(gOutlineVS));
+	mOutlinePipeline.SetPixelShader(SetShader(gOutlinePS));
+	mDevice.CreateGraphicsPipeline(mOutlinePipeline);
 }
 
 Model::~Model()
@@ -293,6 +322,23 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 		command.DrawTriangleList(indexCount, indexOffs);
 		indexOffs += indexCount;
 	}
+
+
+	// 輪郭線描画
+	command.SetGraphicsPipeline(mOutlinePipeline);
+
+	indexOffs = 0;
+	for (int i = 0; i < mMaterialCount; ++i)
+	{
+		if (mMaterialInfo[i].isEdgeEnable == false)
+		{
+			indexOffs += mMaterialInfo[i].materialIndexCount;
+			continue;
+		}
+
+		command.DrawTriangleList(mMaterialInfo[i].materialIndexCount, indexOffs);
+		indexOffs += mMaterialInfo[i].materialIndexCount;
+	}
 }
 
 // PMDから読みこむ
@@ -301,6 +347,14 @@ void Model::MaterialInfo::Load(const MMDsdk::PmdFile::Material& data)
 	materialIndexCount = data.vertexCount;
 	toonID = static_cast<int>(data.toonIndex);
 	isShared = true;
+	if (data.edgeFlag == MMDsdk::PmdFile::Material::EdgeEnable::MEE_ENABLE)
+	{
+		isEdgeEnable = true;
+	}
+	else
+	{
+		isEdgeEnable = false;
+	}
 }
 
 // PMXから読みこむ
@@ -327,6 +381,8 @@ void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
 	}
 
 	materialIndexCount = data.vertexCount;
+
+	isEdgeEnable = data.GetDrawConfig(MMDsdk::PmxFile::Material::DC_DRAW_EDGE);
 }
 
 GUI::Result Model::LoadPMD(const char* const filepath)
@@ -561,13 +617,6 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 				texID++;
 			}
 		}
-	}
-
-	//　デフォルトでカリングをオフにしておく
-	mPipeline.SetCullDisable();
-	if (mDevice.CreateGraphicsPipeline(mPipeline) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
 	}
 
 	return GUI::Result::SUCCESS;

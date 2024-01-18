@@ -9,9 +9,10 @@ using namespace std;
 
 #include"Model.h"
 
-static const int windowHeight = 1000;
-static const int windowWidth = 1000;
+static const int windowHeight = 1080;
+static const int windowWidth = 1080;
 
+const GUI::Graphics::Color clearColor(1.f, 1.f, 1.f);
 
 int MAIN()
 {
@@ -109,12 +110,14 @@ int MAIN()
 
 		// 描画準備
 		command.BeginDraw();
+		command.SetViewportAndRect(renderTarget);
+
 		// レンダーターゲットを書き込み可能に
 		command.UnlockRenderTarget(renderTarget);
 		
 		// レンダーターゲットのクリア
 		command.SetRenderTarget(renderTarget, depthStencil);
-		command.ClearRenderTarget(GUI::Graphics::Color(0.3f, 0.3f, 0.3f));
+		command.ClearRenderTarget(clearColor);
 		command.ClearDepthBuffer();
 
 		// モデル描画

@@ -145,6 +145,12 @@ Color::Color()
 
 }
 
+static const DXGI_FORMAT gDxgiFormat[Format::FORMAT_COUNT] =
+{
+	DXGI_FORMAT_R8G8B8A8_UNORM,
+	DXGI_FORMAT_R32G32B32A32_FLOAT
+};
+
 // デバッグレイヤ有効化
 Result Graphics::EnalbleDebugLayer()
 {
@@ -284,16 +290,16 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 		mDevice->CreateDescriptorHeap
 		(
 			&heapDesc,
-			IID_PPV_ARGS(renderTarget.mRTV_Heaps.ReleaseAndGetAddressOf())
+			IID_PPV_ARGS(renderTarget.mHeaps.ReleaseAndGetAddressOf())
 		),
 		Device::CreateRenderTarget()
 	);
 
 	// スワップチェインから、描画先をもらい、ビューを作成する
-	renderTarget.mRT_Resource = new ComPtr<ID3D12Resource>[bufferCount] {nullptr};
+	renderTarget.mResource = new ComPtr<ID3D12Resource>[bufferCount] {nullptr};
 
 	D3D12_CPU_DESCRIPTOR_HANDLE mRTV_Handle
-		= renderTarget.mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
+		= renderTarget.mHeaps->GetCPUDescriptorHandleForHeapStart();
 
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
 	rtvDesc.Format = desc.BufferDesc.Format;
@@ -303,7 +309,7 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 	{
 		auto result = swapChain.GetBuffer
 		(
-			i, renderTarget.mRT_Resource[i].ReleaseAndGetAddressOf()
+			i, renderTarget.mResource[i].ReleaseAndGetAddressOf()
 		);
 
 		if (result == Result::FAIL)
@@ -311,14 +317,14 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 			return FAIL;
 		}
 
-		rtvDesc.Format = renderTarget.mRT_Resource[i]->GetDesc().Format;
-		mDevice->CreateRenderTargetView(renderTarget.mRT_Resource[i].Get(), &rtvDesc, mRTV_Handle);
+		rtvDesc.Format = renderTarget.mResource[i]->GetDesc().Format;
+		mDevice->CreateRenderTargetView(renderTarget.mResource[i].Get(), &rtvDesc, mRTV_Handle);
 		mRTV_Handle.ptr +=
 			mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	}
 
 	// 描画時に必要になる情報をもらう
-	renderTarget.mViewPort = CD3DX12_VIEWPORT(renderTarget.mRT_Resource[0].Get());
+	renderTarget.mViewPort = CD3DX12_VIEWPORT(renderTarget.mResource[0].Get());
 	renderTarget.mScissorRect
 		= CD3DX12_RECT(0, 0, desc.BufferDesc.Width, desc.BufferDesc.Width);
 
@@ -860,7 +866,7 @@ void GraphicsCommand::UnlockRenderTarget(const RenderTarget& renderTarget)
 {
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition
 	(
-		renderTarget.GetGPU_Address(mSwapChain->GetCurrentBackBufferIndex()).Get(),
+		renderTarget.GetRenderTargetResource(mSwapChain->GetCurrentBackBufferIndex()).Get(),
 		D3D12_RESOURCE_STATE_PRESENT,
 		D3D12_RESOURCE_STATE_RENDER_TARGET
 	);
@@ -873,9 +879,10 @@ void GraphicsCommand::SetRenderTarget
 	const RenderTarget& renderTarget
 )
 {
-	this->SetViewportAndRect(renderTarget);
+	mRTV_Handle = renderTarget.GetDescriptorHandle(mSwapChain->GetCurrentBackBufferIndex());
 	mCommandList->OMSetRenderTargets(1, &mRTV_Handle, 0, nullptr);
 }
+
 
 void GraphicsCommand::SetRenderTarget
 (
@@ -883,8 +890,8 @@ void GraphicsCommand::SetRenderTarget
 	const DepthStencilBuffer& depthStencilBuffer
 )
 {
-	this->SetViewportAndRect(renderTarget);
-	depthStencilBuffer.GetDescriptorHandle(mDSV_Handle);
+	mRTV_Handle = renderTarget.GetDescriptorHandle(mSwapChain->GetCurrentBackBufferIndex());
+	mDSV_Handle = depthStencilBuffer.GetDescriptorHandle();
 	mCommandList->OMSetRenderTargets(1, &mRTV_Handle, 1, &mDSV_Handle);
 }
 
@@ -926,7 +933,7 @@ void GraphicsCommand::SetConstantBuffer
 
 void GraphicsCommand::SetDescriptorTable
 (
-	const SignaturedBuffer& buffer,
+	const SignateBuffer& buffer,
 	const int paramID,
 	const int bufferID
 )
@@ -976,7 +983,7 @@ void GraphicsCommand::LockRenderTarget(const RenderTarget& renderTarget)
 {
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition
 	(
-		renderTarget.GetGPU_Address(mSwapChain->GetCurrentBackBufferIndex()).Get(),
+		renderTarget.GetRenderTargetResource(mSwapChain->GetCurrentBackBufferIndex()).Get(),
 		D3D12_RESOURCE_STATE_RENDER_TARGET,
 		D3D12_RESOURCE_STATE_PRESENT
 	);
@@ -1011,8 +1018,6 @@ void GraphicsCommand::SetViewportAndRect(const RenderTarget& renderTarget)
 	mCommandList->RSSetViewports(1, &viewport);
 	auto rect = renderTarget.GetRect();
 	mCommandList->RSSetScissorRects(1, &rect);
-
-	renderTarget.GetDescriptorHandle(mRTV_Handle, mSwapChain->GetCurrentBackBufferIndex());
 }
 
 
@@ -1020,8 +1025,8 @@ void GraphicsCommand::SetViewportAndRect(const RenderTarget& renderTarget)
 
 RenderTarget::RenderTarget()
 	:
-	mRTV_Heaps(nullptr),
-	mRT_Resource(nullptr),
+	mHeaps(nullptr),
+	mResource(nullptr),
 	mBufferCount(0),
 	mViewIncrementSize(0),
 	mViewPort({}),
@@ -1035,10 +1040,10 @@ RenderTarget::~RenderTarget()
 {
 	for (int i = 0; i < mBufferCount; ++i)
 	{
-		SafeRelease(mRT_Resource[i].GetAddressOf());
+		SafeRelease(mResource[i].GetAddressOf());
 	}
 
-	System::SafeDeleteArray(&mRT_Resource);
+	System::SafeDeleteArray(&mResource);
 }
 
 const float RenderTarget::GetAspectRatio() const
@@ -1046,36 +1051,50 @@ const float RenderTarget::GetAspectRatio() const
 	return mAspectRatio;
 }
 
-void RenderTarget::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle, const int bufferID) const
+const D3D12_CPU_DESCRIPTOR_HANDLE RenderTarget::GetDescriptorHandle(const int bufferID) const
 {
 	if (bufferID < 0 || mBufferCount <= bufferID)
 	{
 		DebugMessage("ERROR: The ID is Out of Range !");
-		return;
+		assert(false);
 	}
-	handle = mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
-	handle.ptr += mViewIncrementSize * bufferID;
+	auto h = mHeaps->GetCPUDescriptorHandleForHeapStart();
+	h.ptr += mViewIncrementSize * bufferID;
+	return h;
 }
 
-const ComPtr<ID3D12Resource> RenderTarget::GetGPU_Address(const int bufferID) const
+const ComPtr<ID3D12Resource> RenderTarget::GetRenderTargetResource(const int bufferID) const
 {
-	if (bufferID < 0 || mBufferCount <= bufferID)
-	{
-		DebugMessage("ERROR: The ID is Out of Range !");
-		return nullptr;
-	}
-	return mRT_Resource[bufferID];
+	IS_OUT_OF_RANGE(mResource, bufferID, mBufferCount);
+
+	return mResource[bufferID];
 }
 
-D3D12_VIEWPORT RenderTarget::GetViewPort() const
+const DXGI_FORMAT RenderTarget::GetFormat() const
+{
+	return mResource[0]->GetDesc().Format;
+}
+
+const int RenderTarget::GetWidth() const
+{
+	return mResource[0]->GetDesc().Width;
+}
+
+const int RenderTarget::GetHeight() const
+{
+	return mResource[0]->GetDesc().Height;
+}
+
+const D3D12_VIEWPORT& RenderTarget::GetViewPort() const
 {
 	return mViewPort;
 }
 
-D3D12_RECT RenderTarget::GetRect() const
+const D3D12_RECT& RenderTarget::GetRect() const
 {
 	return mScissorRect;
 }
+
 
 // 深度ステンシルバッファ
 DepthStencilBuffer::DepthStencilBuffer()
@@ -1091,9 +1110,9 @@ DepthStencilBuffer::~DepthStencilBuffer()
 
 }
 
-void DepthStencilBuffer::GetDescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE& handle) const
+const D3D12_CPU_DESCRIPTOR_HANDLE& DepthStencilBuffer::GetDescriptorHandle() const
 {
-	handle = mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
+	return mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
 }
 
 
@@ -1396,6 +1415,22 @@ void InputElementDesc::SetDefaultUV_Desc(const char* const semantics)
 	mLastID++;
 }
 
+void InputElementDesc::SetFloatParam(const char* const semantics)
+{
+	if (IsSizeOver() == true) return;
+
+	auto& desc = mInputElementDesc[mLastID];
+	desc.SemanticName = semantics;
+	desc.SemanticIndex = 0;
+	desc.Format = DXGI_FORMAT_R32_FLOAT;
+	desc.InputSlot = 0;
+	desc.AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+	desc.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+	desc.InstanceDataStepRate = 0;
+
+	mLastID++;
+}
+
 void InputElementDesc::DebugOutLayout() const
 {
 	for (int i = 0; i < mCount; ++i)
@@ -1486,6 +1521,11 @@ void GraphicsPipeline::SetAlphaEnable()
 void GraphicsPipeline::SetCullDisable()
 {
 	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+}
+
+void GraphicsPipeline::SetFrontCullEnable()
+{
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
 }
 
 void GraphicsPipeline::SetInputLayout(const InputElementDesc& inputElementDesc)
@@ -1612,7 +1652,7 @@ const int IndexBuffer::GetIndexCount() const
 
 // ルートシグネチャでバインドされるリソース
 
-SignaturedBuffer::~SignaturedBuffer() {}
+SignateBuffer::~SignateBuffer() {}
 
 //　定数バッファ
 
