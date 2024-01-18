@@ -1,4 +1,3 @@
-
 #include"OutlineStruct.hlsli"
 
 struct VS_Input
@@ -23,6 +22,7 @@ VS_Output main(VS_Input input)
     
     float4 position = input.position;
     position.w = 1.f;
+    
     
     
     position = mul(world, position);

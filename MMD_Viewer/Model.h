@@ -42,7 +42,9 @@ public:
 		MathUtil::float3 specular;
 		float specularity;
 		MathUtil::float3 ambient;
-
+		float damy1;
+		MathUtil::float4 edgeColor;
+		float edgeSize;
 
 		void Load(const MMDsdk::PmdFile::Material& data);
 		void Load(const MMDsdk::PmxFile::Material& data);
@@ -58,7 +60,7 @@ public:
 	GUI::Result SetDefaultSceneData(const float aspectRatio);
 
 	void Draw(GUI::Graphics::GraphicsCommand& command);
-
+	
 private:
 	GUI::Graphics::Device& mDevice;
 
@@ -84,6 +86,7 @@ private:
 		int spaID = -1;
 		int toonID = -1;
 		bool isShared = true;
+		bool isEdgeEnable = false;
 
 		void Load(const MMDsdk::PmdFile::Material& data);
 		void Load(const MMDsdk::PmxFile::Material& data);

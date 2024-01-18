@@ -38,6 +38,8 @@ void Model::Material::Load(const MMDsdk::PmdFile::Material& data)
 	specular = System::strong_cast<MathUtil::float3>(data.specular);
 	specularity = data.specularity;
 	ambient = System::strong_cast<MathUtil::float3>(data.ambient);
+	edgeColor = { 0.f, 0.f, 0.f, 1.f };
+	edgeSize = 1.f;
 }
 
 void Model::Material::Load(const MMDsdk::PmxFile::Material& data)
@@ -46,6 +48,8 @@ void Model::Material::Load(const MMDsdk::PmxFile::Material& data)
 	specular = System::strong_cast<MathUtil::float3>(data.specular);
 	specularity = data.specularity;
 	ambient = System::strong_cast<MathUtil::float3>(data.ambient);
+	edgeColor = System::strong_cast<MathUtil::float4>(data.edgeColor);
+	edgeSize = data.edgeSize;
 }
 
 const wchar_t* Model::mToonPath[] =
@@ -319,7 +323,7 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 		}
 
 		// 前のマテリアルの続きから、メッシュを描画
-		command.DrawTriangleList(indexCount, indexOffs);
+		//command.DrawTriangleList(indexCount, indexOffs);
 		indexOffs += indexCount;
 	}
 
@@ -329,6 +333,12 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 	indexOffs = 0;
 	for (int i = 0; i < mMaterialCount; ++i)
 	{
+		if (mMaterialInfo[i].isEdgeEnable == false)
+		{
+			indexOffs += mMaterialInfo[i].materialIndexCount;
+			continue;
+		}
+
 		command.SetConstantBuffer(mMaterialBuffer, 1, i);
 		command.DrawTriangleList(mMaterialInfo[i].materialIndexCount, indexOffs);
 		indexOffs += mMaterialInfo[i].materialIndexCount;
@@ -343,6 +353,14 @@ void Model::MaterialInfo::Load(const MMDsdk::PmdFile::Material& data)
 	materialIndexCount = data.vertexCount;
 	toonID = static_cast<int>(data.toonIndex);
 	isShared = true;
+	if (data.edgeFlag == MMDsdk::PmdFile::Material::EdgeEnable::MEE_ENABLE)
+	{
+		isEdgeEnable = true;
+	}
+	else
+	{
+		isEdgeEnable = false;
+	}
 }
 
 // PMXから読みこむ
@@ -369,6 +387,8 @@ void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
 	}
 
 	materialIndexCount = data.vertexCount;
+
+	isEdgeEnable = data.GetDrawConfig(MMDsdk::PmxFile::Material::DC_DRAW_EDGE);
 }
 
 GUI::Result Model::LoadPMD(const char* const filepath)
