@@ -819,7 +819,6 @@ GUI::Result Model::SetDefaultSceneData(const float aspectRatio)
 			MathUtil::Vector::basicZ,
 			MathUtil::Vector::basicY
 		);
-		DebugOutParam(aspectRatio);
 		mappedTransform->proj = MathUtil::Matrix::GenerateMatrixPerspectiveFovLH
 		(
 			MathUtil::PI_DIV4,
