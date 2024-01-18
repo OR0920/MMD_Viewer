@@ -216,7 +216,7 @@ namespace GUI
 				const RenderTarget& mainRenderTarget,
 				const Format format[],
 				const int count,
-				const Color& clearColor = Color(0.5f, 0.5f, 0.5f)
+				const Color& clearColor
 			);
 
 			// 深度バッファのみ使用する場合
@@ -368,10 +368,7 @@ namespace GUI
 
 			// レンダーターゲットを塗りつぶす
 			// デフォルトはグレー
-			void ClearRenderTarget
-			(
-				const Color& color = Color(0.5f, 0.5f, 0.5f)
-			);
+			void ClearRenderTarget(const Color& color);
 
 			// 深度バッファを初期化する
 			void ClearDepthBuffer();
