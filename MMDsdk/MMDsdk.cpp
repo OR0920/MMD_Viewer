@@ -1230,10 +1230,7 @@ PmxFile::PmxFile(const char* const filepath)
 		file.Read(v.position);
 		file.Read(v.normal);
 		file.Read(v.uv);
-		for (int i = 0; i < mHeader.additionalUVcount; ++i)
-		{
-			v.LoadAddtionalUV(&file, mHeader.additionalUVcount);
-		}
+		v.LoadAddtionalUV(&file, mHeader.additionalUVcount);
 		file.Read(v.weightType);
 		v.LoadBoneIDAndWeight(&file, mHeader.boneID_Size);
 		file.Read(v.edgeRate);
@@ -1241,6 +1238,7 @@ PmxFile::PmxFile(const char* const filepath)
 
 	// インデックス読み込み
 	file.Read(mIndexCount);
+	DebugOutParam(mIndexCount);
 	mIndex = new int32_t[mIndexCount]{};
 	file.ReadArray(mIndex, mIndexCount, mHeader.vertexID_Size);
 
