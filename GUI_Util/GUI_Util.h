@@ -471,6 +471,7 @@ namespace GUI
 			float mAspectRatio;
 		};
 
+		// ディファードレンダリング用
 		class SubRenderTarget
 		{
 			friend Result Device::CreateSubRenderTarget

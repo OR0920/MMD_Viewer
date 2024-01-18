@@ -9,8 +9,8 @@ using namespace std;
 
 #include"Model.h"
 
-static const int windowHeight = 1000;
-static const int windowWidth = 1000;
+static const int windowHeight = 1080;
+static const int windowWidth = 1080;
 
 const GUI::Graphics::Color clearColor(1.f, 1.f, 1.f);
 

@@ -5,7 +5,7 @@ struct VS_Input
     float4 position : POSITION;
     float4 normal : NORMAL;
     float2 uv : UV;
-    float edge : EDGE_RATE;
+    float edgeRate : EDGE_RATE;
 };
 
 cbuffer Transform : register(b0)
@@ -23,7 +23,7 @@ VS_Output main(VS_Input input)
     float4 position = input.position;
     position.w = 1.f;
     
-    
+    position.xyz += normalize(input.normal.xyz) * 0.025 * edgeSize * input.edgeRate;
     
     position = mul(world, position);
     position = mul(view, position);

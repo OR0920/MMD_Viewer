@@ -323,7 +323,7 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 		}
 
 		// 前のマテリアルの続きから、メッシュを描画
-		//command.DrawTriangleList(indexCount, indexOffs);
+		command.DrawTriangleList(indexCount, indexOffs);
 		indexOffs += indexCount;
 	}
 
@@ -343,8 +343,6 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 		command.DrawTriangleList(mMaterialInfo[i].materialIndexCount, indexOffs);
 		indexOffs += mMaterialInfo[i].materialIndexCount;
 	}
-	
-	//command.DrawTriangleList(mIB.GetIndexCount(), 0);
 }
 
 // PMDから読みこむ
