@@ -172,7 +172,6 @@ namespace GUI
 		class GraphicsCommand;
 		class SwapChain;
 		class RenderTarget;
-		class SubRenderTarget;
 		class DepthStencilBuffer;
 		class RootSignature;
 		class InputElementDesc;
@@ -205,20 +204,7 @@ namespace GUI
 				const SwapChain& swapChain
 			);
 
-			// マルチパス用のレンダーターゲット作成
-			// renderTarget		: 出力	: マルチパス用のレンダーターゲット
-			// mainRenderTarget	: 入力	: 最終的に画面へ出力されるレンダーターゲット
-			// format			: 入力	: 各レンダーターゲットのフォーマット
-			// count			: 入力	: ターゲット数
-			Result CreateSubRenderTarget
-			(
-				SubRenderTarget& renderTarget,
-				const RenderTarget& mainRenderTarget,
-				const Format format[],
-				const int count,
-				const Color& clearColor
-			);
-
+		
 			// 深度バッファのみ使用する場合
 			Result CreateDepthBuffer
 			(
@@ -339,7 +325,6 @@ namespace GUI
 
 			// レンダーターゲットを書き込み可能にする
 			void UnlockRenderTarget(const RenderTarget& renderTarget);
-			void UnlockRenderTarget(const SubRenderTarget& subRenderTarget);
 
 			// ビューポートとシザー矩形をセットする。
 			void SetViewportAndRect(const RenderTarget& renderTarget);
@@ -349,21 +334,12 @@ namespace GUI
 			(
 				const RenderTarget& renderTarget
 			);
-			void SetRenderTarget
-			(
-				const SubRenderTarget& renderTarget
-			);
 
 			// レンダーターゲットと深度バッファをセットする
 			void SetRenderTarget
 			(
 				const RenderTarget& renderTarget,
 				const DepthStencilBuffer& depthStenilBuffer
-			);
-			void SetRenderTarget
-			(
-				const SubRenderTarget& renderTarget,
-				const DepthStencilBuffer& depthStencilBuffer
 			);
 
 			// レンダーターゲットを塗りつぶす
@@ -391,9 +367,6 @@ namespace GUI
 				const int bufferID = 0
 			);
 
-			void SetSubRenderTargetAsTexture(const SubRenderTarget& subRenderTarget, const int paramID);
-
-
 			// 頂点のみで描画
 			void SetVertexBuffer
 			(
@@ -414,7 +387,6 @@ namespace GUI
 
 			// レンダーターゲットを書き込み不可にする
 			void LockRenderTarget(const RenderTarget& renderTarget);
-			void LockRenderTarget(const SubRenderTarget& renderTarget);
 
 			// 描画終わりに呼び出す
 			void EndDraw();
@@ -469,35 +441,6 @@ namespace GUI
 			D3D12_VIEWPORT mViewPort;
 			D3D12_RECT mScissorRect;
 			float mAspectRatio;
-		};
-
-		// ディファードレンダリング用
-		class SubRenderTarget
-		{
-			friend Result Device::CreateSubRenderTarget
-			(
-				SubRenderTarget&,
-				const RenderTarget&,
-				const Format[],
-				const int,
-				const Color&
-			);
-		public:
-			SubRenderTarget();
-			~SubRenderTarget();
-
-			// ライブラリから呼び出す関数
-			const int GetTargetCount() const;
-			const ComPtr<ID3D12Resource> GetRenderTargetResource(const int i) const;
-			const D3D12_CPU_DESCRIPTOR_HANDLE& GetRTV_DescriptorHandle() const;
-			const ComPtr<ID3D12DescriptorHeap> GetSRV_Heap() const;
-
-		private:
-			ComPtr<ID3D12DescriptorHeap> mRTV_Heaps;
-			ComPtr<ID3D12DescriptorHeap> mSRV_Heaps;
-			ComPtr<ID3D12Resource>* mResource;
-
-			int mTargetCount;
 		};
 
 		// 深度バッファ

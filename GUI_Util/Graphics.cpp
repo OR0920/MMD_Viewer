@@ -336,128 +336,6 @@ Result Device::CreateRenderTarget(RenderTarget& renderTarget, const SwapChain& s
 	return SUCCESS;
 }
 
-Result Device::CreateSubRenderTarget
-(
-	SubRenderTarget& subRenderTarget,
-	const RenderTarget& mainRenderTarget,
-	const Format format[],
-	const int count,
-	const Color& clearColor
-)
-{
-	subRenderTarget.mTargetCount = count;
-
-	// ディスクリプタヒープ作成(レンダーターゲット用)
-	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-	heapDesc.NumDescriptors = count;
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	ReturnIfFailed
-	(
-		mDevice->CreateDescriptorHeap
-		(
-			&heapDesc,
-			IID_PPV_ARGS(subRenderTarget.mRTV_Heaps.ReleaseAndGetAddressOf())
-		),
-		Device::CreateSubRenderTarget()
-	);
-
-	// ディスクリプタヒープ作成(テクスチャ用)
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	ReturnIfFailed
-	(
-		mDevice->CreateDescriptorHeap
-		(
-			&heapDesc,
-			IID_PPV_ARGS(subRenderTarget.mSRV_Heaps.ReleaseAndGetAddressOf())
-		),
-		Device::CreateSubRenderTarget()
-	);
-
-	subRenderTarget.mResource = new ComPtr<ID3D12Resource>[count];
-
-	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-
-	// リソースの設定
-	D3D12_RESOURCE_DESC resDesc = {};
-	resDesc.MipLevels = 1;
-	resDesc.Width = mainRenderTarget.GetWidth();
-	resDesc.Height = mainRenderTarget.GetHeight();
-	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-	resDesc.DepthOrArraySize = 1;
-	resDesc.SampleDesc.Count = 1;
-	resDesc.SampleDesc.Quality = 0;
-	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-
-	// 初期値の設定
-	D3D12_CLEAR_VALUE clearValue = {};
-	clearValue.Color[0] = clearColor.r;
-	clearValue.Color[1] = clearColor.g;
-	clearValue.Color[2] = clearColor.b;
-	clearValue.Color[3] = clearColor.a;
-	//clearValue.DepthStencil.Depth = 1.f;
-	//clearValue.DepthStencil.Stencil = 0;
-
-	auto rtvHeapHandle =
-		subRenderTarget.mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
-
-
-	// テクスチャとして利用する際のビューの設定
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels = 1;
-
-	auto srvHeapHandle =
-		subRenderTarget.mSRV_Heaps->GetCPUDescriptorHandleForHeapStart();
-
-	for (int i = 0; i < count; ++i)
-	{
-		resDesc.Format
-			= clearValue.Format
-			= srvDesc.Format
-			= gDxgiFormat[format[i]];
-
-		ReturnIfFailed
-		(
-			mDevice->CreateCommittedResource
-			(
-				&heapProp,
-				D3D12_HEAP_FLAG_NONE,
-				&resDesc,
-				D3D12_RESOURCE_STATE_GENERIC_READ,
-				&clearValue,
-				IID_PPV_ARGS(subRenderTarget.mResource[i].ReleaseAndGetAddressOf())
-			),
-			Device::CreateSubRenderTarget()
-		);
-
-		mDevice->CreateRenderTargetView
-		(
-			subRenderTarget.mResource[i].Get(),
-			NULL,
-			rtvHeapHandle
-		);
-
-		rtvHeapHandle.ptr +=
-			mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
-		mDevice->CreateShaderResourceView
-		(
-			subRenderTarget.mResource[i].Get(),
-			&srvDesc,
-			srvHeapHandle
-		);
-
-		srvHeapHandle.ptr +=
-			mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	}
-
-	return SUCCESS;
-}
-
-
 Result Device::CreateDepthBuffer
 (
 	DepthStencilBuffer& depthStencilBuffer,
@@ -996,21 +874,6 @@ void GraphicsCommand::UnlockRenderTarget(const RenderTarget& renderTarget)
 	mCommandList->ResourceBarrier(1, &barrier);
 }
 
-void GraphicsCommand::UnlockRenderTarget(const SubRenderTarget& renderTarget)
-{
-	for (int i = 0; i < renderTarget.GetTargetCount(); ++i)
-	{
-		auto barreir = CD3DX12_RESOURCE_BARRIER::Transition
-		(
-			renderTarget.GetRenderTargetResource(i).Get(),
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			D3D12_RESOURCE_STATE_RENDER_TARGET
-		);
-
-		mCommandList->ResourceBarrier(1, &barreir);
-	}
-}
-
 void GraphicsCommand::SetRenderTarget
 (
 	const RenderTarget& renderTarget
@@ -1020,14 +883,6 @@ void GraphicsCommand::SetRenderTarget
 	mCommandList->OMSetRenderTargets(1, &mRTV_Handle, 0, nullptr);
 }
 
-void GraphicsCommand::SetRenderTarget
-(
-	const SubRenderTarget& renderTarget
-)
-{
-	mRTV_Handle = renderTarget.GetRTV_DescriptorHandle();
-	mCommandList->OMSetRenderTargets(renderTarget.GetTargetCount(), &mRTV_Handle, 0, nullptr);
-}
 
 void GraphicsCommand::SetRenderTarget
 (
@@ -1038,17 +893,6 @@ void GraphicsCommand::SetRenderTarget
 	mRTV_Handle = renderTarget.GetDescriptorHandle(mSwapChain->GetCurrentBackBufferIndex());
 	mDSV_Handle = depthStencilBuffer.GetDescriptorHandle();
 	mCommandList->OMSetRenderTargets(1, &mRTV_Handle, 1, &mDSV_Handle);
-}
-
-void GraphicsCommand::SetRenderTarget
-(
-	const SubRenderTarget& renderTarget,
-	const DepthStencilBuffer& depthStencilBuffer
-)
-{
-	mRTV_Handle = renderTarget.GetRTV_DescriptorHandle();
-	mDSV_Handle = depthStencilBuffer.GetDescriptorHandle();
-	mCommandList->OMSetRenderTargets(renderTarget.GetTargetCount(), &mRTV_Handle, 1, &mDSV_Handle);
 }
 
 void GraphicsCommand::ClearRenderTarget(const Color& color)
@@ -1100,19 +944,6 @@ void GraphicsCommand::SetDescriptorTable
 	);
 }
 
-void GraphicsCommand::SetSubRenderTargetAsTexture
-(
-	const SubRenderTarget& subRenderTarget,
-	const int paramID
-)
-{
-	auto heap = subRenderTarget.GetSRV_Heap();
-	ID3D12DescriptorHeap* heaps[] = { heap.Get() };
-
-	mCommandList->SetDescriptorHeaps(1, heaps);
-	mCommandList->SetGraphicsRootDescriptorTable(paramID, heap->GetGPUDescriptorHandleForHeapStart());
-}
-
 void GraphicsCommand::SetVertexBuffer
 (
 	const VertexBuffer& vertex
@@ -1157,21 +988,6 @@ void GraphicsCommand::LockRenderTarget(const RenderTarget& renderTarget)
 		D3D12_RESOURCE_STATE_PRESENT
 	);
 	mCommandList->ResourceBarrier(1, &barrier);
-}
-
-void GraphicsCommand::LockRenderTarget(const SubRenderTarget& renderTarget)
-{
-	for (int i = 0; i < renderTarget.GetTargetCount(); ++i)
-	{
-		auto barreir = CD3DX12_RESOURCE_BARRIER::Transition
-		(
-			renderTarget.GetRenderTargetResource(i).Get(),
-			D3D12_RESOURCE_STATE_RENDER_TARGET,
-			D3D12_RESOURCE_STATE_GENERIC_READ
-		);
-		
-		mCommandList->ResourceBarrier(1, &barreir);
-	}
 }
 
 void GraphicsCommand::EndDraw()
@@ -1279,42 +1095,6 @@ const D3D12_RECT& RenderTarget::GetRect() const
 	return mScissorRect;
 }
 
-// マルチパス用レンダーターゲット
-SubRenderTarget::SubRenderTarget()
-	:
-	mRTV_Heaps(nullptr),
-	mSRV_Heaps(nullptr),
-	mResource(nullptr),
-	mTargetCount(0)
-{
-
-}
-
-SubRenderTarget::~SubRenderTarget()
-{
-	System::SafeDeleteArray(&mResource);
-}
-
-const int SubRenderTarget::GetTargetCount() const
-{
-	return mTargetCount;
-}
-
-const ComPtr<ID3D12Resource> SubRenderTarget::GetRenderTargetResource(const int i) const
-{
-	IS_OUT_OF_RANGE(mResource, i, mTargetCount);
-	return mResource[i];
-}
-
-const D3D12_CPU_DESCRIPTOR_HANDLE& SubRenderTarget::GetRTV_DescriptorHandle() const
-{
-	return mRTV_Heaps->GetCPUDescriptorHandleForHeapStart();
-}
-
-const ComPtr<ID3D12DescriptorHeap> SubRenderTarget::GetSRV_Heap() const
-{
-	return mSRV_Heaps;
-}
 
 // 深度ステンシルバッファ
 DepthStencilBuffer::DepthStencilBuffer()

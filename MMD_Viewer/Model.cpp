@@ -149,7 +149,7 @@ Model::Model(GUI::Graphics::Device& device)
 	mDescriptorCount = sDefaultTextureCount + sDefaultToonTextureCount + sSceneDataCount;
 
 
-	// アウトライン用の設定
+	// 輪郭線用の設定
 	mOutlineSignature.SetParameterCount(2);
 	mOutlineSignature.SetParamForCBV(0, 0);
 	mOutlineSignature.SetParamForCBV(1, 1);
@@ -327,6 +327,8 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 		indexOffs += indexCount;
 	}
 
+
+	// 輪郭線描画
 	command.SetGraphicsPipeline(mOutlinePipeline);
 	command.SetGraphicsRootSignature(mOutlineSignature);
 
@@ -622,13 +624,6 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			}
 		}
 	}
-
-	////　デフォルトでカリングをオフにしておく
-	//mPipeline.SetCullDisable();
-	//if (mDevice.CreateGraphicsPipeline(mPipeline) == GUI::Result::FAIL)
-	//{
-	//	return GUI::Result::FAIL;
-	//}
 
 	return GUI::Result::SUCCESS;
 }
