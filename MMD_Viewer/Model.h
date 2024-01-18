@@ -42,6 +42,7 @@ public:
 		float specularity;
 		MathUtil::float3 ambient;
 
+
 		void Load(const MMDsdk::PmdFile::Material& data);
 		void Load(const MMDsdk::PmxFile::Material& data);
 	};
@@ -94,6 +95,9 @@ private:
 	GUI::Graphics::InputElementDesc inputLayout;
 	GUI::Graphics::GraphicsPipeline mPipeline;
 	GUI::Graphics::RootSignature mRootSignature;
+
+	GUI::Graphics::GraphicsPipeline mOutlinePipeline;
+	GUI::Graphics::RootSignature mOutlineSignature;
 
 	GUI::Result isSuccessLoad;
 

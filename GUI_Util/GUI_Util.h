@@ -650,8 +650,11 @@ namespace GUI
 			// 透過有効化　呼び出さない場合無効
 			void SetAlphaEnable();
 
-			// カリング無効化　呼び出さない場合有効
+			// カリング無効化　呼び出さない場合背面カリング有効
 			void SetCullDisable();
+
+			// 前面カリング有効
+			void SetFrontCullEnable();
 
 			// 頂点レイアウト
 			void SetInputLayout(const InputElementDesc& inputElementDesc);

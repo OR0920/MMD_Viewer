@@ -1727,6 +1727,11 @@ void GraphicsPipeline::SetCullDisable()
 	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 }
 
+void GraphicsPipeline::SetFrontCullEnable()
+{
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+}
+
 void GraphicsPipeline::SetInputLayout(const InputElementDesc& inputElementDesc)
 {
 	psoDesc.InputLayout.NumElements = inputElementDesc.GetDescCount();

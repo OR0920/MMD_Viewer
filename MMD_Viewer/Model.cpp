@@ -6,6 +6,9 @@
 #include"MMD_VertexShasder.h"
 #include"MMD_PixelShader.h"
 
+#include"OutlineVS.h"
+#include"OutlinePS.h"
+
 void Model::ModelVertex::Load(const MMDsdk::PmdFile::Vertex& data)
 {
 	position = System::strong_cast<MathUtil::float3>(data.position);
@@ -130,6 +133,21 @@ Model::Model(GUI::Graphics::Device& device)
 
 	// モデルによらず固定されたディスクリプターの数を設定
 	mDescriptorCount = sDefaultTextureCount + sDefaultToonTextureCount + sSceneDataCount;
+
+
+	// アウトライン用の設定
+	mOutlineSignature.SetParameterCount(1);
+	mOutlineSignature.SetParamForCBV(0, 0);
+	mDevice.CreateRootSignature(mOutlineSignature);
+	
+	mOutlinePipeline.SetInputLayout(inputLayout);
+	mOutlinePipeline.SetFrontCullEnable();
+	mOutlinePipeline.SetRootSignature(mOutlineSignature);
+	mOutlinePipeline.SetDepthEnable();
+	mOutlinePipeline.SetAlphaEnable();
+	mOutlinePipeline.SetVertexShader(SetShader(gOutlineVS));
+	mOutlinePipeline.SetPixelShader(SetShader(gOutlinePS));
+	mDevice.CreateGraphicsPipeline(mOutlinePipeline);
 }
 
 Model::~Model()
@@ -293,6 +311,11 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 		command.DrawTriangleList(indexCount, indexOffs);
 		indexOffs += indexCount;
 	}
+
+	command.SetGraphicsPipeline(mOutlinePipeline);
+	command.SetGraphicsRootSignature(mOutlineSignature);
+
+	command.DrawTriangleList(mIB.GetIndexCount(), 0);
 }
 
 // PMDから読みこむ
@@ -563,12 +586,12 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		}
 	}
 
-	//　デフォルトでカリングをオフにしておく
-	mPipeline.SetCullDisable();
-	if (mDevice.CreateGraphicsPipeline(mPipeline) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
+	////　デフォルトでカリングをオフにしておく
+	//mPipeline.SetCullDisable();
+	//if (mDevice.CreateGraphicsPipeline(mPipeline) == GUI::Result::FAIL)
+	//{
+	//	return GUI::Result::FAIL;
+	//}
 
 	return GUI::Result::SUCCESS;
 }

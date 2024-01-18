@@ -12,6 +12,7 @@ using namespace std;
 static const int windowHeight = 1000;
 static const int windowWidth = 1000;
 
+const GUI::Graphics::Color clearColor(1.f, 1.f, 1.f);
 
 int MAIN()
 {
@@ -116,7 +117,7 @@ int MAIN()
 		
 		// レンダーターゲットのクリア
 		command.SetRenderTarget(renderTarget, depthStencil);
-		command.ClearRenderTarget(GUI::Graphics::Color(0.3f, 0.3f, 0.3f));
+		command.ClearRenderTarget(clearColor);
 		command.ClearDepthBuffer();
 
 		// モデル描画
