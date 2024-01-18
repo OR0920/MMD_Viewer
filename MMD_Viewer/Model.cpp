@@ -146,8 +146,9 @@ Model::Model(GUI::Graphics::Device& device)
 
 
 	// アウトライン用の設定
-	mOutlineSignature.SetParameterCount(1);
+	mOutlineSignature.SetParameterCount(2);
 	mOutlineSignature.SetParamForCBV(0, 0);
+	mOutlineSignature.SetParamForCBV(1, 1);
 	mDevice.CreateRootSignature(mOutlineSignature);
 	
 	mOutlinePipeline.SetInputLayout(inputLayout);
@@ -325,7 +326,15 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 	command.SetGraphicsPipeline(mOutlinePipeline);
 	command.SetGraphicsRootSignature(mOutlineSignature);
 
-	command.DrawTriangleList(mIB.GetIndexCount(), 0);
+	indexOffs = 0;
+	for (int i = 0; i < mMaterialCount; ++i)
+	{
+		command.SetConstantBuffer(mMaterialBuffer, 1, i);
+		command.DrawTriangleList(mMaterialInfo[i].materialIndexCount, indexOffs);
+		indexOffs += mMaterialInfo[i].materialIndexCount;
+	}
+	
+	//command.DrawTriangleList(mIB.GetIndexCount(), 0);
 }
 
 // PMDから読みこむ
