@@ -14,6 +14,14 @@ void Model::ModelVertex::Load(const MMDsdk::PmdFile::Vertex& data)
 	position = System::strong_cast<MathUtil::float3>(data.position);
 	normal = System::strong_cast<MathUtil::float3>(data.normal);
 	uv = System::strong_cast<MathUtil::float2>(data.uv);
+	if (data.edgeFlag == MMDsdk::PmdFile::Vertex::EdgeEnable::VEE_ENABLE)
+	{
+		edgeRate = 1.f;
+	}
+	else
+	{
+		edgeRate = 0.f;
+	}
 }
 
 void Model::ModelVertex::Load(const MMDsdk::PmxFile::Vertex& data)
@@ -21,6 +29,7 @@ void Model::ModelVertex::Load(const MMDsdk::PmxFile::Vertex& data)
 	position = System::strong_cast<MathUtil::float3>(data.position);
 	normal = System::strong_cast<MathUtil::float3>(data.normal);
 	uv = System::strong_cast<MathUtil::float2>(data.uv);
+	edgeRate = data.edgeRate;
 }
 
 void Model::Material::Load(const MMDsdk::PmdFile::Material& data)
@@ -75,11 +84,12 @@ Model::Model(GUI::Graphics::Device& device)
 	mDefaultTextureToon()
 {
 	// 頂点レイアウトの設定
-	inputLayout.SetElementCount(3);
+	inputLayout.SetElementCount(4);
 	inputLayout.SetDefaultPositionDesc();
 	inputLayout.SetDefaultNormalDesc();
 	inputLayout.SetDefaultUV_Desc();
-
+	inputLayout.SetFloatParam("EDGE_RATE");
+	
 	//　ルートシグネチャの作成
 	mRootSignature.SetParameterCount(7);
 

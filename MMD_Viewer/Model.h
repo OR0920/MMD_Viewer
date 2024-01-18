@@ -17,6 +17,7 @@ public:
 		MathUtil::float3 position;
 		MathUtil::float3 normal;
 		MathUtil::float2 uv;
+		float edgeRate;
 
 		void Load(const MMDsdk::PmdFile::Vertex& data);
 		void Load(const MMDsdk::PmxFile::Vertex& data);

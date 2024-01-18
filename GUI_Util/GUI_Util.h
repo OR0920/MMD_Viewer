@@ -620,6 +620,9 @@ namespace GUI
 			// UV
 			void SetDefaultUV_Desc(const char* const semantics = "UV");
 
+			// 任意の4バイト浮動小数点
+			void SetFloatParam(const char* const semantics);
+
 			void DebugOutLayout() const;
 
 			// ライブラリが呼び出す関数
