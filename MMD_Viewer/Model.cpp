@@ -319,7 +319,7 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 		}
 
 		// 前のマテリアルの続きから、メッシュを描画
-		command.DrawTriangleList(indexCount, indexOffs);
+		//command.DrawTriangleList(indexCount, indexOffs);
 		indexOffs += indexCount;
 	}
 
