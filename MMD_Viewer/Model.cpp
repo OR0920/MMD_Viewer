@@ -336,6 +336,8 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 			continue;
 		}
 
+		command.SetConstantBuffer(mMaterialBuffer, 2, i);
+
 		command.DrawTriangleList(mMaterialInfo[i].materialIndexCount, indexOffs);
 		indexOffs += mMaterialInfo[i].materialIndexCount;
 	}
