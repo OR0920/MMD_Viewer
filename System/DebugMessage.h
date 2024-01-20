@@ -47,6 +47,8 @@ if(id < 0 || static_cast<unsigned>(arrayCount) <= static_cast<unsigned>(id))\
 #else
 #define SET_JAPANESE_ENABLE 
 #define DebugMessage(x) 
+#define DebugMessageError(x) 
+#define DebugMessageWarning(x) 
 #define DebugMessageFunctionError(funcName, at) 
 #define DebugMessageWide(x) 
 #define DebugMessageNewLine() 
