@@ -730,13 +730,13 @@ Result SwapChain::Create
 	// ウィンドウがないと作れない
 	if (targetWindow.GetHandle() == 0)
 	{
-		DebugMessageError("The Target Window Is not Exist !");
+		DebugMessageError("The Target Window Is not Exist ! Call the Target Window's create method !");
 		return FAIL;
 	}
 
 	if (command.mCommandQueue == nullptr)
 	{
-		DebugMessageError("The command object is not Created !");
+		DebugMessageError("The command object is not Created ! Call " << ToString(Device::CreateGraphicsCommand()) << " to create GraphcisCommand object.");
 		return FAIL;
 	}
 
@@ -825,7 +825,7 @@ Result SwapChain::GetDesc(DXGI_SWAP_CHAIN_DESC* desc) const
 {
 	if (mSwapChain == nullptr)
 	{
-		DebugMessageError("This SwapChain is not Created, Call SwapChian::Create() to create SwapChain !");
+		DebugMessageError("This SwapChain is not Created, Call " << ToString(SwapChian::Create()) << " to create SwapChain !");
 		return FAIL;
 	}
 
@@ -873,13 +873,13 @@ GraphicsCommand::~GraphicsCommand()
 #define COMMAND_OBJECT_IS_NOT_NULL \
 if (mCommandQueue == nullptr)\
 {\
-	DebugMessageError("This Command object is not Created !");\
+	DebugMessageError("This Command object is not Created ! Call " << ToString(Device::CreateGraphicsCommand()) << " to create GraphicsCommand object.");\
 	return;\
 }
 #define SWAP_CHAIN_IS_NOT_NULL \
 if (mSwapChain == nullptr)\
 {\
-	DebugMessageError("The SwapChain is not Created !");\
+	DebugMessageError("The SwapChain is not Created ! Call " << ToString(SwapChain::Create()) << " to create SwapChain object");\
 	return;\
 }
 
@@ -947,6 +947,8 @@ void GraphicsCommand::SetRenderTarget
 void GraphicsCommand::ClearRenderTarget(const Color& color)
 {
 	COMMAND_OBJECT_IS_NOT_NULL;
+	SWAP_CHAIN_IS_NOT_NULL;
+
 	float col[] = { color.r, color.g, color.b, color.a };
 	mCommandList->ClearRenderTargetView(mRTV_Handle, col, 0, nullptr);
 }
@@ -1074,6 +1076,7 @@ void GraphicsCommand::EndDraw()
 void GraphicsCommand::Flip()
 {
 	COMMAND_OBJECT_IS_NOT_NULL;
+	SWAP_CHAIN_IS_NOT_NULL;
 	mSwapChain->Present();
 }
 
@@ -1125,6 +1128,7 @@ const D3D12_CPU_DESCRIPTOR_HANDLE RenderTarget::GetDescriptorHandle(const int bu
 		DebugMessageError("The ID is Out of Range !");
 		assert(false);
 	}
+	
 	auto h = mHeaps->GetCPUDescriptorHandleForHeapStart();
 	h.ptr += mViewIncrementSize * bufferID;
 	return h;
@@ -1134,7 +1138,7 @@ const ComPtr<ID3D12Resource> RenderTarget::GetRenderTargetResource(const int buf
 {
 	if (mResource == nullptr)
 	{
-		DebugMessageError("The render target is not exist !");
+		DebugMessageError("The render target is not exist ! Call " << ToString(Device::CreateRenderTarget()) << " to create render target.");
 		return nullptr;
 	}
 	
@@ -1185,6 +1189,12 @@ DepthStencilBuffer::~DepthStencilBuffer()
 
 const D3D12_CPU_DESCRIPTOR_HANDLE& DepthStencilBuffer::GetDescriptorHandle() const
 {
+	if (mDSV_Heap == nullptr)
+	{
+		DebugMessageError("This DepthStencilBuffer Object is not Created ! Call " << ToString(Device::CreateDepthBuffer()) << " or other Create method.");
+		assert(mDSV_Heap != nullptr);
+	}
+
 	return mDSV_Heap->GetCPUDescriptorHandleForHeapStart();
 }
 

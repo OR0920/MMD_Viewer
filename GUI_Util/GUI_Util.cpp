@@ -147,8 +147,16 @@ Result MainWindow::Create(int width, int height)
 	return Result::SUCCESS;
 }
 
+#define WINDOW_IS_CREATED \
+if(mWindowHandle == NULL)\
+{\
+	DebugMessageError("This Window is not created ! Call " << ToString(MainWindow::Create()) << " to Create Window")\
+}
+
 Result MainWindow::ProsessMessage()
 {
+	WINDOW_IS_CREATED;
+
 	MSG msg = {};
 
 	if (GetMessage(&msg, NULL, 0, 0))
@@ -167,6 +175,7 @@ Result MainWindow::ProsessMessage()
 
 Result MainWindow::ProcessMessageNoWait()
 {
+	WINDOW_IS_CREATED;
 	MSG msg = {};
 
 	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
