@@ -19,7 +19,6 @@
 
 // my lib
 #include "System.h"
-#include"MathUtil.h"
 
 // API‚ª¸”s‚µ‚½ê‡‚É¸”s‚ğ•Ô‚·
 #define ReturnIfFailed(func, at)\
