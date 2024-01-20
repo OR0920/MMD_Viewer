@@ -731,7 +731,12 @@ Result SwapChain::Create
 	if (targetWindow.GetHandle() == 0)
 	{
 		DebugMessage("The Target Window Is not Exist !");
+		return FAIL;
+	}
 
+	if (command.mCommandQueue == nullptr)
+	{
+		DebugMessage("The command object is not Created !");
 		return FAIL;
 	}
 
