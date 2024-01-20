@@ -199,6 +199,16 @@ Result Device::Create()
 
 Result Device::CreateGraphicsCommand(GraphicsCommand& command)
 {
+	if (mDevice == nullptr)
+	{
+		DebugMessage
+		(
+			"The Device is created by GUI_Util. \nCall " 
+			<< ToString(Device::Create()) 
+			<< " before call other Create methods."
+		);
+		this->Create();
+	}
 	// グラフィックス用のコマンドリスト
 	auto type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
