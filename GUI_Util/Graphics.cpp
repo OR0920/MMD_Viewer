@@ -823,6 +823,12 @@ void SwapChain::Present()
 
 Result SwapChain::GetDesc(DXGI_SWAP_CHAIN_DESC* desc) const
 {
+	if (mSwapChain == nullptr)
+	{
+		DebugMessage("This SwapChain is not Created, Call SwapChian::Create() to create SwapChain !");
+		return FAIL;
+	}
+
 	ReturnIfFailed
 	(
 		mSwapChain->GetDesc(desc),
