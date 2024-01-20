@@ -11,6 +11,8 @@
 // コンソール出力マクロ
 // シンプルな一行出力
 #define DebugMessage(x) std::cout << x << std::endl;
+#define DebugMessageError(x) DebugMessage("ERROR : " << x);
+#define DebugMessageWarning(x) DebugMessage("WARNING : " << x);
 // 関数エラーメッセージ
 #define DebugMessageFunctionError(funcName, at) DebugMessage(ToString(funcName) << " at " << ToString(at) << " is Failed !");
 // ワイド文字用

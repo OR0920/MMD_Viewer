@@ -201,10 +201,10 @@ Result Device::CreateGraphicsCommand(GraphicsCommand& command)
 {
 	if (mDevice == nullptr)
 	{
-		DebugMessage
+		DebugMessageWarning
 		(
-			"The Device is created by GUI_Util. \nCall " 
-			<< ToString(Device::Create()) 
+			"The Device is created by GUI_Util. Call "
+			<< ToString(Device::Create())
 			<< " before call other Create methods."
 		);
 		this->Create();
@@ -730,13 +730,13 @@ Result SwapChain::Create
 	// ウィンドウがないと作れない
 	if (targetWindow.GetHandle() == 0)
 	{
-		DebugMessage("The Target Window Is not Exist !");
+		DebugMessageError("The Target Window Is not Exist !");
 		return FAIL;
 	}
 
 	if (command.mCommandQueue == nullptr)
 	{
-		DebugMessage("The command object is not Created !");
+		DebugMessageError("The command object is not Created !");
 		return FAIL;
 	}
 
@@ -825,7 +825,7 @@ Result SwapChain::GetDesc(DXGI_SWAP_CHAIN_DESC* desc) const
 {
 	if (mSwapChain == nullptr)
 	{
-		DebugMessage("This SwapChain is not Created, Call SwapChian::Create() to create SwapChain !");
+		DebugMessageError("This SwapChain is not Created, Call SwapChian::Create() to create SwapChain !");
 		return FAIL;
 	}
 
@@ -870,8 +870,23 @@ GraphicsCommand::~GraphicsCommand()
 
 }
 
+#define COMMAND_OBJECT_IS_NOT_NULL \
+if (mCommandQueue == nullptr)\
+{\
+	DebugMessageError("This Command object is not Created !");\
+	return;\
+}
+#define SWAP_CHAIN_IS_NOT_NULL \
+if (mSwapChain == nullptr)\
+{\
+	DebugMessageError("The SwapChain is not Created !");\
+	return;\
+}
+
+
 void GraphicsCommand::BeginDraw()
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	// コマンドをリセット
 	mCommandAllocator->Reset();
 	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
@@ -879,14 +894,24 @@ void GraphicsCommand::BeginDraw()
 
 void GraphicsCommand::SetGraphicsPipeline(const GraphicsPipeline& pipeline)
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	mCommandList->SetPipelineState(pipeline.GetPipelineState().Get());
 }
 
 void GraphicsCommand::UnlockRenderTarget(const RenderTarget& renderTarget)
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
+	SWAP_CHAIN_IS_NOT_NULL;
+
+	auto& rtResource = renderTarget.GetRenderTargetResource(mSwapChain->GetCurrentBackBufferIndex());
+	if (rtResource == nullptr)
+	{
+		return;
+	}
+
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition
 	(
-		renderTarget.GetRenderTargetResource(mSwapChain->GetCurrentBackBufferIndex()).Get(),
+		rtResource.Get(),
 		D3D12_RESOURCE_STATE_PRESENT,
 		D3D12_RESOURCE_STATE_RENDER_TARGET
 	);
@@ -899,6 +924,8 @@ void GraphicsCommand::SetRenderTarget
 	const RenderTarget& renderTarget
 )
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
+	SWAP_CHAIN_IS_NOT_NULL;
 	mRTV_Handle = renderTarget.GetDescriptorHandle(mSwapChain->GetCurrentBackBufferIndex());
 	mCommandList->OMSetRenderTargets(1, &mRTV_Handle, 0, nullptr);
 }
@@ -910,6 +937,8 @@ void GraphicsCommand::SetRenderTarget
 	const DepthStencilBuffer& depthStencilBuffer
 )
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
+	SWAP_CHAIN_IS_NOT_NULL;
 	mRTV_Handle = renderTarget.GetDescriptorHandle(mSwapChain->GetCurrentBackBufferIndex());
 	mDSV_Handle = depthStencilBuffer.GetDescriptorHandle();
 	mCommandList->OMSetRenderTargets(1, &mRTV_Handle, 1, &mDSV_Handle);
@@ -917,22 +946,26 @@ void GraphicsCommand::SetRenderTarget
 
 void GraphicsCommand::ClearRenderTarget(const Color& color)
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	float col[] = { color.r, color.g, color.b, color.a };
 	mCommandList->ClearRenderTargetView(mRTV_Handle, col, 0, nullptr);
 }
 
 void GraphicsCommand::ClearDepthBuffer()
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	mCommandList->ClearDepthStencilView(mDSV_Handle, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 }
 
 void GraphicsCommand::SetGraphicsRootSignature(const RootSignature& rootSignature)
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	mCommandList->SetGraphicsRootSignature(rootSignature.GetRootSignature().Get());
 }
 
 void GraphicsCommand::SetDescriptorHeap(const DescriptorHeap& descHeap)
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	mCommandList->SetDescriptorHeaps(1, descHeap.GetDescriptorHeap().GetAddressOf());
 }
 
@@ -943,6 +976,7 @@ void GraphicsCommand::SetConstantBuffer
 	const int bufferID
 )
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	mCommandList->SetGraphicsRootConstantBufferView
 	(
 		paramID,
@@ -958,6 +992,7 @@ void GraphicsCommand::SetDescriptorTable
 	const int bufferID
 )
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	mCommandList->SetGraphicsRootDescriptorTable
 	(
 		paramID, buffer.GetGPU_Handle(bufferID)
@@ -969,6 +1004,7 @@ void GraphicsCommand::SetVertexBuffer
 	const VertexBuffer& vertex
 )
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mCommandList->IASetVertexBuffers(0, 1, vertex.GetView());
 }
@@ -979,6 +1015,7 @@ void GraphicsCommand::SetVertexBuffer
 	const IndexBuffer& index
 )
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mCommandList->IASetVertexBuffers(0, 1, vertex.GetView());
 	mCommandList->IASetIndexBuffer(index.GetView());
@@ -986,6 +1023,7 @@ void GraphicsCommand::SetVertexBuffer
 
 void GraphicsCommand::DrawTriangle(const int vertexCount)
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	mCommandList->DrawInstanced(vertexCount, 1, 0, 0);
 }
 
@@ -995,15 +1033,21 @@ void GraphicsCommand::DrawTriangleList
 	const int offs
 )
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	mCommandList->DrawIndexedInstanced(indexCount, 1, offs, 0, 0);
 }
 
 
 void GraphicsCommand::LockRenderTarget(const RenderTarget& renderTarget)
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
+	SWAP_CHAIN_IS_NOT_NULL;
+
+	auto rtResource = renderTarget.GetRenderTargetResource(mSwapChain->GetCurrentBackBufferIndex());
+
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition
 	(
-		renderTarget.GetRenderTargetResource(mSwapChain->GetCurrentBackBufferIndex()).Get(),
+		rtResource.Get(),
 		D3D12_RESOURCE_STATE_RENDER_TARGET,
 		D3D12_RESOURCE_STATE_PRESENT
 	);
@@ -1012,6 +1056,7 @@ void GraphicsCommand::LockRenderTarget(const RenderTarget& renderTarget)
 
 void GraphicsCommand::EndDraw()
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	mCommandList->Close();
 
 	ID3D12CommandList* cmdLists[] = { mCommandList.Get() };
@@ -1028,12 +1073,14 @@ void GraphicsCommand::EndDraw()
 
 void GraphicsCommand::Flip()
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	mSwapChain->Present();
 }
 
 
 void GraphicsCommand::SetViewportAndRect(const RenderTarget& renderTarget)
 {
+	COMMAND_OBJECT_IS_NOT_NULL;
 	auto viewport = renderTarget.GetViewPort();
 	mCommandList->RSSetViewports(1, &viewport);
 	auto rect = renderTarget.GetRect();
@@ -1075,7 +1122,7 @@ const D3D12_CPU_DESCRIPTOR_HANDLE RenderTarget::GetDescriptorHandle(const int bu
 {
 	if (bufferID < 0 || mBufferCount <= bufferID)
 	{
-		DebugMessage("ERROR: The ID is Out of Range !");
+		DebugMessageError("The ID is Out of Range !");
 		assert(false);
 	}
 	auto h = mHeaps->GetCPUDescriptorHandleForHeapStart();
@@ -1085,6 +1132,12 @@ const D3D12_CPU_DESCRIPTOR_HANDLE RenderTarget::GetDescriptorHandle(const int bu
 
 const ComPtr<ID3D12Resource> RenderTarget::GetRenderTargetResource(const int bufferID) const
 {
+	if (mResource == nullptr)
+	{
+		DebugMessageError("The render target is not exist !");
+		return nullptr;
+	}
+	
 	IS_OUT_OF_RANGE(mResource, bufferID, mBufferCount);
 
 	return mResource[bufferID];
@@ -1328,7 +1381,7 @@ bool RootSignature::IsParamSizeOver(const int i) const
 {
 	if (i < 0 || mDesc.NumParameters <= i)
 	{
-		DebugMessage("The id " << i << " is over Size !");
+		DebugMessageError("The id " << i << " is over Size !");
 		assert(false);
 		return true;
 	}
@@ -1339,7 +1392,7 @@ bool RootSignature::IsSamplerSizeOver(const int i) const
 {
 	if (i < 0 || mDesc.NumStaticSamplers <= i)
 	{
-		DebugMessage("The id " << i << " is over Size !");
+		DebugMessageError("The id " << i << " is over Size !");
 		assert(false);
 		return true;
 	}
@@ -1475,7 +1528,7 @@ bool InputElementDesc::IsSizeOver() const
 {
 	if (mCount <= mLastID)
 	{
-		DebugMessage("ERROR: The Desc has Not Space. AT : " << ToString(InputElementDesc::SetDefaultPositionDesc()));
+		DebugMessageError("The Desc has Not Space. AT : " << ToString(InputElementDesc::SetDefaultPositionDesc()));
 		return true;
 	}
 
