@@ -197,18 +197,21 @@ Result Device::Create()
 	return SUCCESS;
 }
 
+#define DEVICE_IS_NOT_NULL \
+if (mDevice == nullptr)\
+{\
+	DebugMessageWarning\
+	(\
+		"The Device is created by GUI_Util. Call "\
+		<< ToString(Device::Create())\
+		<< " before call other Create methods."\
+	);\
+	this->Create();\
+}
 Result Device::CreateGraphicsCommand(GraphicsCommand& command)
 {
-	if (mDevice == nullptr)
-	{
-		DebugMessageWarning
-		(
-			"The Device is created by GUI_Util. Call "
-			<< ToString(Device::Create())
-			<< " before call other Create methods."
-		);
-		this->Create();
-	}
+	DEVICE_IS_NOT_NULL;
+	
 	// グラフィックス用のコマンドリスト
 	auto type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
@@ -472,14 +475,25 @@ Result Device::CreateGraphicsPipeline(GraphicsPipeline& pipeline)
 Result Device::CreateVertexBuffer
 (
 	VertexBuffer& vertexBuffer,
-	const unsigned int elementSize,
-	const unsigned int elementCount
+	const unsigned int vertexTypeSize,
+	const unsigned int vertexCount
 )
 {
-	if (elementCount == 0) return FAIL;
+	if (vertexTypeSize == 0)
+	{
+		DebugMessageError("Vertex Struct cannot have a size of 0.")
+		return FAIL;
+	}
+	if (vertexCount == 0)
+	{
+		DebugMessageError("This Vertex Array has no data.");
+		return FAIL;
+	}
+	
+	DEVICE_IS_NOT_NULL;
 
 	// バッファ全体のサイズ
-	auto bufferSize = elementSize * elementCount;
+	auto bufferSize = vertexTypeSize * vertexCount;
 
 	// リソースを作成
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -502,10 +516,10 @@ Result Device::CreateVertexBuffer
 	// ビューを設定
 	vertexBuffer.mView.BufferLocation = vertexBuffer.mResource->GetGPUVirtualAddress();
 	vertexBuffer.mView.SizeInBytes = bufferSize;
-	vertexBuffer.mView.StrideInBytes = elementSize;
+	vertexBuffer.mView.StrideInBytes = vertexTypeSize;
 
 	// 頂点数を記録しておく
-	vertexBuffer.mVertexCount = elementCount;
+	vertexBuffer.mVertexCount = vertexCount;
 
 	return SUCCESS;
 }
