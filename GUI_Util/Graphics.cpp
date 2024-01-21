@@ -211,7 +211,7 @@ if (mDevice == nullptr)\
 Result Device::CreateGraphicsCommand(GraphicsCommand& command)
 {
 	DEVICE_IS_NOT_NULL;
-	
+
 	// グラフィックス用のコマンドリスト
 	auto type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
@@ -429,6 +429,8 @@ Result Device::CreateDepthBuffer
 
 Result Device::CreateRootSignature(RootSignature& rootSignature)
 {
+	DEVICE_IS_NOT_NULL;
+
 	ComPtr<ID3DBlob> signature;
 	ComPtr<ID3DBlob> error;
 
@@ -459,6 +461,19 @@ Result Device::CreateRootSignature(RootSignature& rootSignature)
 
 Result Device::CreateGraphicsPipeline(GraphicsPipeline& pipeline)
 {
+	if (pipeline.psoDesc.VS.BytecodeLength == 0)
+	{
+		DebugMessageError("Vertex Shader is not found ! Call " << ToString(GraphicsPipeline::SetVertexShader()) << " to set Vertex Shader.");
+		return FAIL;
+	}
+	if (pipeline.psoDesc.PS.BytecodeLength == 0)
+	{
+		DebugMessageError("Pixel Shader is not found ! Call " << ToString(GraphicsPipeline::SetPixelShader()) << " to set pixel Shader.");
+		return FAIL;
+	}
+
+	DEVICE_IS_NOT_NULL;
+
 	ReturnIfFailed
 	(
 		mDevice->CreateGraphicsPipelineState
@@ -482,14 +497,14 @@ Result Device::CreateVertexBuffer
 	if (vertexTypeSize == 0)
 	{
 		DebugMessageError("Vertex Struct cannot have a size of 0.")
-		return FAIL;
+			return FAIL;
 	}
 	if (vertexCount == 0)
 	{
 		DebugMessageError("This Vertex Array has no data.");
 		return FAIL;
 	}
-	
+
 	DEVICE_IS_NOT_NULL;
 
 	// バッファ全体のサイズ
@@ -531,7 +546,18 @@ Result Device::CreateIndexBuffer
 	const unsigned int indexCount
 )
 {
-	if (indexCount == 0) return FAIL;
+	if (indexTypeSize == 0)
+	{
+		DebugMessageError("Index Type cannot have a size of 0.");
+		return FAIL;
+	}
+	if (indexCount == 0)
+	{
+		DebugMessageError("This Index Array has no data.");
+		return FAIL;
+	}
+
+	DEVICE_IS_NOT_NULL;
 
 	// バッファ全体のサイズ
 	auto bufferSize = indexTypeSize * indexCount;
@@ -573,6 +599,19 @@ Result Device::CreateConstantBuffer
 	const unsigned int bufferCount
 )
 {
+	if (bufferStructSize == 0)
+	{
+		DebugMessageError("Buffer Struct cannot have a size of 0.");
+		return FAIL;
+	}
+	if (bufferCount == 0)
+	{
+		DebugMessageError("This Buffer has no data.");
+		return FAIL;
+	}
+
+	DEVICE_IS_NOT_NULL;
+
 	// アラインメントされた要素一つ当たりのサイズ
 	auto bufferStructSizeAllignmented = D3D12Allignment(bufferStructSize);
 
@@ -629,6 +668,7 @@ Result Device::CreateTexture2D
 	DescriptorHeap& viewHeap
 )
 {
+	DEVICE_IS_NOT_NULL;
 	// リソースを作成
 	D3D12_HEAP_PROPERTIES heapProp = {};
 	heapProp.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_CUSTOM;
@@ -695,6 +735,15 @@ Result Device::CreateDescriptorHeap
 	const unsigned int descriptorCount
 )
 {
+	if (descriptorCount <= 0)
+	{
+		DebugMessageError("The descriptorCount must be greater than 0.");
+
+		return FAIL;
+	}
+
+	DEVICE_IS_NOT_NULL;
+
 	auto type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
@@ -1142,7 +1191,7 @@ const D3D12_CPU_DESCRIPTOR_HANDLE RenderTarget::GetDescriptorHandle(const int bu
 		DebugMessageError("The ID is Out of Range !");
 		assert(false);
 	}
-	
+
 	auto h = mHeaps->GetCPUDescriptorHandleForHeapStart();
 	h.ptr += mViewIncrementSize * bufferID;
 	return h;
@@ -1155,7 +1204,7 @@ const ComPtr<ID3D12Resource> RenderTarget::GetRenderTargetResource(const int buf
 		DebugMessageError("The render target is not exist ! Call " << ToString(Device::CreateRenderTarget()) << " to create render target.");
 		return nullptr;
 	}
-	
+
 	IS_OUT_OF_RANGE(mResource, bufferID, mBufferCount);
 
 	return mResource[bufferID];
@@ -1627,6 +1676,12 @@ void GraphicsPipeline::SetFrontCullEnable()
 
 void GraphicsPipeline::SetInputLayout(const InputElementDesc& inputElementDesc)
 {
+	if (inputElementDesc.GetDescCount() == 0)
+	{
+		DebugMessageError("This input layout has no description. Call the " << ToString(InputElementDesc) << "'s method to configurate input layout.");
+		return;
+	}
+
 	psoDesc.InputLayout.NumElements = inputElementDesc.GetDescCount();
 	psoDesc.InputLayout.pInputElementDescs = inputElementDesc.GetElementDesc();
 }
@@ -1670,8 +1725,11 @@ VertexBuffer::~VertexBuffer()
 
 Result VertexBuffer::Copy(const void* const data)
 {
-	if (mResource == nullptr) return FAIL;
-
+	if (mResource == nullptr)
+	{
+		DebugMessageError("This Vertex Buffer is not created. Call " << ToString(Device::CreateVertexBuffer()) << " to create the buffer.");
+		return FAIL;
+	}
 	// マップしてコピー
 	unsigned char* mappedVertex = nullptr;
 	auto range = CD3DX12_RANGE(0, 0);
@@ -1719,7 +1777,11 @@ IndexBuffer::~IndexBuffer()
 
 Result IndexBuffer::Copy(const void* const data)
 {
-	if (mResource == nullptr) return FAIL;
+	if (mResource == nullptr)
+	{
+		DebugMessageError("This Index Buffer is not created. Call " << ToString(Device::CreateIndexBuffer()) << " to create the buffer.");
+		return FAIL;
+	}
 
 	// マップしてコピー
 	unsigned char* mappedIndex = nullptr;
@@ -1769,8 +1831,22 @@ ConstantBuffer::~ConstantBuffer()
 
 }
 
+
+#define CONSTANT_BUFFER_IS_NOT_NULL \
+if (mResource == nullptr)\
+{\
+	DebugMessageError("This Resource is not created. Call " << ToString(Device::CreateConstantBuffer()) << " to create Buffer.");\
+	assert(false);\
+}
+
 Result ConstantBuffer::Map(void** ptr)
 {
+	if (mResource == nullptr)
+	{
+		DebugMessageError("This Resource is not created. Call " << ToString(Device::CreateConstantBuffer()) << " to create Buffer.");
+		return FAIL;
+	}
+
 	ReturnIfFailed
 	(
 		mResource->Map
@@ -1785,21 +1861,25 @@ Result ConstantBuffer::Map(void** ptr)
 
 void ConstantBuffer::Unmap()
 {
+	CONSTANT_BUFFER_IS_NOT_NULL;
 	mResource->Unmap(0, nullptr);
 }
 
 const int ConstantBuffer::GetBufferIncrementSize() const
 {
+	CONSTANT_BUFFER_IS_NOT_NULL;
 	return mViewDesc.SizeInBytes;
 }
 
 const D3D12_GPU_VIRTUAL_ADDRESS ConstantBuffer::GetGPU_Address(const int i) const
 {
+	CONSTANT_BUFFER_IS_NOT_NULL;
 	return mViewDesc.BufferLocation + (i * mViewDesc.SizeInBytes);
 }
 
 const D3D12_GPU_DESCRIPTOR_HANDLE ConstantBuffer::GetGPU_Handle(const int i) const
 {
+	CONSTANT_BUFFER_IS_NOT_NULL;
 	auto ret = mGPU_Handle;
 	ret.ptr += i * mViewIncrementSize;
 	return ret;
@@ -1849,6 +1929,12 @@ Result Texture2D::LoadFromFile(const char* const filepath)
 
 const D3D12_GPU_DESCRIPTOR_HANDLE Texture2D::GetGPU_Handle(const int i) const
 {
+	if (mResource == nullptr)
+	{
+		DebugMessageError("This texture resource is not created. Call " << ToString(Device::CreateTexture2D()) << " to create texture.");
+		assert(false);
+	}
+
 	auto ret = mGPU_Handle;
 	ret.ptr += i * mViewIncrementSize;
 	return ret;
@@ -1856,6 +1942,12 @@ const D3D12_GPU_DESCRIPTOR_HANDLE Texture2D::GetGPU_Handle(const int i) const
 
 Result Texture2D::WriteToSubresource()
 {
+	if (mResource == nullptr)
+	{
+		DebugMessageError("This texture resource is not created. Call " << ToString(Device::CreateTexture2D()) << " to create texture.");
+		return FAIL;
+	}
+
 	// リソースに書き込む
 	auto img = mData->GetImage().GetImage(0, 0, 0);
 	ReturnIfFailed
@@ -1894,6 +1986,7 @@ const D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap::GetCurrentCPU_Handle()
 {
 	if (mDescriptorCount <= mLastID)
 	{
+		DebugMessageError("This Heap has No Space.");
 		assert(false);
 	}
 
@@ -1906,6 +1999,7 @@ const D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap::GetCurrentGPU_Handle()
 {
 	if (mDescriptorCount <= mLastID)
 	{
+		DebugMessageError("This Heap has No Space.");
 		assert(false);
 	}
 
