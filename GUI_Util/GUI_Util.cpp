@@ -270,6 +270,7 @@ LRESULT CALLBACK FileCatcher::FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LP
 		DragAcceptFiles(hwnd, true);
 		break;
 	}
+	// ファイルがドロップされたらここに来る
 	case WM_DROPFILES:
 	{
 		RECT rect = {};
@@ -289,6 +290,7 @@ LRESULT CALLBACK FileCatcher::FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LP
 
 		break;
 	}
+	// サイズが変更されたらここに来る。　親ウィンドウが教えてくれる
 	case WM_SIZE:
 	{
 		auto parentHwnd = GetParent(hwnd);

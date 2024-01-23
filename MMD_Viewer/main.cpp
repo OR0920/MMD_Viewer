@@ -38,12 +38,6 @@ int MAIN()
 		return -1;
 	}
 
-	GUI::FileCatcher fc2;
-	if (fc2.Create(mainWindow) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
-
 	// 描画エンジン初期化
 	// デバッグモード　有効化
 	if (GUI::Graphics::EnalbleDebugLayer() == GUI::Result::FAIL)
@@ -112,7 +106,6 @@ int MAIN()
 
 			// シーン初期化、モデル1体のみなので、シーンクラスなどには分けない
 			model->SetDefaultSceneData(renderTarget.GetAspectRatio());
-
 		}
 
 		// 描画準備
