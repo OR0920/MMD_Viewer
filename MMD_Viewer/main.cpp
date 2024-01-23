@@ -32,8 +32,14 @@ int MAIN()
 	}
 
 	// ファイル取得ウィンドウの初期化
-	auto& fc = GUI::FileCatcher::Instance();
+	GUI::FileCatcher fc;
 	if (fc.Create(mainWindow) == GUI::Result::FAIL)
+	{
+		return -1;
+	}
+
+	GUI::FileCatcher fc2;
+	if (fc2.Create(mainWindow) == GUI::Result::FAIL)
 	{
 		return -1;
 	}
@@ -95,7 +101,7 @@ int MAIN()
 			System::SafeDelete(&model);
 			model = new Model(device);
 			model->Load(fc.GetPath());
-			
+
 			// 読み込み失敗
 			if (model->IsSuccessLoad() == GUI::Result::FAIL)
 			{
@@ -106,6 +112,7 @@ int MAIN()
 
 			// シーン初期化、モデル1体のみなので、シーンクラスなどには分けない
 			model->SetDefaultSceneData(renderTarget.GetAspectRatio());
+
 		}
 
 		// 描画準備

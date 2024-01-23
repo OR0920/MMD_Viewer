@@ -48,7 +48,7 @@ namespace GUI
 	};
 
 	// メインウィンドウ
-	// タイトルバーとボタン類を持つウィンドウ
+	// タイトルバーと閉じるなどのボタンを持つウィンドウ
 	class MainWindow : public ParentWindow
 	{
 	public:
@@ -91,8 +91,7 @@ namespace GUI
 	class FileCatcher
 	{
 	public:
-		// シングルトン用関数
-		static FileCatcher& Instance();
+		FileCatcher(); ~FileCatcher();
 
 		// 親を指定し生成
 		// 親のクライアント領域いっぱいにサイズが指定される
@@ -103,7 +102,9 @@ namespace GUI
 
 		// パスの長さ、パス、ドロップされた位置を取得する
 		int GetLength() const;
+		int GetWideLength() const;
 		const char* const GetPath() const;
+		const wchar_t* const GetWidePath() const;
 
 		// ファイルがドロップされた場所
 		struct DropPos
@@ -114,19 +115,19 @@ namespace GUI
 		const DropPos& GetDropPos() const;
 
 	private:
-		// コールバック関数
-		static LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
+		FileCatcher(const FileCatcher&) = delete;
+		const FileCatcher& operator=(const FileCatcher&) = delete;
 
-		// コールバック関数からパスを取得する都合上、シングルトン
-		FileCatcher(); ~FileCatcher();
-
-		WNDCLASSEX mWindowClass;
 
 		std::string mFilePath;
+		bool mIsUpdated;
+		wchar_t mWideFilePath[MAX_PATH];
+		DropPos mDropPos;
 
-		static bool sIsUpdated;
-		static TCHAR sFilePath[MAX_PATH];
-		static DropPos sDropPos;
+
+		// このコールバック関数に、データを更新してもらう。
+		static LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
+		static WNDCLASSEX mWindowClass;
 	};
 }
 
