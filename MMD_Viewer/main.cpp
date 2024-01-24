@@ -32,7 +32,7 @@ int MAIN()
 	}
 
 	// ファイル取得ウィンドウの初期化
-	auto& fc = GUI::FileCatcher::Instance();
+	GUI::FileCatcher fc;
 	if (fc.Create(mainWindow) == GUI::Result::FAIL)
 	{
 		return -1;
@@ -95,7 +95,7 @@ int MAIN()
 			System::SafeDelete(&model);
 			model = new Model(device);
 			model->Load(fc.GetPath());
-			
+
 			// 読み込み失敗
 			if (model->IsSuccessLoad() == GUI::Result::FAIL)
 			{

@@ -11,6 +11,8 @@
 // コンソール出力マクロ
 // シンプルな一行出力
 #define DebugMessage(x) std::cout << x << std::endl;
+#define DebugMessageError(x) DebugMessage("ERROR : " << x);
+#define DebugMessageWarning(x) DebugMessage("WARNING : " << x);
 // 関数エラーメッセージ
 #define DebugMessageFunctionError(funcName, at) DebugMessage(ToString(funcName) << " at " << ToString(at) << " is Failed !");
 // ワイド文字用
@@ -45,6 +47,8 @@ if(id < 0 || static_cast<unsigned>(arrayCount) <= static_cast<unsigned>(id))\
 #else
 #define SET_JAPANESE_ENABLE 
 #define DebugMessage(x) 
+#define DebugMessageError(x) 
+#define DebugMessageWarning(x) 
 #define DebugMessageFunctionError(funcName, at) 
 #define DebugMessageWide(x) 
 #define DebugMessageNewLine() 
