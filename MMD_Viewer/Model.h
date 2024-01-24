@@ -3,8 +3,6 @@
 
 #include"GUI_Util.h"
 
-#include<array>
-
 #include"MathUtil.h"
 #include"MMDsdk.h"
 
