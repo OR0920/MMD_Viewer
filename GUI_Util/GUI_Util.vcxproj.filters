@@ -18,9 +18,6 @@
     <ClInclude Include="GUI_Util.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="d3dx12.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>

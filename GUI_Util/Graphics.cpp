@@ -1,5 +1,4 @@
 // 実装が長くなるので隔離
-
 #include"GUI_Util.h"
 
 // std
@@ -10,8 +9,6 @@
 #pragma comment(lib, "d3d12.lib")
 
 #include"d3dx12.h"
-#include<d3dcompiler.h>
-#pragma comment(lib, "d3dcompiler.lib")
 #include<directxtex.h>
 
 // バッファのサイズをアラインメントする

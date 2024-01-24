@@ -10,14 +10,10 @@
 
 // std
 #include<string>
-#include<vector>
 
 // windows
 #include<windows.h>
-#include<wrl.h>
 #include<tchar.h>
-#include<d3d12.h>
-#include<dxgi1_6.h>
 
 // other
 #include"Result.h"
