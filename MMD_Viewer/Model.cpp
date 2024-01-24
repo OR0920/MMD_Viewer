@@ -9,6 +9,8 @@
 #include"OutlineVS.h"
 #include"OutlinePS.h"
 
+#define ReturnIfFailed(func) if (func == GUI::Result::FAIL) return GUI::Result::FAIL;
+
 void Model::ModelVertex::Load(const MMDsdk::PmdFile::Vertex& data)
 {
 	position = System::strong_cast<MathUtil::float3>(data.position);
@@ -93,7 +95,7 @@ Model::Model(GUI::Graphics::Device& device)
 	inputLayout.SetDefaultNormalDesc();
 	inputLayout.SetDefaultUV_Desc();
 	inputLayout.SetFloatParam("EDGE_RATE");
-	
+
 	//　ルートシグネチャの作成
 	mRootSignature.SetParameterCount(7);
 
@@ -176,51 +178,34 @@ GUI::Result Model::Load(const char* const filepath)
 	else if (LoadPMX(filepath) == GUI::Result::SUCCESS) { isSuccessLoad = GUI::Result::SUCCESS; }
 
 	// 全フォーマットで読み込み失敗したらリターン
-	if (isSuccessLoad == GUI::Result::FAIL) { return GUI::Result::FAIL; }
+	ReturnIfFailed(isSuccessLoad);
 
 	DebugMessage("Model Load Succeeded !");
 
 	// シーン情報の初期化
-	if (mDevice.CreateConstantBuffer(mTransformBuffer, mHeap, sizeof(ModelTransform)) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
-
-	if (mDevice.CreateConstantBuffer(mPS_DataBuffer, mHeap, sizeof(PixelShaderData)) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
+	ReturnIfFailed
+	(
+		mDevice.CreateConstantBuffer(mTransformBuffer, mHeap, sizeof(ModelTransform))
+	);
+	ReturnIfFailed
+	(
+		mDevice.CreateConstantBuffer(mPS_DataBuffer, mHeap, sizeof(PixelShaderData))
+	);
 
 	// デフォルトのテクスチャを作る
-	if (mDefaultTextureWhite.LoadFromFile(L"DefaultTexture/White.png") == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
-	if (mDevice.CreateTexture2D(mDefaultTextureWhite, mHeap) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
-	if (mDefaultTextureBlack.LoadFromFile(L"DefaultTexture/Black.png") == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
-	if (mDevice.CreateTexture2D(mDefaultTextureBlack, mHeap) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
+	ReturnIfFailed(mDefaultTextureWhite.LoadFromFile(L"DefaultTexture/White.png"));
+	ReturnIfFailed(mDevice.CreateTexture2D(mDefaultTextureWhite, mHeap));
+
+	ReturnIfFailed(mDefaultTextureBlack.LoadFromFile(L"DefaultTexture/Black.png"));
+	ReturnIfFailed(mDevice.CreateTexture2D(mDefaultTextureBlack, mHeap));
+
 	for (int i = 0; i < 10; ++i)
 	{
 		auto& t = mDefaultTextureToon[i];
 
-		if (t.LoadFromFile(mToonPath[i]) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
+		ReturnIfFailed(t.LoadFromFile(mToonPath[i]));
 
-		if (mDevice.CreateTexture2D(t, mHeap) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
+		ReturnIfFailed(mDevice.CreateTexture2D(t, mHeap));
 	}
 
 	return GUI::Result::SUCCESS;
@@ -407,10 +392,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			mesh[i].Load(file.GetVertex(i));
 		}
 
-		if (CreateVertexBuffer(mesh.GetStart(), vCount) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
+		ReturnIfFailed(CreateVertexBuffer(mesh.GetStart(), vCount));
 	}
 
 	// インデックスデータを読み込み、バッファを作る
@@ -423,10 +405,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			index[i] = file.GetIndex(i);
 		}
 
-		if (CreateIndexBuffer(index.GetStart(), iCount) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
+		ReturnIfFailed(CreateIndexBuffer(index.GetStart(), iCount));
 	}
 
 	// マテリアル数を取得
@@ -435,10 +414,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	// マテリアルが0なら、固有テクスチャも0なので、ヒープを作りリターン
 	if (mMaterialCount == 0)
 	{
-		if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
+		ReturnIfFailed(mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount));
 	}
 
 	// PMDの場合、テクスチャファイル名が
@@ -568,17 +544,10 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 		// ディスクリプタの数を更新し、ヒープ作成
 		mDescriptorCount += mMaterialCount + tCount;
-		if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
+		ReturnIfFailed(mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount));
 
 		// マテリアルの定数バッファを作成
-		if (CreateMaterialBuffer(material.GetStart(), mMaterialCount) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
-
+		ReturnIfFailed(CreateMaterialBuffer(material.GetStart(), mMaterialCount));
 	}
 
 	// テクスチャを読み込む
@@ -594,28 +563,19 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 			if (p.tex[0] != '\0')
 			{
-				if (CreateTexture(file.GetDirectoryPath(), p.tex, texID) == GUI::Result::FAIL)
-				{
-					return GUI::Result::FAIL;
-				}
+				ReturnIfFailed(CreateTexture(file.GetDirectoryPath(), p.tex, texID));
 				texID++;
 			}
 
 			if (p.sph[0] != '\0')
 			{
-				if (CreateTexture(file.GetDirectoryPath(), p.sph, texID) == GUI::Result::FAIL)
-				{
-					return GUI::Result::FAIL;
-				}
+				ReturnIfFailed(CreateTexture(file.GetDirectoryPath(), p.sph, texID));
 				texID++;
 			}
 
 			if (p.spa[0] != '\0')
 			{
-				if (CreateTexture(file.GetDirectoryPath(), p.spa, texID) == GUI::Result::FAIL)
-				{
-					return GUI::Result::FAIL;
-				}
+				ReturnIfFailed(CreateTexture(file.GetDirectoryPath(), p.spa, texID));
 				texID++;
 			}
 		}
@@ -643,10 +603,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			mesh[i].Load(file.GetVertex(i));
 		}
 
-		if (CreateVertexBuffer(mesh.GetStart(), vCount) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
+		ReturnIfFailed(CreateVertexBuffer(mesh.GetStart(), vCount));
 	}
 
 	// インデックスデータを読み込みバッファを作成
@@ -659,10 +616,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			index[i] = file.GetIndex(i);
 		}
 
-		if (CreateIndexBuffer(index.GetStart(), iCount) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
+		ReturnIfFailed(CreateIndexBuffer(index.GetStart(), iCount));
 	}
 
 	// マテリアルとテクスチャを読み込む
@@ -673,11 +627,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 	auto tCount = file.GetTextureCount();
 
 	mDescriptorCount += mMaterialCount + tCount;
-
-	if (mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
+	ReturnIfFailed(mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount));
 
 	// マテリアルを読み込みバッファを作成
 	if (mMaterialCount != 0)
@@ -693,10 +643,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 			mMaterialInfo[i].Load(m);
 		}
 
-		if (CreateMaterialBuffer(material.GetStart(), mMaterialCount) == GUI::Result::FAIL)
-		{
-			return GUI::Result::FAIL;
-		}
+		ReturnIfFailed(CreateMaterialBuffer(material.GetStart(), mMaterialCount));
 	}
 
 	// テクスチャを読み込みバッファを作成
@@ -706,10 +653,15 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 
 		for (int i = 0; i < tCount; ++i)
 		{
-			if (CreateTexture(file.GetDirectoryPath(), file.GetTexturePath(i).GetText(), i) == GUI::Result::FAIL)
-			{
-				return GUI::Result::FAIL;
-			}
+			ReturnIfFailed
+			(
+				CreateTexture
+				(
+					file.GetDirectoryPath(),
+					file.GetTexturePath(i).GetText(),
+					i
+				)
+			);
 		}
 	}
 
@@ -719,15 +671,8 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 GUI::Result Model::CreateVertexBuffer(const ModelVertex vertex[], const int vertexCount)
 {
 	// バッファを作ってコピー
-	if (mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vertexCount) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	};
-
-	if (mVB.Copy(vertex) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
+	ReturnIfFailed(mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vertexCount));
+	ReturnIfFailed(mVB.Copy(vertex));
 
 	return GUI::Result::SUCCESS;
 }
@@ -735,15 +680,8 @@ GUI::Result Model::CreateVertexBuffer(const ModelVertex vertex[], const int vert
 GUI::Result Model::CreateIndexBuffer(const int index[], const int indexCount)
 {
 	// バッファを作ってコピー
-	if (mDevice.CreateIndexBuffer(mIB, sizeof(int), indexCount) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
-
-	if (mIB.Copy(index) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
+	ReturnIfFailed(mDevice.CreateIndexBuffer(mIB, sizeof(int), indexCount));
+	ReturnIfFailed(mIB.Copy(index));
 
 	return GUI::Result::SUCCESS;
 }
@@ -751,25 +689,30 @@ GUI::Result Model::CreateIndexBuffer(const int index[], const int indexCount)
 GUI::Result Model::CreateMaterialBuffer(const Material material[], const int materialCount)
 {
 	// バッファを作ってマップしてコピー
-	if (mDevice.CreateConstantBuffer(mMaterialBuffer, mHeap, sizeof(Material), materialCount) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
+	ReturnIfFailed
+	(
+		mDevice.CreateConstantBuffer
+		(
+			mMaterialBuffer,
+			mHeap,
+			sizeof(Material),
+			materialCount
+		)
+	);
 
 	unsigned char* mappedMaterial = nullptr;
-	if (mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)) == GUI::Result::SUCCESS)
-	{
-		for (int i = 0; i < materialCount; ++i)
-		{
-			*reinterpret_cast<Material*>(mappedMaterial) = material[i];
-			// 256バイトにアラインメントされているため、sizeof(Material)ではない
-			mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
-		}
+	ReturnIfFailed(mMaterialBuffer.Map(reinterpret_cast<void**>(&mappedMaterial)));
 
-		return GUI::Result::SUCCESS;
+	for (int i = 0; i < materialCount; ++i)
+	{
+		*reinterpret_cast<Material*>(mappedMaterial) = material[i];
+		// 256バイトにアラインメントされているため、sizeof(Material)ではない
+		mappedMaterial += mMaterialBuffer.GetBufferIncrementSize();
 	}
 
-	return GUI::Result::FAIL;
+	mMaterialBuffer.Unmap();
+
+	return GUI::Result::SUCCESS;
 }
 
 GUI::Result Model::CreateTexture(const char* const dirPath, const char* const filename, const int texID)
@@ -787,21 +730,15 @@ GUI::Result Model::CreateTexture(const char* const dirPath, const char* const fi
 
 	// テクスチャを読み込む
 	auto result = mUniqueTexture[texID].LoadFromFile(filepath);
-	
+
 	System::SafeDeleteArray(&filepath);
 
-	if (result == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
+	ReturnIfFailed(result);
 
 	// テクスチャを作成
-	if (mDevice.CreateTexture2D(mUniqueTexture[texID], mHeap) == GUI::Result::FAIL)
-	{
-		return GUI::Result::FAIL;
-	}
+	ReturnIfFailed(mDevice.CreateTexture2D(mUniqueTexture[texID], mHeap))
 
-	return GUI::Result::SUCCESS;
+		return GUI::Result::SUCCESS;
 }
 
 
@@ -810,44 +747,33 @@ GUI::Result Model::SetDefaultSceneData(const float aspectRatio)
 	// 行列データ、シーンデータをマップしコピー
 	// データは一つだけなので、そのままクラスのポインタを使用する。
 	ModelTransform* mappedTransform = nullptr;
-	if (mTransformBuffer.Map(reinterpret_cast<void**>(&mappedTransform)) == GUI::Result::SUCCESS)
-	{
-		// 視点
-		auto eye = MathUtil::Vector(0.f, 10.f, -30.f);
-		mappedTransform->world = MathUtil::Matrix::GenerateMatrixIdentity();
-		mappedTransform->view = MathUtil::Matrix::GenerateMatrixLookToLH
-		(
-			eye,
-			MathUtil::Vector::basicZ,
-			MathUtil::Vector::basicY
-		);
-		mappedTransform->proj = MathUtil::Matrix::GenerateMatrixPerspectiveFovLH
-		(
-			MathUtil::PI_DIV4,
-			aspectRatio,
-			0.1f,
-			1000.f
-		);
-		mappedTransform->eye = eye.GetFloat3();
-		mTransformBuffer.Unmap();
-	}
-	else
-	{
-		return GUI::Result::FAIL;
-	}
+	ReturnIfFailed(mTransformBuffer.Map(reinterpret_cast<void**>(&mappedTransform)));
+	// 視点
+	auto eye = MathUtil::Vector(0.f, 10.f, -30.f);
+	mappedTransform->world = MathUtil::Matrix::GenerateMatrixIdentity();
+	mappedTransform->view = MathUtil::Matrix::GenerateMatrixLookToLH
+	(
+		eye,
+		MathUtil::Vector::basicZ,
+		MathUtil::Vector::basicY
+	);
+	mappedTransform->proj = MathUtil::Matrix::GenerateMatrixPerspectiveFovLH
+	(
+		MathUtil::PI_DIV4,
+		aspectRatio,
+		0.1f,
+		1000.f
+	);
+	mappedTransform->eye = eye.GetFloat3();
+	mTransformBuffer.Unmap();
 
 	PixelShaderData* mappedPS_Data = nullptr;
-	if (mPS_DataBuffer.Map(reinterpret_cast<void**>(&mappedPS_Data)) == GUI::Result::SUCCESS)
-	{
-		// ライトの方向
-		mappedPS_Data->lightDir = MathUtil::Vector(-1.f, -1.f, 1.f).GetFloat3();
-		mPS_DataBuffer.Unmap();
-	}
-	else
-	{
-		return GUI::Result::FAIL;
-	}
+	ReturnIfFailed(mPS_DataBuffer.Map(reinterpret_cast<void**>(&mappedPS_Data)));
+	
+	// ライトの方向
+	mappedPS_Data->lightDir = MathUtil::Vector(-1.f, -1.f, 1.f).GetFloat3();
+	mPS_DataBuffer.Unmap();
+
 
 	return GUI::Result::SUCCESS;
-
 }
