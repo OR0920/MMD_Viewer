@@ -1,6 +1,4 @@
-#include"MathUtil.h"
 #include"System.h"
-#include"MMDsdk.h"
 #include"GUI_Util.h"
 using namespace std;
 
@@ -8,6 +6,13 @@ using namespace std;
 #include"MMD_PixelShader.h"
 
 #include"Model.h"
+
+#define QuitIfFailed(func)\
+if(func == GUI::Result::FAIL) \
+{\
+	DebugMessageFunctionError(func, MAIN);\
+	return -1;\
+}
 
 static const int windowHeight = 1080;
 static const int windowWidth = 1080;
@@ -26,64 +31,38 @@ int MAIN()
 	auto& mainWindow = GUI::MainWindow::Instance();
 
 	// ウィンドウを作成
-	if (mainWindow.Create(windowWidth, windowHeight) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
+	QuitIfFailed(mainWindow.Create(windowWidth, windowHeight));
 
 	// ファイル取得ウィンドウの初期化
 	GUI::FileCatcher fc;
-	if (fc.Create(mainWindow) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
+	QuitIfFailed(fc.Create(mainWindow));
 
 	// 描画エンジン初期化
 	// デバッグモード　有効化
-	if (GUI::Graphics::EnalbleDebugLayer() == GUI::Result::FAIL)
-	{
-		return -1;
-	}
+	QuitIfFailed(GUI::Graphics::EnalbleDebugLayer());
 
 	// デバイス作成
 	GUI::Graphics::Device device;
-	if (device.Create() == GUI::Result::FAIL)
-	{
-		return -1;
-	}
+	QuitIfFailed(device.Create());
 
 	// コマンドオブジェクト作成
 	GUI::Graphics::GraphicsCommand command;
-	if (device.CreateGraphicsCommand(command) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
+	QuitIfFailed(device.CreateGraphicsCommand(command));
 
 	// スワップチェイン作成
 	GUI::Graphics::SwapChain swapChain;
-	if (swapChain.Create(command, mainWindow, 2) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
+	QuitIfFailed(swapChain.Create(command, mainWindow, 2));
 
 	// レンダーターゲット作成
 	GUI::Graphics::RenderTarget renderTarget;
-	if (device.CreateRenderTarget(renderTarget, swapChain) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
+	QuitIfFailed(device.CreateRenderTarget(renderTarget,swapChain));
 
 	// 深度ステンシル作成
 	GUI::Graphics::DepthStencilBuffer depthStencil;
-	if (device.CreateDepthBuffer(depthStencil, swapChain) == GUI::Result::FAIL)
-	{
-		return -1;
-	}
-
+	QuitIfFailed(device.CreateDepthBuffer(depthStencil, swapChain));
 
 	// ここにモデルを作る
 	Model* model = nullptr;
-
 
 	while (mainWindow.ProcessMessageNoWait() == GUI::Result::CONTINUE)
 	{

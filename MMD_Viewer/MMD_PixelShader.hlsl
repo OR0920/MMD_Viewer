@@ -53,7 +53,7 @@ float4 main(VS_Output input) : SV_TARGET
     specularB = pow(specularB, 5.f);
     float4 specularLight = float4(specular.rgb * specularB, 0.f);
     
-    // アンビエント　いまいち再現しきれていない気がする
+    // アンビエント　
     float4 ambientLight = float4(ambient, 0.f) * 0.2;
     
     // 最終的なライトの強さ
