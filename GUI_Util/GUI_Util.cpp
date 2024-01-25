@@ -265,7 +265,7 @@ LRESULT CALLBACK FileCatcher::FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LP
 
 		// CreateWindow関数の末尾に渡したパラメータを取得する
 		LPCREATESTRUCT pCreateStruct = reinterpret_cast<LPCREATESTRUCT>(lp);
-		// FileCatcherのインスタンスへを、ウィンドウに紐づける
+		// FileCatcherのインスタンスを、ウィンドウに紐づける
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pCreateStruct->lpCreateParams));
 
 		DragAcceptFiles(hwnd, true);
