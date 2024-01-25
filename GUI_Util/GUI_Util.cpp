@@ -91,10 +91,11 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 }
 
 
-Result MainWindow::Create(int width, int height)
+Result MainWindow::Create(int width, int height, const LPCTSTR windowTitle)
 {
 	SET_JAPANESE_ENABLE;
 
+	// ウィンドウクラスの名前が登録されていたら、ウィンドウ作成済み
 	if (mWindowClass.lpszClassName != nullptr)
 	{
 		DebugMessage("Error at " << ToString(MainWindow::Create()) " : The " << ToString(MainWindow) << " is already Created !");
@@ -126,7 +127,7 @@ Result MainWindow::Create(int width, int height)
 	(
 		NULL,
 		wc.lpszClassName,
-		_T("MMD Viewer"),
+		windowTitle,
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,

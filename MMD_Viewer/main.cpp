@@ -31,7 +31,7 @@ int MAIN()
 	auto& mainWindow = GUI::MainWindow::Instance();
 
 	// ウィンドウを作成
-	QuitIfFailed(mainWindow.Create(windowWidth, windowHeight));
+	QuitIfFailed(mainWindow.Create(windowWidth, windowHeight, L"MMD Viewer"));
 
 	// ファイル取得ウィンドウの初期化
 	GUI::FileCatcher fc;

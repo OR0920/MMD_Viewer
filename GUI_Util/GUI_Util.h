@@ -52,7 +52,7 @@ namespace GUI
 		static MainWindow& Instance();
 
 		// サイズを指定し生成
-		Result Create(int width, int height);
+		Result Create(int width, int height, const LPCTSTR windowTitle);
 		
 		// メッセージを処理する
 		// 閉じるボタンが押されるとfalseを返す
