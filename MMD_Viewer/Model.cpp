@@ -521,7 +521,6 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 				char path[pmdTexLength] = { '\0' };
 				auto subStr = pathSignature[i].path[j];
 
-				memcpy(&path[0], subStr.start, subStr.length);
 				memcpy_s(&path[0], pmdTexLength, subStr.start, subStr.length);
 
 				// Šg’£q‚ÅU‚è•ª‚¯@
