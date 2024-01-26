@@ -149,6 +149,8 @@ namespace MMDsdk
 		// テクスチャなどのファイルはすべて同じディレクトリに入れること //
 		const char* const GetDirectoryPath() const;
 
+		static const int TexPathLength = 20;
+
 		// 以下データの構造体とその取得関数をペアで記述する
 		// 内部に配列を持つ場合は専用のロード関数を用意している
 		// struct __		: 構造体

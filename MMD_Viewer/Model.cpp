@@ -9,6 +9,8 @@
 #include"OutlineVS.h"
 #include"OutlinePS.h"
 
+#include<memory>
+
 #define ReturnIfFailed(func) if (func == GUI::Result::FAIL) return GUI::Result::FAIL;
 
 void Model::ModelVertex::Load(const MMDsdk::PmdFile::Vertex& data)
@@ -415,6 +417,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	if (mMaterialCount == 0)
 	{
 		ReturnIfFailed(mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount));
+		return GUI::Result::SUCCESS;
 	}
 
 	// PMDの場合、テクスチャファイル名が
@@ -423,34 +426,39 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	// 
 	// 種類ごとに分割し記録しておく
 	// pmdのパスの長さは20固定
+	auto& pmdTexLength = MMDsdk::PmdFile::TexPathLength;
+
 	struct TexPaths
 	{
-		char tex[20] = { '\0' };
-		char sph[20] = { '\0' };
-		char spa[20] = { '\0' };
+		char tex[pmdTexLength] = { '\0' };
+		char sph[pmdTexLength] = { '\0' };
+		char spa[pmdTexLength] = { '\0' };
 	};
 
 
-	// テクスチャを分割する際に使う構造体群
+	// テクスチャ名を分割する際に使う構造体
+	
+	// テクスチャ名の長さと開始位置
 	struct SubString
 	{
-		// テクスチャ名の長さと開始位置
 		const char* start = nullptr;
 		int length = 0;
 	};
 	System::varray<TexPaths> texPathPerMaterial(mMaterialCount);
 
 	// テクスチャ名を分割して記録する構造体
+	// それぞれのパス名の開始位置を記録する
 	struct TexPathSignature
 	{
 		SubString path[2];
 		int pathCount = 0;
 		void Load(const char* const str, const int length)
 		{
-			// テクスチャ一つと仮定する
+			// テクスチャ一つと仮定して初期化
 			path[0].start = &str[0];
 			path[0].length = length;
 
+			// 1つ目カウント
 			pathCount++;
 
 			// 分割文字'*'を探す
@@ -464,7 +472,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 					path[0].length = i;
 					path[1].length = length - i;
 
-					// テクスチャは2つ
+					// 2つ目カウント
 					pathCount++;
 					break;
 				}
@@ -476,6 +484,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			}
 		}
 	};
+
 	System::varray<TexPathSignature> pathSignature(mMaterialCount);
 
 	// テクスチャ数
@@ -483,9 +492,9 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 	if (mMaterialCount != 0)
 	{
-		// シェーダーに置くマテリアル情報
+		// シェーダーレジスタに置くマテリアル情報
 		System::varray<Material> material(mMaterialCount);
-		// シェーダーに置かないマテリアル情報
+		// シェーダーレジスタに置かないマテリアル情報
 		mMaterialInfo = new MaterialInfo[mMaterialCount];
 
 		for (int i = 0; i < mMaterialCount; ++i)
@@ -497,9 +506,10 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			// テクスチャを取得
 			auto tp = m.texturePath.GetText();
 
-			// テクスチャを持たないマテリアル
+			// テクスチャを持たないマテリアルなので次
 			if (tp[0] == '\0') continue;
 
+			// パスを解析、分割
 			auto tpLength = m.texturePath.GetLength();
 			pathSignature[i].Load(tp, tpLength);
 
@@ -508,10 +518,11 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 			{
 				// Tex1.bmp*Tex2.sph　というように
 				// 一つ目にはNULL文字が存在しないため、一回バッファにコピーする
-				char path[20] = { '\0' };
+				char path[pmdTexLength] = { '\0' };
 				auto subStr = pathSignature[i].path[j];
 
 				memcpy(&path[0], subStr.start, subStr.length);
+				memcpy_s(&path[0], pmdTexLength, subStr.start, subStr.length);
 
 				// 拡張子で振り分け　
 				// PMDの仕様では、拡張子でテクスチャの機能が変わる
@@ -521,21 +532,21 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 				auto& mifo = mMaterialInfo[i];
 				if (System::StringEqual(ext, ".sph") == true)
 				{
-					memcpy(p.sph, path, 20);
+					memcpy_s(p.sph, pmdTexLength, path, pmdTexLength);
 					// テクスチャを読み込んだ順番とIDを対応させる
 					mifo.sphID = tCount;
 					tCount++;// テクスチャ数を数える
 				}
 				else if (System::StringEqual(ext, ".spa") == true)
 				{
-					memcpy(p.spa, path, 20);
+					memcpy_s(p.spa, pmdTexLength, path, pmdTexLength);
 					mifo.spaID = tCount;
 					tCount++;
 				}
 				else
 				{
 					//　上記以外の拡張子はすべて通常テクスチャとする
-					memcpy(p.tex, path, 20);
+					memcpy_s(p.tex, pmdTexLength, path, pmdTexLength);
 					mifo.texID = tCount;
 					tCount++;
 				}
