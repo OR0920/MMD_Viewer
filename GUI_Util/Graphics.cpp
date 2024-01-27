@@ -493,8 +493,8 @@ Result Device::CreateVertexBuffer
 {
 	if (vertexTypeSize == 0)
 	{
-		DebugMessageError("Vertex Struct cannot have a size of 0.")
-			return FAIL;
+		DebugMessageError("Vertex Struct cannot have a size of 0.");
+		return FAIL;
 	}
 	if (vertexCount == 0)
 	{

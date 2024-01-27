@@ -151,7 +151,7 @@ Result MainWindow::Create(int width, int height, const LPCTSTR windowTitle)
 #define WINDOW_IS_CREATED \
 if(mWindowHandle == NULL)\
 {\
-	DebugMessageError("This Window is not created ! Call " << ToString(MainWindow::Create()) << " to Create Window")\
+	DebugMessageError("This Window is not created ! Call " << ToString(MainWindow::Create()) << " to Create Window");\
 }
 
 Result MainWindow::ProsessMessage()

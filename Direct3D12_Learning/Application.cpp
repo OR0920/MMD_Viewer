@@ -107,8 +107,8 @@ void Application::CreateGameWindow()
 	auto result = RegisterClassEx(&mWindowClass);
 	if (result == 0)
 	{
-		DebugMessageFunctionError(RegisterClassEx, CreateGameWindow)
-			return;
+		DebugMessageFunctionError(RegisterClassEx, CreateGameWindow);
+		return;
 	}
 
 	RECT wrc{ 0, 0, mWindowWidth, mWindowHeight };
@@ -170,7 +170,7 @@ void Application::Run()
 		{
 			break;
 		}
-		
+
 		mDx12->BeginDraw();
 
 		mDx12->GetCommandList()->SetPipelineState(mPmdRenderer->GetPipelineState().Get());

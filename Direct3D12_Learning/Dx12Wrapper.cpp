@@ -94,8 +94,8 @@ HRESULT Dx12Wrapper::InitializeDevices()
 	auto result = CreateDXGIFactory2(flagsDXGI, IID_PPV_ARGS(tFactory.ReleaseAndGetAddressOf()));
 	if (FAILED(result))
 	{
-		DebugMessageFunctionError(CreateDXGIFactory2, Dx12Wrapper::InitializeDevices)
-			return result;
+		DebugMessageFunctionError(CreateDXGIFactory2, Dx12Wrapper::InitializeDevices);
+		return result;
 	}
 
 	result = tFactory->QueryInterface(IID_PPV_ARGS(mDxgiFactory.ReleaseAndGetAddressOf()));

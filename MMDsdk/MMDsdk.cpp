@@ -7,14 +7,14 @@
 // pmxファイル専用 頂点以外、-1を非参照値として記録する
 #define ID_IS_NO_REF(i) if (i == -1)\
 {\
-	DebugMessage("index " << i << " is no ref")\
+	DebugMessage("index " << i << " is no ref");\
 	return {};\
 }
 // データを持たない場合、初期化の値を返す
 #define ARRAY_HAS_NO_DATA(dataPtr, count)\
 if(dataPtr == nullptr || count == 0)\
 {\
-	DebugMessage(ToString(dataPtr) << " has No Data ! ")\
+	DebugMessage(ToString(dataPtr) << " has No Data ! ");\
 	return {};\
 }
 #define DebugOutFloat2(f)\
