@@ -73,10 +73,9 @@ int MAIN()
 			// モデル読み込み
 			System::SafeDelete(&model);
 			model = new Model(device);
-			model->Load(fc.GetPath());
 
 			// 読み込み失敗
-			if (model->IsSuccessLoad() == GUI::Result::FAIL)
+			if (model->Load(fc.GetPath()) == GUI::Result::FAIL)
 			{
 				GUI::ErrorBox(L"対応していないファイルです");
 				System::SafeDelete(&model);
