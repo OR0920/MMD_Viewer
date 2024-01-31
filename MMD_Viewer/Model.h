@@ -6,6 +6,8 @@
 #include"MathUtil.h"
 #include"MMDsdk.h"
 
+#include"System.h"
+
 class Model
 {
 public:
@@ -102,8 +104,7 @@ private:
 	};
 
 	// マテリアル情報の可変長配列
-	MaterialInfo* mMaterialInfo;
-
+	System::varray<MaterialInfo> mMaterialInfo;
 	int mMaterialCount;
 
 	// パイプラインの設定

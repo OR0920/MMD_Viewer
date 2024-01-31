@@ -80,7 +80,7 @@ Model::Model(GUI::Graphics::Device& device)
 	mTransformBuffer(),
 	mPS_DataBuffer(),
 	mMaterialBuffer(),
-	mMaterialInfo(nullptr),
+	mMaterialInfo(),
 	mMaterialCount(0),
 	mInputLayout({}),
 	mPipeline({}),
@@ -167,7 +167,6 @@ Model::Model(GUI::Graphics::Device& device)
 
 Model::~Model()
 {
-	System::SafeDeleteArray(&mMaterialInfo);
 	System::SafeDeleteArray(&mUniqueTexture);
 }
 
@@ -503,7 +502,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		// シェーダーレジスタに置くマテリアル情報
 		System::varray<Material> material(mMaterialCount);
 		// シェーダーレジスタに置かないマテリアル情報
-		mMaterialInfo = new MaterialInfo[mMaterialCount];
+		mMaterialInfo.Init(mMaterialCount);
 
 		for (int i = 0; i < mMaterialCount; ++i)
 		{
@@ -651,7 +650,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 	if (mMaterialCount != 0)
 	{
 		System::varray<Material> material(mMaterialCount);
-		mMaterialInfo = new MaterialInfo[mMaterialCount];
+		mMaterialInfo.Init(mMaterialCount);
 
 		for (int i = 0; i < mMaterialCount; ++i)
 		{

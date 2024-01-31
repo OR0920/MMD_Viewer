@@ -35,6 +35,14 @@ namespace System
 	class varray
 	{
 	public:
+		varray()
+			:
+			mLength(0),
+			mData(nullptr)
+		{
+
+		}
+
 		varray(const int count)
 			:
 			mLength(count),
@@ -48,26 +56,34 @@ namespace System
 			SafeDeleteArray(&mData);
 		}
 
+		void Init(const int length)
+		{
+			mLength = length;
+			mData = new T[length];
+		}
+
 		T& operator[](const int i)
 		{
+			assert((mData != nullptr) && "The Array is not initialized !");
 			return mData[i];
 		}
 
 		const T& operator[](const int i) const
 		{
+			assert((mData != nullptr) && "The Array is not initialized !");
 			return mData[i];
 		}
 
 		const T* GetStart() const
 		{
+			assert((mData != nullptr) && "The Array is not initialized !");
 			return &mData[0];
 		}
 
 	private:
-		varray();
 		varray(const varray& other);
 		const varray& operator=(const varray& other) const;
-		const int mLength;
+		int mLength;
 		T* mData;
 	};
 
