@@ -119,7 +119,7 @@ private:
 	static const wchar_t* mToonPath[10];
 
 	// モデル固有のテクスチャデータ
-	GUI::Graphics::Texture2D* mUniqueTexture;
+	System::varray<GUI::Graphics::Texture2D> mUniqueTexture;
 
 	// モデル共有のテクスチャデータ
 	GUI::Graphics::Texture2D mDefaultTextureWhite;

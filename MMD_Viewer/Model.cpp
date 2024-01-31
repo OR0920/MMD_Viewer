@@ -86,7 +86,7 @@ Model::Model(GUI::Graphics::Device& device)
 	mPipeline({}),
 	mRootSignature({}),
 	mOutlinePipeline({}),
-	mUniqueTexture(nullptr),
+	mUniqueTexture(),
 	mDefaultTextureWhite({}),
 	mDefaultTextureBlack({}),
 	mDefaultTextureToon()
@@ -167,7 +167,6 @@ Model::Model(GUI::Graphics::Device& device)
 
 Model::~Model()
 {
-	System::SafeDeleteArray(&mUniqueTexture);
 }
 
 GUI::Result Model::Load(const char* const filepath)
@@ -571,7 +570,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	// とりあえずシンプルにしておきたいので、同じテクスチャだろうがそのまま読み込む
 	if (tCount != 0)
 	{
-		mUniqueTexture = new GUI::Graphics::Texture2D[tCount];
+		mUniqueTexture.Init(tCount);
 
 		int texID = 0;
 		for (int i = 0; i < mMaterialCount; ++i)
@@ -666,7 +665,7 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 	// テクスチャを読み込みバッファを作成
 	if (tCount != 0)
 	{
-		mUniqueTexture = new GUI::Graphics::Texture2D[tCount];
+		mUniqueTexture.Init(tCount);
 
 		for (int i = 0; i < tCount; ++i)
 		{
