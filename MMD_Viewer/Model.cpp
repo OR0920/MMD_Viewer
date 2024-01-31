@@ -73,8 +73,8 @@ const wchar_t* Model::mToonPath[] =
 Model::Model(GUI::Graphics::Device& device)
 	:
 	mDevice(device),
-	mVB(),
-	mIB(),
+	mVertexBuffer(),
+	mIndexBuffer(),
 	mDescriptorCount(0),
 	mHeap(),
 	mTransformBuffer(),
@@ -82,21 +82,21 @@ Model::Model(GUI::Graphics::Device& device)
 	mMaterialBuffer(),
 	mMaterialInfo(nullptr),
 	mMaterialCount(0),
-	inputLayout({}),
+	mInputLayout({}),
 	mPipeline({}),
 	mRootSignature({}),
-	isSuccessLoad(GUI::Result::FAIL),
+	mOutlinePipeline({}),
 	mUniqueTexture(nullptr),
 	mDefaultTextureWhite({}),
 	mDefaultTextureBlack({}),
 	mDefaultTextureToon()
 {
 	// 頂点レイアウトの設定
-	inputLayout.SetElementCount(4);
-	inputLayout.SetDefaultPositionDesc();
-	inputLayout.SetDefaultNormalDesc();
-	inputLayout.SetDefaultUV_Desc();
-	inputLayout.SetFloatParam("EDGE_RATE");
+	mInputLayout.SetElementCount(4);
+	mInputLayout.SetDefaultPositionDesc();
+	mInputLayout.SetDefaultNormalDesc();
+	mInputLayout.SetDefaultUV_Desc();
+	mInputLayout.SetFloatParam("EDGE_RATE");
 
 	//　ルートシグネチャの作成
 	mRootSignature.SetParameterCount(7);
@@ -144,7 +144,7 @@ Model::Model(GUI::Graphics::Device& device)
 	mPipeline.SetRootSignature(mRootSignature);
 	mPipeline.SetAlphaEnable(); // 透過ON
 	mPipeline.SetDepthEnable(); // 深度有効
-	mPipeline.SetInputLayout(inputLayout);
+	mPipeline.SetInputLayout(mInputLayout);
 	mPipeline.SetVertexShader(gMMD_VS, _countof(gMMD_VS));
 	mPipeline.SetPixelShader(gMMD_PS, _countof(gMMD_PS));
 	mDevice.CreateGraphicsPipeline(mPipeline);
@@ -155,7 +155,7 @@ Model::Model(GUI::Graphics::Device& device)
 
 	// 輪郭線用の設定
 
-	mOutlinePipeline.SetInputLayout(inputLayout);
+	mOutlinePipeline.SetInputLayout(mInputLayout);
 	mOutlinePipeline.SetFrontCullEnable();
 	mOutlinePipeline.SetRootSignature(mRootSignature);
 	mOutlinePipeline.SetDepthEnable();
@@ -173,17 +173,32 @@ Model::~Model()
 
 GUI::Result Model::Load(const char* const filepath)
 {
-	isSuccessLoad = GUI::Result::FAIL;
-
 	// すべての形式で読み込んでみる
-	if (LoadPMD(filepath) == GUI::Result::SUCCESS) { isSuccessLoad = GUI::Result::SUCCESS; }
-	else if (LoadPMX(filepath) == GUI::Result::SUCCESS) { isSuccessLoad = GUI::Result::SUCCESS; }
-
-	// 全フォーマットで読み込み失敗したらリターン
-	ReturnIfFailed(isSuccessLoad);
+	if (LoadPMX(filepath) == GUI::Result::SUCCESS)
+	{
+		DebugMessage("Load pmx file !");
+	}
+	else if (LoadPMD(filepath) == GUI::Result::SUCCESS)
+	{
+		DebugMessage("Load pmd file !");
+	}
+	else
+	{
+		// 全フォーマットで読み込み失敗したらリターン
+		return GUI::Result::FAIL;
+	}
 
 	DebugMessage("Model Load Succeeded !");
 
+	ReturnIfFailed(this->CreateDefaultBufferData());
+
+	DebugMessage("Default Buffer Created !");
+
+	return GUI::Result::SUCCESS;
+}
+
+GUI::Result Model::CreateDefaultBufferData()
+{
 	// シーン情報の初期化
 	ReturnIfFailed
 	(
@@ -209,13 +224,6 @@ GUI::Result Model::Load(const char* const filepath)
 
 		ReturnIfFailed(mDevice.CreateTexture2D(t, mHeap));
 	}
-
-	return GUI::Result::SUCCESS;
-}
-
-GUI::Result Model::IsSuccessLoad() const
-{
-	return isSuccessLoad;
 }
 
 void Model::Draw(GUI::Graphics::GraphicsCommand& command)
@@ -230,7 +238,7 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 	command.SetConstantBuffer(mPS_DataBuffer, 1);
 
 	// 頂点バッファ、インデックスバッファをセット
-	command.SetVertexBuffer(mVB, mIB);
+	command.SetVertexBuffer(mVertexBuffer, mIndexBuffer);
 
 	// 回転角計算
 	static int frameCount = 0;
@@ -437,7 +445,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 
 
 	// テクスチャ名を分割する際に使う構造体
-	
+
 	// テクスチャ名の長さと開始位置
 	struct SubString
 	{
@@ -681,8 +689,8 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 GUI::Result Model::CreateVertexBuffer(const ModelVertex vertex[], const int vertexCount)
 {
 	// バッファを作ってコピー
-	ReturnIfFailed(mDevice.CreateVertexBuffer(mVB, sizeof(ModelVertex), vertexCount));
-	ReturnIfFailed(mVB.Copy(vertex));
+	ReturnIfFailed(mDevice.CreateVertexBuffer(mVertexBuffer, sizeof(ModelVertex), vertexCount));
+	ReturnIfFailed(mVertexBuffer.Copy(vertex));
 
 	return GUI::Result::SUCCESS;
 }
@@ -690,8 +698,8 @@ GUI::Result Model::CreateVertexBuffer(const ModelVertex vertex[], const int vert
 GUI::Result Model::CreateIndexBuffer(const int index[], const int indexCount)
 {
 	// バッファを作ってコピー
-	ReturnIfFailed(mDevice.CreateIndexBuffer(mIB, sizeof(int), indexCount));
-	ReturnIfFailed(mIB.Copy(index));
+	ReturnIfFailed(mDevice.CreateIndexBuffer(mIndexBuffer, sizeof(int), indexCount));
+	ReturnIfFailed(mIndexBuffer.Copy(index));
 
 	return GUI::Result::SUCCESS;
 }
@@ -779,7 +787,7 @@ GUI::Result Model::SetDefaultSceneData(const float aspectRatio)
 
 	PixelShaderData* mappedPS_Data = nullptr;
 	ReturnIfFailed(mPS_DataBuffer.Map(reinterpret_cast<void**>(&mappedPS_Data)));
-	
+
 	// ライトの方向
 	mappedPS_Data->lightDir = MathUtil::Vector(-1.f, -1.f, 1.f).GetFloat3();
 	mPS_DataBuffer.Unmap();
