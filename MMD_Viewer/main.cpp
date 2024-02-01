@@ -55,7 +55,7 @@ int MAIN()
 
 	// レンダーターゲット作成
 	GUI::Graphics::RenderTarget renderTarget;
-	QuitIfFailed(device.CreateRenderTarget(renderTarget,swapChain));
+	QuitIfFailed(device.CreateRenderTarget(renderTarget, swapChain));
 
 	// 深度ステンシル作成
 	GUI::Graphics::DepthStencilBuffer depthStencil;
@@ -74,9 +74,9 @@ int MAIN()
 			System::SafeDelete(&model);
 			model = new Model(device);
 
-			// 読み込み失敗
 			if (model->Load(fc.GetPath()) == GUI::Result::FAIL)
 			{
+				// 読み込み失敗したら無かったことにする
 				GUI::ErrorBox(L"対応していないファイルです");
 				System::SafeDelete(&model);
 				continue;
@@ -92,7 +92,7 @@ int MAIN()
 
 		// レンダーターゲットを書き込み可能に
 		command.UnlockRenderTarget(renderTarget);
-		
+
 		// レンダーターゲットのクリア
 		command.SetRenderTarget(renderTarget, depthStencil);
 		command.ClearRenderTarget(clearColor);
@@ -106,7 +106,7 @@ int MAIN()
 
 		// レンダーターゲットを保護
 		command.LockRenderTarget(renderTarget);
-		
+
 		// 描画終了
 		command.EndDraw();
 
