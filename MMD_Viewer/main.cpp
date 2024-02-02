@@ -19,6 +19,50 @@ static const int windowWidth = 1080;
 
 const GUI::Graphics::Color clearColor(1.f, 1.f, 1.f);
 
+#pragma comment( lib, "winmm.lib")
+
+class Timer
+{
+public:
+	Timer()
+		:
+		mInitTime((0xffffffff - timeGetTime()) - 6000),
+		mPrevTime(0),
+		mCurrentTime(0),
+		mFrameTime(0),
+		mFrameRate(0)
+	{
+
+	}
+	unsigned int GetFrameTime()
+	{
+		return mFrameTime;
+	}
+	unsigned int GetFrameRate()
+	{
+		return mFrameRate;
+	}
+	void Update()
+	{
+		mCurrentTime = timeGetTime() + mInitTime;
+		mFrameTime = mCurrentTime - mPrevTime;
+		if (mFrameTime < 1)
+		{
+			DebugMessageWarning("The frame time is less than 1[ms]. The" << ToString(Timer::Update()) << " might have been Called more than twice at frame.");
+		}
+
+		mFrameRate = 1000.f / static_cast<float>(mFrameTime);
+
+		mPrevTime = mCurrentTime;
+	}
+private:
+	unsigned int mInitTime;
+	unsigned int mPrevTime;
+	unsigned int mCurrentTime;
+	unsigned int mFrameTime;
+	unsigned int mFrameRate;
+};
+
 int MAIN()
 {
 	// デバッグ表示を日本語に対応させる
@@ -64,8 +108,28 @@ int MAIN()
 	// ここにモデルを作る
 	Model* model = nullptr;
 
+	Timer time;
+
+	unsigned int timeCounter = 0;
+	unsigned int frameCounter = 0;
+	const unsigned int waitTime = 5000;
 	while (mainWindow.ProcessMessageNoWait() == GUI::Result::CONTINUE)
 	{
+		time.Update();
+		timeCounter += time.GetFrameTime();
+		frameCounter++;
+		if (timeCounter > waitTime)
+		{
+			auto averageFPS = 
+				static_cast<float>(frameCounter) / static_cast<float>(timeCounter/1000);
+
+			DebugOutParam(time.GetFrameRate());
+			DebugOutParam(averageFPS);
+
+			frameCounter = 0;
+			timeCounter %= waitTime;
+		}
+
 		if (fc.Update() == true)
 		{
 			DebugOutString(fc.GetPath());
