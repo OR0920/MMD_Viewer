@@ -6,6 +6,7 @@ using namespace std;
 #include"MMD_PixelShader.h"
 
 #include"Model.h"
+#include"FPS_Monitor.h"
 
 #define QuitIfFailed(func)\
 if(func == GUI::Result::FAIL) \
@@ -63,29 +64,11 @@ int MAIN()
 
 	// ‚±‚±‚Éƒ‚ƒfƒ‹‚ðì‚é
 	Model* model = nullptr;
+	FPS_Monitor monitor(3000);
 
-	System::Timer time;
-
-	unsigned int timeCounter = 0;
-	unsigned int frameCounter = 0;
-	const unsigned int waitTime = 5000;
 	while (mainWindow.ProcessMessageNoWait() == GUI::Result::CONTINUE)
 	{
-		time.Update();
-		timeCounter += time.GetFrameTime();
-		frameCounter++;
-		if (timeCounter > waitTime)
-		{
-			auto averageFPS = 
-				static_cast<float>(frameCounter) / static_cast<float>(timeCounter/1000);
-
-			DebugOutParam(time.GetFrameRate());
-			DebugOutParam(averageFPS);
-
-			frameCounter = 0;
-			timeCounter %= waitTime;
-		}
-
+		monitor.Update();
 		if (fc.Update() == true)
 		{
 			DebugOutString(fc.GetPath());
