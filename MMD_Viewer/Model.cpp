@@ -224,14 +224,16 @@ GUI::Result Model::CreateDefaultBufferData()
 	}
 }
 
-void Model::Update()
+void Model::Update(const float frameTime)
 {
-	// ‰ñ“]ŠpŒvZ
-	static int frameCount = 0;
-	static float rotUnit = 1.f;
-	frameCount++;
-	frameCount %= static_cast<int>(3600.f / (rotUnit * 10.f));
-	float rotation = rotUnit * frameCount;
+	const float msTo_s = 1.f / 1000.f;
+	const float rotSpeed = 90.f;
+	static float rotation = 0.f;
+	rotation += rotSpeed * frameTime * msTo_s;
+	if (rotation >= 360.f)
+	{
+		rotation = static_cast<float>(static_cast<unsigned int>(rotation) % static_cast<unsigned int>(360.f));
+	}
 
 	// ƒ‚ƒfƒ‹‚ğ‰ñ“]‚³‚¹‚és—ñ‚ğ‘‚«‚Ş
 	ModelTransform* transform = nullptr;

@@ -104,7 +104,7 @@ int MAIN()
 		// ƒ‚ƒfƒ‹•`‰æ
 		if (model != nullptr)
 		{
-			model->Update();
+			model->Update(monitor.GetFrameTime());
 			model->Draw(command);
 		}
 

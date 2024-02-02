@@ -65,7 +65,7 @@ public:
 	GUI::Result SetDefaultSceneData(const float aspectRatio);
 
 	// XV
-	void Update();
+	void Update(const float frameTime);
 
 	// •`‰æ
 	void Draw(GUI::Graphics::GraphicsCommand& command);
