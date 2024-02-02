@@ -101,6 +101,7 @@ int MAIN()
 		// ƒ‚ƒfƒ‹•`‰æ
 		if (model != nullptr)
 		{
+			model->Update();
 			model->Draw(command);
 		}
 

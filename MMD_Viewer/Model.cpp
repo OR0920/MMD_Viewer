@@ -224,6 +224,22 @@ GUI::Result Model::CreateDefaultBufferData()
 	}
 }
 
+void Model::Update()
+{
+	// 回転角計算
+	static int frameCount = 0;
+	static float rotUnit = 1.f;
+	frameCount++;
+	frameCount %= static_cast<int>(3600.f / (rotUnit * 10.f));
+	float rotation = rotUnit * frameCount;
+
+	// モデルを回転させる行列を書き込む
+	ModelTransform* transform = nullptr;
+	mTransformBuffer.Map(reinterpret_cast<void**>(&transform));
+	transform->world = MathUtil::Matrix::GenerateMatrixRotationY(MathUtil::DegreeToRadian(rotation));
+	mTransformBuffer.Unmap();
+}
+
 void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 {
 	// モデル描画用のパイプラインとルートシグネチャをセット
@@ -238,19 +254,7 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 	// 頂点バッファ、インデックスバッファをセット
 	command.SetVertexBuffer(mVertexBuffer, mIndexBuffer);
 
-	// 回転角計算
-	static int frameCount = 0;
-	static float rotUnit = 1.f;
-	frameCount++;
-	frameCount %= static_cast<int>(3600.f / (rotUnit * 10.f));
-	float rotation = rotUnit * frameCount;
-
-	// モデルを回転させる行列を書き込む
-	ModelTransform* transform = nullptr;
-	mTransformBuffer.Map(reinterpret_cast<void**>(&transform));
-	transform->world = MathUtil::Matrix::GenerateMatrixRotationY(MathUtil::DegreeToRadian(rotation));
-	mTransformBuffer.Unmap();
-
+	
 	// マテリアル毎にメッシュを描画
 	int indexOffs = 0;
 	for (int i = 0; i < mMaterialCount; ++i)

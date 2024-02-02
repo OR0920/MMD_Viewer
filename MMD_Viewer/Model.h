@@ -64,6 +64,9 @@ public:
 	// 行列をデフォルトの値に設定
 	GUI::Result SetDefaultSceneData(const float aspectRatio);
 
+	// 更新
+	void Update();
+
 	// 描画
 	void Draw(GUI::Graphics::GraphicsCommand& command);
 	
