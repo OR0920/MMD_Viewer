@@ -8,6 +8,7 @@
 
 #include"File.h"
 #include"DebugMessage.h"
+#include"SystemTimer.h"
 
 namespace System
 {
