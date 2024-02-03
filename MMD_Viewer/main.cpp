@@ -15,8 +15,8 @@ if(func == GUI::Result::FAIL) \
 	return -1;\
 }
 
-static const int windowHeight = 1080;
-static const int windowWidth = 1080;
+static const int windowHeight = 1000;
+static const int windowWidth = 1000;
 
 const GUI::Graphics::Color clearColor(1.f, 1.f, 1.f);
 
@@ -64,7 +64,17 @@ int MAIN()
 
 	// ここにモデルを作る
 	Model* model = nullptr;
-	FPS_Monitor monitor(3000);
+	FPS_Monitor monitor(1000);
+
+	char* dirPath = nullptr;
+	System::newArray_CopyDirPathFromFilePath(&dirPath, "ataeratariafafjasewiatawetueaq/ソaijraraera.pmd");
+	DebugOutParamBin(("ソ")[0], 8);
+	DebugOutParamBin(("ソ")[1], 8);
+	DebugOutParamBin('/', 8);
+	DebugOutParamBin('\\', 8);
+	DebugOutString(dirPath);
+	System::SafeDeleteArray(&dirPath);
+	;
 
 	while (mainWindow.ProcessMessageNoWait() == GUI::Result::CONTINUE)
 	{
