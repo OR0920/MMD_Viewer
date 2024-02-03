@@ -66,16 +66,6 @@ int MAIN()
 	Model* model = nullptr;
 	FPS_Monitor monitor(1000);
 
-	char* dirPath = nullptr;
-	System::newArray_CopyDirPathFromFilePath(&dirPath, "ataeratariafafjasewiatawetueaq/ƒ\aijraraera.pmd");
-	DebugOutParamBin(("ƒ\")[0], 8);
-	DebugOutParamBin(("ƒ\")[1], 8);
-	DebugOutParamBin('/', 8);
-	DebugOutParamBin('\\', 8);
-	DebugOutString(dirPath);
-	System::SafeDeleteArray(&dirPath);
-	;
-
 	while (mainWindow.ProcessMessageNoWait() == GUI::Result::CONTINUE)
 	{
 		monitor.Update();

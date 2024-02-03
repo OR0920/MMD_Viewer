@@ -57,6 +57,19 @@ const wchar_t* const System::GetExt(const wchar_t* const filename)
 
 void System::newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const filepath)
 {
+	wchar_t* filepath_U = nullptr;
+	newArray_CreateWideCharStrFromMultiByteStr(&filepath_U, filepath);
+	
+	wchar_t* dirpath_U = nullptr;
+	newArray_CopyDirPathFromFilePath(&dirpath_U, filepath_U);
+	newArray_CreateMultiByteStrFromWideCharStr(_dirpath, dirpath_U);
+
+	SafeDeleteArray(&filepath_U);
+	SafeDeleteArray(&dirpath_U);
+}
+
+void System::newArray_CopyDirPathFromFilePath(wchar_t** _dirpath, const wchar_t* const filepath)
+{
 	auto& dirpath = *_dirpath;
 	IS_USED_PTR(dirpath);
 
@@ -65,13 +78,13 @@ void System::newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const
 
 	for (int i = pathLastID; i >= 0; --i)
 	{
-		if (filepath[i] == '/' || filepath[i] == '\\')
+		if (filepath[i] == L'/' || filepath[i] == L'\\')
 		{
 			// ファイル名の最後のディレクトリ名までの文字数
 			// 最後の'/'までの文字数 + NULL文字分　//
 			const int dirPathLength = i + 2;
 
-			dirpath = new char[dirPathLength] {'\0'};
+			dirpath = new wchar_t[dirPathLength] {L'\0'};
 
 			// 末尾のNULL文字は残し、それまでをコピー
 			for (int j = 0; j < dirPathLength - 1; ++j)
@@ -81,7 +94,6 @@ void System::newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const
 			break;
 		}
 	}
-
 }
 
 // NULL文字を含む文字列の長さを返す	
