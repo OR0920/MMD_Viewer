@@ -14,7 +14,7 @@
 #define DebugMessageError(x) DebugMessage("ERROR : " << x)
 #define DebugMessageWarning(x) DebugMessage("WARNING : " << x)
 // 関数エラーメッセージ
-#define DebugMessageFunctionError(funcName, at) DebugMessage(ToString(funcName) << " at " << ToString(at) << " is Failed !")
+#define DebugMessageFunctionError(funcName, at) DebugMessageError(ToString(funcName) << " at " << ToString(at) << " is Failed !")
 // ワイド文字用
 #define DebugMessageWide(x) std::wcout << reinterpret_cast<const wchar_t*>(x); std::wcout.clear(); std::cout << std::endl
 // 改行
