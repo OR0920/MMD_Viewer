@@ -54,8 +54,36 @@ const wchar_t* const System::GetExt(const wchar_t* const filename)
 {
 	return PathFindExtension(filename);
 }
+const char16_t* const System::GetExt(const char16_t* const filename)
+{
+	return reinterpret_cast<const char16_t* const>(GetExt(reinterpret_cast<const wchar_t* const>(filename)));
+}
 
 void System::newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const filepath)
+{
+	// 0x5c問題が発生するため、一度ワイド文字に変換してからディレクトリを切り分ける。
+	// パフォーマンスに問題が発生するようであれば修正する。
+	char16_t* filepath_U = nullptr;
+	newArray_CreateWideCharStrFromMultiByteStr(&filepath_U, filepath);
+	
+	char16_t* dirpath_U = nullptr;
+	newArray_CopyDirPathFromFilePath(&dirpath_U, filepath_U);
+	newArray_CreateMultiByteStrFromWideCharStr(_dirpath, dirpath_U);
+
+	SafeDeleteArray(&filepath_U);
+	SafeDeleteArray(&dirpath_U);
+}
+
+void System::newArray_CopyDirPathFromFilePath(wchar_t** _dirpath, const wchar_t* const filepath)
+{
+	newArray_CopyDirPathFromFilePath
+	(
+		reinterpret_cast<char16_t**>(_dirpath),
+		reinterpret_cast<const char16_t* const>(filepath)
+	);
+}
+
+void System::newArray_CopyDirPathFromFilePath(char16_t** _dirpath, const char16_t* const filepath)
 {
 	auto& dirpath = *_dirpath;
 	IS_USED_PTR(dirpath);
@@ -65,13 +93,13 @@ void System::newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const
 
 	for (int i = pathLastID; i >= 0; --i)
 	{
-		if (filepath[i] == '/' || filepath[i] == '\\')
+		if (filepath[i] == L'/' || filepath[i] == L'\\')
 		{
 			// ファイル名の最後のディレクトリ名までの文字数
 			// 最後の'/'までの文字数 + NULL文字分　//
 			const int dirPathLength = i + 2;
 
-			dirpath = new char[dirPathLength] {'\0'};
+			dirpath = new char16_t[dirPathLength]{ L'\0' };
 
 			// 末尾のNULL文字は残し、それまでをコピー
 			for (int j = 0; j < dirPathLength - 1; ++j)
@@ -81,7 +109,6 @@ void System::newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const
 			break;
 		}
 	}
-
 }
 
 // NULL文字を含む文字列の長さを返す	
@@ -102,8 +129,12 @@ int System::GetStringLength(const char* const text)
 	return length;
 }
 
-
 int System::GetStringLength(const wchar_t* const text)
+{
+	return GetStringLength(reinterpret_cast<const char16_t* const>(text));
+}
+
+int System::GetStringLength(const char16_t* const text)
 {
 	if (text == nullptr)
 	{

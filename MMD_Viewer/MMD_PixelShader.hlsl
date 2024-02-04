@@ -54,7 +54,7 @@ float4 main(VS_Output input) : SV_TARGET
     float4 specularLight = float4(specular.rgb * specularB, 0.f);
     
     // アンビエント　
-    float4 ambientLight = float4(ambient, 0.f) * 0.2;
+    float4 ambientLight = float4(ambient, 0.f) * 0.1f;
     
     // 最終的なライトの強さ
     float4 finalLight = diffuseLight + specularLight + ambientLight;

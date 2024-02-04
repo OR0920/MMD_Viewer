@@ -8,6 +8,7 @@
 
 #include"File.h"
 #include"DebugMessage.h"
+#include"SystemTimer.h"
 
 namespace System
 {
@@ -97,15 +98,19 @@ namespace System
 	// NULL文字を含む長さを返す
 	int GetStringLength(const char* const text);
 	int GetStringLength(const wchar_t* const text);
+	int GetStringLength(const char16_t* const text);
 
 	// ファイルの拡張を取得する
 	const char* const GetExt(const char* const filename);
 	const wchar_t* const GetExt(const wchar_t* const filename);
+	const char16_t* const GetExt(const char16_t* const filename);
 
 	// ディレクトリのパスを取得する関数
 	// dirpath	:ディレクトリのパスを受け取るポインタ nullptrであること。内部でnew[]されるので、必ずdelete[]すること
 	// filepath :元のポインタ
 	void newArray_CopyDirPathFromFilePath(char** _dirpath, const char* const filepath);
+	void newArray_CopyDirPathFromFilePath(wchar_t** _dirpath, const wchar_t* const filepath);
+	void newArray_CopyDirPathFromFilePath(char16_t** _dirpath, const char16_t* const filepath);
 	
 	// 特定のディレクトリへのパスとアセットファイル名から、ファイルを開くためのパスを返す関数
 	// assetpath	:アセットへのパスを受け取るポインタ nullptrであること。内部でnew[]されるので、必ずdelete[]すること

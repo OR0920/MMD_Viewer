@@ -148,11 +148,13 @@
     <ClInclude Include="DebugMessage.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="System.h" />
+    <ClInclude Include="SystemTimer.h" />
     <ClInclude Include="ToString.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="File.cpp" />
     <ClCompile Include="System.cpp" />
+    <ClCompile Include="SystemTimer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

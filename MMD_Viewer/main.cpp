@@ -6,6 +6,7 @@ using namespace std;
 #include"MMD_PixelShader.h"
 
 #include"Model.h"
+#include"FPS_Monitor.h"
 
 #define QuitIfFailed(func)\
 if(func == GUI::Result::FAIL) \
@@ -14,8 +15,8 @@ if(func == GUI::Result::FAIL) \
 	return -1;\
 }
 
-static const int windowHeight = 1080;
-static const int windowWidth = 1080;
+static const int windowHeight = 1000;
+static const int windowWidth = 1000;
 
 const GUI::Graphics::Color clearColor(1.f, 1.f, 1.f);
 
@@ -63,9 +64,11 @@ int MAIN()
 
 	// ‚±‚±‚Éƒ‚ƒfƒ‹‚ðì‚é
 	Model* model = nullptr;
+	FPS_Monitor monitor(1000);
 
 	while (mainWindow.ProcessMessageNoWait() == GUI::Result::CONTINUE)
 	{
+		monitor.Update();
 		if (fc.Update() == true)
 		{
 			DebugOutString(fc.GetPath());
@@ -101,6 +104,7 @@ int MAIN()
 		// ƒ‚ƒfƒ‹•`‰æ
 		if (model != nullptr)
 		{
+			model->Update(monitor.GetFrameTime());
 			model->Draw(command);
 		}
 

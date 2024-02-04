@@ -163,6 +163,7 @@
     </CopyFileToFolders>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FPS_Monitor.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Model.cpp" />
   </ItemGroup>
@@ -238,6 +239,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FPS_Monitor.h" />
     <ClInclude Include="Model.h" />
   </ItemGroup>
   <ItemGroup>

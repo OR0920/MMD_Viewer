@@ -75,9 +75,6 @@ namespace MMDsdk
 		RT_NONE,
 	};
 
-	// テキスト取得マクロ
-	// 旧　GetText　設計ミスの名残
-	// 互換性保持のため一応残している
 
 	// テキストを格納、扱うクラス
 	// 可変長 //
@@ -102,7 +99,6 @@ namespace MMDsdk
 
 	// 固定長文字列
 	// 宣言時に長さが決まっている場合はこちらを使用する
-	// newを行わない分、多少速いはず //
 	template<size_t size>
 	class TextBufferFixed
 	{
