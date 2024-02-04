@@ -7,7 +7,7 @@ OutlineVS_Output main(VS_Input input)
 {
     OutlineVS_Output output;
     
-    float4 position = input.position;
+    float4 position = float4(input.position, 1.f);
     position.w = 1.f;
     
     // –@ü•ûŒü‚É’¸“_‚ğ­‚µ‚¾‚¯“®‚©‚·

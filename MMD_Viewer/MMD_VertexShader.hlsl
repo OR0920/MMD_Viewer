@@ -4,13 +4,11 @@ VS_Output main(VS_Input input)
 {
     VS_Output output;
 
-    // 移動する
-    input.position.w = 1.f;
     // 移動しない
     input.normal.w = 0.f;
     
-    // 頂点変換
-    float4 pos = input.position;
+    // 頂点変換 移動させるために同時座標化
+    float4 pos = float4(input.position, 1.f);
     pos = mul(world, pos);
 
     // 頂点への視線ベクトル

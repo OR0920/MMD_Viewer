@@ -2,7 +2,7 @@
 // “ü—Í’¸“_\‘¢‘Ì
 struct VS_Input
 {
-    float4 position : POSITION;
+    float3 position : POSITION;
     float4 normal : NORMAL;
     float2 uv : UV;
     float edgeRate : EDGE_RATE;

@@ -111,7 +111,7 @@ private:
 	int mMaterialCount;
 
 	// パイプラインの設定
-	GUI::Graphics::InputElementDesc mInputLayout;
+	GUI::Graphics::InputLayout mInputLayout;
 	GUI::Graphics::GraphicsPipeline mPipeline;
 	GUI::Graphics::RootSignature mRootSignature;
 

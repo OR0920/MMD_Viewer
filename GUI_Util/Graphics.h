@@ -51,7 +51,7 @@ namespace GUI
 		class RenderTarget;
 		class DepthStencilBuffer;
 		class RootSignature;
-		class InputElementDesc;
+		class InputLayout;
 		class GraphicsPipeline;
 		class VertexBuffer;
 		class IndexBuffer;
@@ -424,10 +424,10 @@ namespace GUI
 		};
 
 		// 入力頂点のレイアウトを記述する
-		class InputElementDesc
+		class InputLayout
 		{
 		public:
-			InputElementDesc(); ~InputElementDesc();
+			InputLayout(); ~InputLayout();
 
 			// 構造体の要素数
 			void SetElementCount(const int count);
@@ -481,7 +481,7 @@ namespace GUI
 			void SetFrontCullEnable();
 
 			// 頂点レイアウト
-			void SetInputLayout(const InputElementDesc& inputElementDesc);
+			void SetInputLayout(const InputLayout& inputElementDesc);
 			// ルートシグネチャ
 			void SetRootSignature(const RootSignature& rootSignature);
 

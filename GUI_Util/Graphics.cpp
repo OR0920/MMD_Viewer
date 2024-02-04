@@ -1471,7 +1471,7 @@ bool RootSignature::IsSamplerSizeOver(const int i) const
 
 // 入力レイアウト
 
-InputElementDesc::InputElementDesc()
+InputLayout::InputLayout()
 	:
 	mCount(0),
 	mLastID(0),
@@ -1480,12 +1480,12 @@ InputElementDesc::InputElementDesc()
 
 }
 
-InputElementDesc::~InputElementDesc()
+InputLayout::~InputLayout()
 {
 	System::SafeDeleteArray(&mInputElementDesc);
 }
 
-void InputElementDesc::SetElementCount(const int count)
+void InputLayout::SetElementCount(const int count)
 {
 	System::SafeDeleteArray(&mInputElementDesc);
 
@@ -1494,7 +1494,7 @@ void InputElementDesc::SetElementCount(const int count)
 	mInputElementDesc = new D3D12_INPUT_ELEMENT_DESC[count]{};
 }
 
-void InputElementDesc::SetDefaultPositionDesc(const char* const semantics)
+void InputLayout::SetDefaultPositionDesc(const char* const semantics)
 {
 	if (IsSizeOver() == true) return;
 
@@ -1510,7 +1510,7 @@ void InputElementDesc::SetDefaultPositionDesc(const char* const semantics)
 	mLastID++;
 }
 
-void InputElementDesc::SetDefaultColorDesc(const char* const semantics)
+void InputLayout::SetDefaultColorDesc(const char* const semantics)
 {
 	if (IsSizeOver() == true) return;
 
@@ -1526,7 +1526,7 @@ void InputElementDesc::SetDefaultColorDesc(const char* const semantics)
 	mLastID++;
 }
 
-void InputElementDesc::SetDefaultNormalDesc(const char* const semantics)
+void InputLayout::SetDefaultNormalDesc(const char* const semantics)
 {
 	if (IsSizeOver() == true) return;
 
@@ -1542,7 +1542,7 @@ void InputElementDesc::SetDefaultNormalDesc(const char* const semantics)
 	mLastID++;
 }
 
-void InputElementDesc::SetDefaultUV_Desc(const char* const semantics)
+void InputLayout::SetDefaultUV_Desc(const char* const semantics)
 {
 	if (IsSizeOver() == true) return;
 
@@ -1558,7 +1558,7 @@ void InputElementDesc::SetDefaultUV_Desc(const char* const semantics)
 	mLastID++;
 }
 
-void InputElementDesc::SetFloatParam(const char* const semantics)
+void InputLayout::SetFloatParam(const char* const semantics)
 {
 	if (IsSizeOver() == true) return;
 
@@ -1574,7 +1574,7 @@ void InputElementDesc::SetFloatParam(const char* const semantics)
 	mLastID++;
 }
 
-void InputElementDesc::DebugOutLayout() const
+void InputLayout::DebugOutLayout() const
 {
 	for (int i = 0; i < mCount; ++i)
 	{
@@ -1583,22 +1583,22 @@ void InputElementDesc::DebugOutLayout() const
 	}
 }
 
-int InputElementDesc::GetDescCount() const
+int InputLayout::GetDescCount() const
 {
 	return mCount;
 }
 
-const D3D12_INPUT_ELEMENT_DESC* const InputElementDesc::GetElementDesc() const
+const D3D12_INPUT_ELEMENT_DESC* const InputLayout::GetElementDesc() const
 {
 	return mInputElementDesc;
 }
 
 
-bool InputElementDesc::IsSizeOver() const
+bool InputLayout::IsSizeOver() const
 {
 	if (mCount <= mLastID)
 	{
-		DebugMessageError("The Desc has Not Space. AT : " << ToString(InputElementDesc::SetDefaultPositionDesc()));
+		DebugMessageError("The Desc has Not Space. AT : " << ToString(InputLayout::SetDefaultPositionDesc()));
 		return true;
 	}
 
@@ -1671,11 +1671,11 @@ void GraphicsPipeline::SetFrontCullEnable()
 	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
 }
 
-void GraphicsPipeline::SetInputLayout(const InputElementDesc& inputElementDesc)
+void GraphicsPipeline::SetInputLayout(const InputLayout& inputElementDesc)
 {
 	if (inputElementDesc.GetDescCount() == 0)
 	{
-		DebugMessageError("This input layout has no description. Call the " << ToString(InputElementDesc) << "'s method to configurate input layout.");
+		DebugMessageError("This input layout has no description. Call the " << ToString(InputLayout) << "'s method to configurate input layout.");
 		return;
 	}
 
