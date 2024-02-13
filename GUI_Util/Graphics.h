@@ -447,7 +447,7 @@ namespace GUI
 			void DebugOutLayout() const;
 
 			// ƒ‰ƒCƒuƒ‰ƒŠ‚ªŒÄ‚Ño‚·ŠÖ”
-			int GetDescCount() const;
+			int GetElementCount() const;
 			const D3D12_INPUT_ELEMENT_DESC* const GetElementDesc() const;
 		private:
 			bool IsSizeOver() const;

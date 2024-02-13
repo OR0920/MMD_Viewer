@@ -1583,7 +1583,7 @@ void InputLayout::DebugOutLayout() const
 	}
 }
 
-int InputLayout::GetDescCount() const
+int InputLayout::GetElementCount() const
 {
 	return mCount;
 }
@@ -1673,13 +1673,13 @@ void GraphicsPipeline::SetFrontCullEnable()
 
 void GraphicsPipeline::SetInputLayout(const InputLayout& inputElementDesc)
 {
-	if (inputElementDesc.GetDescCount() == 0)
+	if (inputElementDesc.GetElementCount() == 0)
 	{
 		DebugMessageError("This input layout has no description. Call the " << ToString(InputLayout) << "'s method to configurate input layout.");
 		return;
 	}
 
-	psoDesc.InputLayout.NumElements = inputElementDesc.GetDescCount();
+	psoDesc.InputLayout.NumElements = inputElementDesc.GetElementCount();
 	psoDesc.InputLayout.pInputElementDescs = inputElementDesc.GetElementDesc();
 }
 
