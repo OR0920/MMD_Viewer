@@ -1238,7 +1238,6 @@ PmxFile::PmxFile(const char* const filepath)
 
 	// インデックス読み込み
 	file.Read(mIndexCount);
-	DebugOutParam(mIndexCount);
 	mIndex = new int32_t[mIndexCount]{};
 	file.ReadArray(mIndex, mIndexCount, mHeader.vertexID_Size);
 

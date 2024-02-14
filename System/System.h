@@ -81,6 +81,10 @@ namespace System
 			return &mData[0];
 		}
 
+		int GetSize() const
+		{
+			return mLength;
+		}
 	private:
 		varray(const varray& other);
 		const varray& operator=(const varray& other) const;
