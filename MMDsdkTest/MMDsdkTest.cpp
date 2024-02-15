@@ -18,13 +18,14 @@ namespace MMDsdkTest
 
 	TEST_CLASS(PmdReadTest)
 	{
-		const char* testPmdModelPath = "Test/Model/PMD/初音ミクVer2.pmd";
+		const char* testPmdModelPath = "TestModel/Model/初音ミクVer2.pmd";
 
 		TEST_METHOD(ReadPmd)
 		{
 			PmdFile pmd(testPmdModelPath);
+			Assert::IsTrue(pmd.IsSuccessLoad() == true);
 
-			Assert::IsTrue(StringEqual(pmd.GetDirectoryPath(), "Test/Model/PMD/"));
+			Assert::IsTrue(StringEqual(pmd.GetDirectoryPath(), "TestModel/Model/"));
 
 			// 基本情報の読み込みテスト
 			Assert::IsTrue(pmd.GetHeader().version == 1.f);
@@ -332,15 +333,17 @@ namespace MMDsdkTest
 	TEST_CLASS(PmxReadTest)
 	{
 	public:
-		const char* testPmxModelPath = "Test/Model/PMX/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
-		const char* testPmxModelPath2 = "Test/Model/PMX/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx";
+		const char* testPmxModelPath = "TestModel/かばんちゃん/かばんちゃん/かばんちゃん.pmx";
+		const char* testPmxModelPath2 = "TestModel/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン/Appearance Miku_大人バージョン ver.2.3.1.pmx";
 
 
 		TEST_METHOD(ReadPmx)
 		{
 			PmxFile pmx(testPmxModelPath);
 
-			Assert::IsTrue(StringEqual(pmx.GetDirectoryPath(), "Test/Model/PMX/かばんちゃん/かばんちゃん/"));
+			Assert::IsTrue(pmx.IsSuccessLoad() == true);
+
+			Assert::IsTrue(StringEqual(pmx.GetDirectoryPath(), "TestModel/かばんちゃん/かばんちゃん/"));
 
 			{
 				auto& h = pmx.GetHeader();
@@ -1210,7 +1213,7 @@ namespace MMDsdkTest
 
 	TEST_CLASS(VmdLoadTest)
 	{
-		const char* filepath = "Test/Motion/シンプルウォーク.vmd";
+		const char* filepath = "TestMotion/シンプルウォーク.vmd";
 
 		TEST_METHOD(LoadTest)
 		{
