@@ -18,14 +18,14 @@ namespace MMDsdkTest
 
 	TEST_CLASS(PmdReadTest)
 	{
-		const char* testPmdModelPath = "Test/Model/PMD/初音ミクVer2.pmd";
+		const char* testPmdModelPath = "TestModel/Model/初音ミクVer2.pmd";
 
 		TEST_METHOD(ReadPmd)
 		{
 			PmdFile pmd(testPmdModelPath);
 			Assert::IsTrue(pmd.IsSuccessLoad() == true);
 
-			Assert::IsTrue(StringEqual(pmd.GetDirectoryPath(), "Test/Model/PMD/"));
+			Assert::IsTrue(StringEqual(pmd.GetDirectoryPath(), "TestModel/Model/"));
 
 			// 基本情報の読み込みテスト
 			Assert::IsTrue(pmd.GetHeader().version == 1.f);
