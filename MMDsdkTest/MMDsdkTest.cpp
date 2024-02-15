@@ -23,6 +23,7 @@ namespace MMDsdkTest
 		TEST_METHOD(ReadPmd)
 		{
 			PmdFile pmd(testPmdModelPath);
+			Assert::IsTrue(pmd.IsSuccessLoad() == true);
 
 			Assert::IsTrue(StringEqual(pmd.GetDirectoryPath(), "Test/Model/PMD/"));
 
