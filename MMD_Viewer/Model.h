@@ -101,6 +101,8 @@ private:
 		int toonID = -1;
 		bool isShared = true;
 		bool isEdgeEnable = false;
+		bool isNotCull = false;
+		bool isTransparent = false;
 
 		void Load(const MMDsdk::PmdFile::Material& data);
 		void Load(const MMDsdk::PmxFile::Material& data);
@@ -113,6 +115,7 @@ private:
 	// パイプラインの設定
 	GUI::Graphics::InputLayout mInputLayout;
 	GUI::Graphics::GraphicsPipeline mPipeline;
+	GUI::Graphics::GraphicsPipeline mNotCullPipeline;
 	GUI::Graphics::RootSignature mRootSignature;
 
 	// アウトライン描画時のパイプライン設定
