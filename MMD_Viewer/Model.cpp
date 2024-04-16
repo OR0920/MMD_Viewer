@@ -253,33 +253,21 @@ void Model::Update(const float frameTime)
 	mTransformBuffer.Unmap();
 }
 
-void Model::Draw(GUI::Graphics::GraphicsCommand& command)
+void Model::DrawMaterial(GUI::Graphics::GraphicsCommand& command, TransparentConfig config)
 {
-	// モデル描画用のルートシグネチャをセット
-	command.SetGraphicsRootSignature(mRootSignature);
-
-	// ビューを用いてシーンのデータをバインド
-	command.SetDescriptorHeap(mHeap);
-	command.SetConstantBuffer(mTransformBuffer, 0);
-	command.SetConstantBuffer(mPS_DataBuffer, 1);
-
-	// 頂点バッファ、インデックスバッファをセット
-	command.SetVertexBuffer(mVertexBuffer, mIndexBuffer);
-
-	
 	// マテリアル毎にメッシュを描画
 	int indexOffs = 0;
 	for (int i = 0; i < mMaterialCount; ++i)
 	{
 		auto& info = mMaterialInfo[i];
 		auto indexCount = info.materialIndexCount;
-		
-		if (info.isTransparent == true)
+
+		if (info.isTransparent == static_cast<bool>(config))
 		{
 			indexOffs += indexCount;
 			continue;
 		}
-
+		
 		if (info.isNotCull == true)
 		{
 			command.SetGraphicsPipeline(mNotCullPipeline);
@@ -346,12 +334,14 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 		command.DrawTriangleList(indexCount, indexOffs);
 		indexOffs += indexCount;
 	}
+}
 
-
+void Model::DrawOutline(GUI::Graphics::GraphicsCommand& command)
+{
 	// 輪郭線描画
 	command.SetGraphicsPipeline(mOutlinePipeline);
 
-	indexOffs = 0;
+	int indexOffs = 0;
 	for (int i = 0; i < mMaterialCount; ++i)
 	{
 		if (mMaterialInfo[i].isEdgeEnable == false)
@@ -365,82 +355,24 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 		command.DrawTriangleList(mMaterialInfo[i].materialIndexCount, indexOffs);
 		indexOffs += mMaterialInfo[i].materialIndexCount;
 	}
+}
 
+void Model::Draw(GUI::Graphics::GraphicsCommand& command)
+{
+	// モデル描画用のルートシグネチャをセット
+	command.SetGraphicsRootSignature(mRootSignature);
 
+	// ビューを用いてシーンのデータをバインド
+	command.SetDescriptorHeap(mHeap);
+	command.SetConstantBuffer(mTransformBuffer, 0);
+	command.SetConstantBuffer(mPS_DataBuffer, 1);
 
-	indexOffs = 0;
-	for (int i = 0; i < mMaterialCount; ++i)
-	{
-		auto& info = mMaterialInfo[i];
-		if (info.isTransparent == false)
-		{
-			indexOffs += info.materialIndexCount;
-			continue;
-		}
+	// 頂点バッファ、インデックスバッファをセット
+	command.SetVertexBuffer(mVertexBuffer, mIndexBuffer);
 
-		if (info.isNotCull == true)
-		{
-			command.SetGraphicsPipeline(mNotCullPipeline);
-		}
-		else
-		{
-			command.SetGraphicsPipeline(mPipeline);
-		}
-
-		command.SetConstantBuffer(mMaterialBuffer, 2, i);
-
-		// 各テクスチャをセット
-		// 固有テクスチャを持たない場合デフォルトのテクスチャを渡す
-		if (info.texID != -1)
-		{
-			command.SetDescriptorTable(mUniqueTexture[info.texID], 3);
-		}
-		else
-		{
-			command.SetDescriptorTable(mDefaultTextureWhite, 3);
-		}
-
-		if (info.sphID != -1)
-		{
-			command.SetDescriptorTable(mUniqueTexture[info.sphID], 4);
-		}
-		else
-		{
-			command.SetDescriptorTable(mDefaultTextureWhite, 4);
-		}
-
-		if (info.spaID != -1)
-		{
-			command.SetDescriptorTable(mUniqueTexture[info.spaID], 5);
-		}
-		else
-		{
-			command.SetDescriptorTable(mDefaultTextureBlack, 5);
-		}
-
-		// トゥーンは
-		// ・固有テクスチャを持つもの(PMXのみの機能)
-		// ・共有テクスチャを持つもの
-		// ・トゥーンテクスチャを持たないもの
-		// がある
-		if (info.toonID != -1)
-		{
-			if (info.isShared == true)
-			{
-				command.SetDescriptorTable(mDefaultTextureToon[info.toonID], 6);
-			}
-			else
-			{
-				command.SetDescriptorTable(mUniqueTexture[info.toonID], 6);
-			}
-		}
-		else
-		{
-			command.SetDescriptorTable(mDefaultTextureWhite, 6);
-		}
-
-		indexOffs += info.materialIndexCount;
-	}
+	DrawMaterial(command, TransparentConfig::DRAW_NOT_TRANSPARENT);
+	DrawOutline(command);	
+	DrawMaterial(command, TransparentConfig::DRAW_TRANSPARENT);
 }
 
 // PMDから読みこむ
@@ -491,6 +423,8 @@ void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
 		isTransparent = true;
 	}
 }
+
+
 
 GUI::Result Model::LoadPMD(const char* const filepath)
 {

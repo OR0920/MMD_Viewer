@@ -132,8 +132,16 @@ private:
 	GUI::Graphics::Texture2D mDefaultTextureBlack;
 	GUI::Graphics::Texture2D mDefaultTextureToon[10];
 
+	enum class TransparentConfig : bool
+	{
+		DRAW_TRANSPARENT = false,
+		DRAW_NOT_TRANSPARENT = true,
+	};
 
+	void DrawMaterial(GUI::Graphics::GraphicsCommand& command, TransparentConfig config);
+	void DrawOutline(GUI::Graphics::GraphicsCommand& command);
 	
+
 	GUI::Result LoadPMD(const char* const filepath);
 	GUI::Result LoadPMX(const char* const filepath);
 
