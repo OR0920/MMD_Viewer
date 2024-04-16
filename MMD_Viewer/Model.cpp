@@ -811,7 +811,7 @@ GUI::Result Model::SetDefaultSceneData(const float aspectRatio)
 	ModelTransform* mappedTransform = nullptr;
 	ReturnIfFailed(mTransformBuffer.Map(reinterpret_cast<void**>(&mappedTransform)));
 	// Ž‹“_
-	auto eye = MathUtil::Vector(0.f, 10.f, -30.f);
+	auto eye = MathUtil::Vector(0.f, 15.f, -30.f);
 	mappedTransform->world = MathUtil::Matrix::GenerateMatrixIdentity();
 	mappedTransform->view = MathUtil::Matrix::GenerateMatrixLookToLH
 	(

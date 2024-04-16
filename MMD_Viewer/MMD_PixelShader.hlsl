@@ -25,22 +25,33 @@ float4 main(VS_Output input) : SV_TARGET
     sphereUV = (sphereUV + float2(1.f, -1.f)) * float2(0.5f, -0.5f);
     float4 sphColor = float4(sph.Sample(smp, sphereUV).rgb, 1.f);
     float4 spaColor = float4(spa.Sample(smp, sphereUV).rgb, 0.f);
-
+    texColor *= sphColor;
+    texColor += spaColor;
+    
     // ディフューズ計算
-    float diffuseBlightness = dot(-normalize(lightDir), input.normal.xyz);
-    float4 toonBlightness = toon.Sample(toonSmp, float2(0.f, 1.f - diffuseBlightness));
-    float4 diffuseColor = float4(toonBlightness.rgb * diffuse.rgb, diffuse.a);
+    float diffuseBrightness = dot(-lightDir, input.normal.xyz);
+    if(diffuseBrightness < 0.f)
+    {
+        diffuseBrightness = 0.f;
+    }
+    float4 toonBrightness = toon.Sample(toonSmp, float2(0.f, 1.f - diffuseBrightness));
+    float4 diffuseLight = float4(toonBrightness.rgb * diffuse.rgb * lightColor.rgb, diffuse.a);
     
     // スペキュラ計算
+    float3 refVec = reflect(lightDir, input.normal.xyz);
+    float specularBrightness = dot(refVec, input.ray);
+    if(specularBrightness < 0.f)
+    {
+        specularBrightness = 0.f;
+    }
+    specularBrightness = saturate(pow(specularBrightness, specular.a));
+    float4 specularLight = float4(specularBrightness * specular.rgb * lightColor.rgb, 0.f);
     
-    //return specularColor;
     
     // アンビエント計算     
-    float4 ambientColor = float4(ambient, 0.f) * texColor;
+    float4 ambientLight = float4(ambient, 0.f) * texColor;
+
+    float4 finalLight = diffuseLight + specularLight + ambientLight;
     
-    float4 finalColor = (texColor * sphColor + spaColor) * diffuseColor + ambientColor;
-    
-    finalColor.rgb *= lightColor.rgb;
-    
-    return finalColor;
+    return texColor * finalLight;
 }
