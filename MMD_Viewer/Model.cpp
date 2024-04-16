@@ -833,7 +833,7 @@ GUI::Result Model::SetDefaultSceneData(const float aspectRatio)
 	ReturnIfFailed(mPS_DataBuffer.Map(reinterpret_cast<void**>(&mappedPS_Data)));
 
 	// ƒ‰ƒCƒg‚Ì•ûŒü
-	mappedPS_Data->lightDir = MathUtil::Vector(-1.f, -1.f, 1.f).GetFloat3();
+	mappedPS_Data->lightDir = MathUtil::Vector(-0.5f, -1.f, 0.5f).GetFloat3();
 	mPS_DataBuffer.Unmap();
 
 
