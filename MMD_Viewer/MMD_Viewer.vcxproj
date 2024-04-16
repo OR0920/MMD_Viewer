@@ -93,7 +93,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(engine_dir)\$(platform)\$(configuration)\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>GUI_Util.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CopyFileToFolders>
@@ -115,7 +115,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(engine_dir)\$(platform)\$(configuration)\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>GUI_Util.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CopyFileToFolders>
@@ -133,7 +133,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(engine_dir)\$(platform)\$(configuration)\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>GUI_Util.lib;System.lib;MMDsdk.lib;MathUtil.lib;MathUtil.lib;MMDsdk.lib;System.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CopyFileToFolders>
@@ -155,7 +155,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(engine_dir)\$(platform)\$(configuration)\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(solutiondir)$(platform)\$(configuration)\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>GUI_Util.lib;System.lib;MMDsdk.lib;MathUtil.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CopyFileToFolders>

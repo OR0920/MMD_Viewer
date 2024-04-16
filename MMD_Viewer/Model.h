@@ -101,6 +101,8 @@ private:
 		int toonID = -1;
 		bool isShared = true;
 		bool isEdgeEnable = false;
+		bool isNotCull = false;
+		bool isTransparent = false;
 
 		void Load(const MMDsdk::PmdFile::Material& data);
 		void Load(const MMDsdk::PmxFile::Material& data);
@@ -113,6 +115,7 @@ private:
 	// パイプラインの設定
 	GUI::Graphics::InputLayout mInputLayout;
 	GUI::Graphics::GraphicsPipeline mPipeline;
+	GUI::Graphics::GraphicsPipeline mNotCullPipeline;
 	GUI::Graphics::RootSignature mRootSignature;
 
 	// アウトライン描画時のパイプライン設定
@@ -129,8 +132,16 @@ private:
 	GUI::Graphics::Texture2D mDefaultTextureBlack;
 	GUI::Graphics::Texture2D mDefaultTextureToon[10];
 
+	enum class TransparentConfig : bool
+	{
+		DRAW_TRANSPARENT = false,
+		DRAW_NOT_TRANSPARENT = true,
+	};
 
+	void DrawMaterial(GUI::Graphics::GraphicsCommand& command, TransparentConfig config);
+	void DrawOutline(GUI::Graphics::GraphicsCommand& command);
 	
+
 	GUI::Result LoadPMD(const char* const filepath);
 	GUI::Result LoadPMX(const char* const filepath);
 

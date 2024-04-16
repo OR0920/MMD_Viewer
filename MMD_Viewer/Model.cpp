@@ -145,9 +145,20 @@ Model::Model(GUI::Graphics::Device& device)
 	mPipeline.SetAlphaEnable(); // 透過ON
 	mPipeline.SetDepthEnable(); // 深度有効
 	mPipeline.SetInputLayout(mInputLayout);
-	mPipeline.SetVertexShader(gMMD_VS, _countof(gMMD_VS));
-	mPipeline.SetPixelShader(gMMD_PS, _countof(gMMD_PS));
+	mPipeline.SetVertexShader(SetShader(gMMD_VS));
+	mPipeline.SetPixelShader(SetShader(gMMD_PS));
 	mDevice.CreateGraphicsPipeline(mPipeline);
+
+	
+	mNotCullPipeline.SetRootSignature(mRootSignature);
+	mNotCullPipeline.SetAlphaEnable(); // 透過ON
+	mNotCullPipeline.SetDepthEnable(); // 深度有効
+	mNotCullPipeline.SetCullDisable(); // カリング無効
+	mNotCullPipeline.SetInputLayout(mInputLayout);
+	mNotCullPipeline.SetVertexShader(SetShader(gMMD_VS));
+	mNotCullPipeline.SetPixelShader(SetShader(gMMD_PS));
+	mDevice.CreateGraphicsPipeline(mNotCullPipeline);
+
 
 	// モデルによらず固定されたディスクリプターの数を設定
 	mDescriptorCount = sDefaultTextureCount + sDefaultToonTextureCount + sSceneDataCount;
@@ -242,27 +253,29 @@ void Model::Update(const float frameTime)
 	mTransformBuffer.Unmap();
 }
 
-void Model::Draw(GUI::Graphics::GraphicsCommand& command)
+void Model::DrawMaterial(GUI::Graphics::GraphicsCommand& command, TransparentConfig config)
 {
-	// モデル描画用のパイプラインとルートシグネチャをセット
-	command.SetGraphicsPipeline(mPipeline);
-	command.SetGraphicsRootSignature(mRootSignature);
-
-	// ビューを用いてシーンのデータをバインド
-	command.SetDescriptorHeap(mHeap);
-	command.SetConstantBuffer(mTransformBuffer, 0);
-	command.SetConstantBuffer(mPS_DataBuffer, 1);
-
-	// 頂点バッファ、インデックスバッファをセット
-	command.SetVertexBuffer(mVertexBuffer, mIndexBuffer);
-
-	
 	// マテリアル毎にメッシュを描画
 	int indexOffs = 0;
 	for (int i = 0; i < mMaterialCount; ++i)
 	{
 		auto& info = mMaterialInfo[i];
 		auto indexCount = info.materialIndexCount;
+
+		if (info.isTransparent == static_cast<bool>(config))
+		{
+			indexOffs += indexCount;
+			continue;
+		}
+		
+		if (info.isNotCull == true)
+		{
+			command.SetGraphicsPipeline(mNotCullPipeline);
+		}
+		else
+		{
+			command.SetGraphicsPipeline(mPipeline);
+		}
 
 		// マテリアルセット
 		command.SetConstantBuffer(mMaterialBuffer, 2, i);
@@ -321,12 +334,14 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 		command.DrawTriangleList(indexCount, indexOffs);
 		indexOffs += indexCount;
 	}
+}
 
-
+void Model::DrawOutline(GUI::Graphics::GraphicsCommand& command)
+{
 	// 輪郭線描画
 	command.SetGraphicsPipeline(mOutlinePipeline);
 
-	indexOffs = 0;
+	int indexOffs = 0;
 	for (int i = 0; i < mMaterialCount; ++i)
 	{
 		if (mMaterialInfo[i].isEdgeEnable == false)
@@ -340,6 +355,24 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 		command.DrawTriangleList(mMaterialInfo[i].materialIndexCount, indexOffs);
 		indexOffs += mMaterialInfo[i].materialIndexCount;
 	}
+}
+
+void Model::Draw(GUI::Graphics::GraphicsCommand& command)
+{
+	// モデル描画用のルートシグネチャをセット
+	command.SetGraphicsRootSignature(mRootSignature);
+
+	// ビューを用いてシーンのデータをバインド
+	command.SetDescriptorHeap(mHeap);
+	command.SetConstantBuffer(mTransformBuffer, 0);
+	command.SetConstantBuffer(mPS_DataBuffer, 1);
+
+	// 頂点バッファ、インデックスバッファをセット
+	command.SetVertexBuffer(mVertexBuffer, mIndexBuffer);
+
+	DrawMaterial(command, TransparentConfig::DRAW_NOT_TRANSPARENT);
+	DrawOutline(command);	
+	DrawMaterial(command, TransparentConfig::DRAW_TRANSPARENT);
 }
 
 // PMDから読みこむ
@@ -382,9 +415,16 @@ void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
 	}
 
 	materialIndexCount = data.vertexCount;
-
 	isEdgeEnable = data.GetDrawConfig(MMDsdk::PmxFile::Material::DC_DRAW_EDGE);
+	isNotCull = data.GetDrawConfig(MMDsdk::PmxFile::Material::DC_NOT_CULLING);
+
+	if (data.diffuse.w < 1.f)
+	{
+		isTransparent = true;
+	}
 }
+
+
 
 GUI::Result Model::LoadPMD(const char* const filepath)
 {
