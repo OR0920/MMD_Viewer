@@ -49,7 +49,7 @@ float4 main(VS_Output input) : SV_TARGET
     
     
     // アンビエント計算     
-    float4 ambientLight = float4(ambient, 0.f) * texColor;
+    float4 ambientLight = float4(ambient, 0.f);
 
     float4 finalLight = diffuseLight + specularLight + ambientLight;
     
