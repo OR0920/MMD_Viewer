@@ -18,7 +18,8 @@ if(func == GUI::Result::FAIL) \
 static const int windowHeight = 1000;
 static const int windowWidth = 1000;
 
-const GUI::Graphics::Color clearColor(0.8f, 0.8f, 0.8f);
+//const GUI::Graphics::Color clearColor(0.8f, 0.8f, 0.8f);
+const GUI::Graphics::Color clearColor(1.f, 1.f, 1.f);
 
 int MAIN()
 {
