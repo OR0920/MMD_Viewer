@@ -371,8 +371,8 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 	command.SetVertexBuffer(mVertexBuffer, mIndexBuffer);
 
 	DrawMaterial(command, TransparentConfig::DRAW_NOT_TRANSPARENT);
-	DrawOutline(command);	
 	DrawMaterial(command, TransparentConfig::DRAW_TRANSPARENT);
+	DrawOutline(command);	
 }
 
 // PMD‚©‚ç“Ç‚Ý‚±‚Þ
@@ -833,7 +833,7 @@ GUI::Result Model::SetDefaultSceneData(const float aspectRatio)
 	ReturnIfFailed(mPS_DataBuffer.Map(reinterpret_cast<void**>(&mappedPS_Data)));
 
 	// ƒ‰ƒCƒg‚Ì•ûŒü
-	mappedPS_Data->lightDir = MathUtil::Vector(-1.f, -1.f, 1.f).GetFloat3();
+	mappedPS_Data->lightDir = MathUtil::Vector(-0.5f, -1.f, 0.5f).GetFloat3();
 	mPS_DataBuffer.Unmap();
 
 

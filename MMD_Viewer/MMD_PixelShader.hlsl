@@ -17,48 +17,48 @@ SamplerState toonSmp : register(s1);
 
 float4 main(VS_Output input) : SV_TARGET
 {
-    // 色の計算
+    float3 lightColor = float3(0.6f, 0.6f, 0.6f);
+ 
+    // diffuse色を取得
+    float3 finalColor = diffuse.rgb * lightColor;
+    float finalAlpha = diffuse.a;
     
-    // スフィアテクスチャ用UV
+    // ambientで補正
+    finalColor += ambient;
+    finalColor = saturate(finalColor);
+     
+    // テクスチャから色を取得し適用
+    float4 texColor = tex.Sample(smp, input.uv);
+    finalColor *= texColor.rgb;
+    finalAlpha *= texColor.a;
+ 
+    // スフィアマップから色を取得し適用
     float2 sphereUV = input.vnormal.xy;
     sphereUV = (sphereUV + float2(1.f, -1.f)) * float2(0.5f, -0.5f);
-        
-    // 最終的な色
-    float4 finalColor = tex.Sample(smp, input.uv) * float4(sph.Sample(smp, sphereUV).rgb, 1.f) + float4(spa.Sample(smp, sphereUV).rgb, 0.f);
+    float3 sphColor = sph.Sample(smp, sphereUV).rgb;
+    float3 spaColor = spa.Sample(smp, sphereUV).rgb;
+    finalColor *= sphColor;
+    finalColor += spaColor;
     
-    // ライトの計算
+    // diffuseを計算
+    float diffuseBrightness = dot(normalize(-lightDir), normalize(input.normal.xyz));
+    // 強くかかりすぎないよう補正
+    diffuseBrightness *= 0.5f;
+    diffuseBrightness += 0.5f;
+    float3 toonDiffuse = toon.Sample(toonSmp, float2(0.f, 1.f - diffuseBrightness)).rgb;
+    finalColor *= toonDiffuse;
     
-    float3 light = normalize(lightDir);
-    
-    // ディフューズ
-    float diffuseB = -dot(input.normal.xyz, light);
-    if (diffuseB < 0.f)
+    //return float4(texColor.rgb, finalAlpha);
+ 
+    // specularを計算
+    if (specular.a > 0.f)
     {
-        diffuseB = 0.f;
+        float3 refVec = normalize(reflect(lightDir, input.normal.xyz));
+        float specularBrightness = saturate(dot(refVec, input.ray));
+        specularBrightness = pow(specularBrightness, specular.a);
+        specularBrightness = specularBrightness * specular.rgb * lightColor;
+        finalColor += specularBrightness;
     }
     
-    // 陰影をトゥーン化
-    float4 toonDiffse = toon.Sample(toonSmp, float2(0.f, 1 - diffuseB));
-
-    float4 diffuseLight = float4(diffuse.rgb * toonDiffse.rgb, diffuse.a);
-
-    // スペキュラ
-    float3 ref = reflect(light, input.normal.xyz);
-    float3 toEye = normalize(input.ray);
-    float specularB = dot(ref, toEye);
-    if (specularB < 0.f)
-    {
-        specularB = 0.f;
-    }
-    specularB = pow(specularB, 5.f);
-    float4 specularLight = float4(specular.rgb * specularB, 0.f);
-    
-    // アンビエント　
-    float4 ambientLight = float4(ambient, 0.f) * 0.1f;
-    
-    // 最終的なライトの強さ
-    float4 finalLight = diffuseLight + specularLight + ambientLight;
-    
-    // ライトと色を合わせて描画
-    return finalColor * finalLight;
+    return float4(finalColor, finalAlpha);
 }
