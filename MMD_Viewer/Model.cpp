@@ -371,8 +371,8 @@ void Model::Draw(GUI::Graphics::GraphicsCommand& command)
 	command.SetVertexBuffer(mVertexBuffer, mIndexBuffer);
 
 	DrawMaterial(command, TransparentConfig::DRAW_NOT_TRANSPARENT);
-	DrawOutline(command);	
 	DrawMaterial(command, TransparentConfig::DRAW_TRANSPARENT);
+	DrawOutline(command);	
 }
 
 // PMD‚©‚ç“Ç‚Ý‚±‚Þ

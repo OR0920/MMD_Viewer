@@ -17,34 +17,48 @@ SamplerState toonSmp : register(s1);
 
 float4 main(VS_Output input) : SV_TARGET
 {
-    float4 lightColor = float4(0.6f, 0.6f, 0.6f, 1.f);
+    float3 lightColor = float3(0.6f, 0.6f, 0.6f);
+ 
+    // diffuse色を取得
+    float3 finalColor = diffuse.rgb * lightColor;
+    float finalAlpha = diffuse.a;
     
-    // テクスチャから色を取得
+    // ambientで補正
+    finalColor += ambient;
+    finalColor = saturate(finalColor);
+     
+    // テクスチャから色を取得し適用
     float4 texColor = tex.Sample(smp, input.uv);
+    finalColor *= texColor.rgb;
+    finalAlpha *= texColor.a;
+ 
+    // スフィアマップから色を取得し適用
     float2 sphereUV = input.vnormal.xy;
     sphereUV = (sphereUV + float2(1.f, -1.f)) * float2(0.5f, -0.5f);
-    float4 sphColor = float4(sph.Sample(smp, sphereUV).rgb, 1.f);
-    float4 spaColor = float4(spa.Sample(smp, sphereUV).rgb, 0.f);
-    float4 finalTexColor = texColor * sphColor + spaColor;
+    float3 sphColor = sph.Sample(smp, sphereUV).rgb;
+    float3 spaColor = spa.Sample(smp, sphereUV).rgb;
+    finalColor *= sphColor;
+    finalColor += spaColor;
     
-    // ディフューズ計算
-    float diffuseBrightness = saturate(dot(-normalize(lightDir), normalize(input.normal.xyz)));
-    diffuseBrightness /= 2.f;
+    // diffuseを計算
+    float diffuseBrightness = dot(normalize(-lightDir), normalize(input.normal.xyz));
+    // 強くかかりすぎないよう補正
+    diffuseBrightness *= 0.5f;
     diffuseBrightness += 0.5f;
-    float4 toonBrightness = toon.Sample(toonSmp, float2(0.f, 1.f - diffuseBrightness));
-    float4 diffuseLight = toonBrightness * diffuse * lightColor;
+    float3 toonDiffuse = toon.Sample(toonSmp, float2(0.f, 1.f - diffuseBrightness)).rgb;
+    finalColor *= toonDiffuse;
     
-
-    // スペキュラ計算
-    float3 refVec = reflect(normalize(lightDir), normalize(input.normal.xyz));
-    float specularBrightness = saturate(dot(refVec, input.ray));
-    specularBrightness = saturate(pow(specularBrightness, specular.a));
-    float4 specularLight = float4(specular.rgb, 0.f) * specularBrightness * lightColor;
+    //return float4(texColor.rgb, finalAlpha);
+ 
+    // specularを計算
+    if (specular.a > 0.f)
+    {
+        float3 refVec = normalize(reflect(lightDir, input.normal.xyz));
+        float specularBrightness = saturate(dot(refVec, input.ray));
+        specularBrightness = pow(specularBrightness, specular.a);
+        specularBrightness = specularBrightness * specular.rgb * lightColor;
+        finalColor += specularBrightness;
+    }
     
-    // アンビエント計算     
-    float4 ambientLight = float4(ambient, 0.f);
-
-    float4 finalLight = saturate(diffuseLight + specularLight + ambientLight);
-    
-    return finalLight * finalTexColor;
+    return float4(finalColor, finalAlpha);
 }
