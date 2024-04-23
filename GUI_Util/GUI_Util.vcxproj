@@ -172,6 +172,7 @@
     <ClInclude Include="Result.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FileCatcher.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="GUI_Util.cpp" />
     <ClCompile Include="MainWindow.cpp" />

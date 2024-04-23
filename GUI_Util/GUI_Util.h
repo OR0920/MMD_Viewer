@@ -8,15 +8,6 @@
 #ifndef _GUI_UTIL_H_
 #define _GUI_UTIL_H_
 
-// std
-#include<string>
-
-// windows
-#include<windows.h>
-#include<tchar.h>
-
-// other
-#include"Result.h"
 #include"Graphics.h"
 
 // エントリポイントを隠蔽
@@ -27,6 +18,7 @@
 #define MAIN() WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif // _DEBUG
 
+#include<string>
 #include"ParentWindow.h"
 #include"MainWindow.h"
 #include"FileCatcher.h"

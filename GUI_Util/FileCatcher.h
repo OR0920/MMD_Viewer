@@ -3,7 +3,6 @@
 
 namespace GUI_Util
 {
-
 	// 領域内にドロップされたファイルを認識するウィンドウ
 	class FileCatcher
 	{
