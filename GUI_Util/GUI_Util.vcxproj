@@ -163,6 +163,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="FileCatcher.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="GUI_Util.h" />
     <ClInclude Include="MainWindow.h" />
