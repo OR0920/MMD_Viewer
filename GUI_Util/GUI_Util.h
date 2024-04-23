@@ -10,8 +10,8 @@
 
 #include<string>
 #include<windows.h>
-#include"ParentWindow.h"
 
+#include"ParentWindow.h"
 #include"Result.h"
 #include"MainWindow.h"
 #include"FileCatcher.h"

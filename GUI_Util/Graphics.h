@@ -5,7 +5,6 @@
 #include<d3d12.h>
 #include<dxgi1_6.h>
 
-// other
 #include"Result.h"
 
 namespace GUI_Util

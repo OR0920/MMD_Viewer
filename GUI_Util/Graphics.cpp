@@ -1,21 +1,20 @@
 #include"GUI_Util.h"
+//#include"Result.h"
+
 #include"Graphics.h"
 
-// std
 #include<cassert>
-
-// windows
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d12.lib")
-
 #include"d3dx12.h"
 #include<directxtex.h>
 
 // バッファのサイズをアラインメントする
 #define D3D12Allignment(buffSize) (buffSize + 0xff) & ~0xff;
 
-// my lib
+
 #include "System.h"
+
 
 // APIが失敗した場合に失敗を返す
 #define ReturnIfFailed(func, at)\

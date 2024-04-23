@@ -234,6 +234,8 @@ GUI_Util::Result Model::CreateDefaultBufferData()
 
 		ReturnIfFailed(mDevice.CreateTexture2D(t, mHeap));
 	}
+
+	return GUI_Util::Result::SUCCESS;
 }
 
 void Model::Update(const float frameTime)
@@ -426,7 +428,6 @@ void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
 }
 
 
-
 GUI_Util::Result Model::LoadPMD(const char* const filepath)
 {
 	// PMD‚Æ‚µ‚ÄŠJ‚¯‚È‚¯‚ê‚ÎŽ¸”s
@@ -442,7 +443,7 @@ GUI_Util::Result Model::LoadPMD(const char* const filepath)
 	{
 		System::varray<ModelVertex> mesh(vCount);
 		//ModelVertex* mesh = new ModelVertex[vCount];
-		for (int i = 0; i < vCount; ++i)
+		for (unsigned int i = 0; i < vCount; ++i)
 		{
 			mesh[i].Load(file.GetVertex(i));
 		}
@@ -455,7 +456,7 @@ GUI_Util::Result Model::LoadPMD(const char* const filepath)
 	if (iCount != 0)
 	{
 		System::varray<int> index(iCount);
-		for (int i = 0; i < iCount; ++i)
+		for (unsigned int i = 0; i < iCount; ++i)
 		{
 			index[i] = file.GetIndex(i);
 		}
