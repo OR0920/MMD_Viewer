@@ -9,7 +9,7 @@
 #include"FileCatcher.h"
 
 // 他モジュール
-#include"OutputLastError.h"
+#include"private/OutputLastError.h"
 
 // 外部モジュール
 #include<tchar.h>

@@ -4,7 +4,7 @@
 #include"ParentWindow.h"
 #include"Result.h"
 #include"MainWindow.h"
-#include"OutputLastError.h"
+#include"private/OutputLastError.h"
 
 #include"System.h"
 

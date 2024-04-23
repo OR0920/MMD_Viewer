@@ -12,7 +12,7 @@
 #include "System.h"
 
 // ƒGƒ‰[o—Í
-#include"OutputLastError.h"
+#include"private/OutputLastError.h"
 
 using namespace GUI_Util;
 

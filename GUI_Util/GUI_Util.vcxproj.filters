@@ -13,27 +13,33 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="ヘッダー ファイル\GUI_Util">
+      <UniqueIdentifier>{60ece9e9-6305-4685-b1c0-a62b68551704}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\private">
+      <UniqueIdentifier>{d370a3b2-192a-4143-836e-f046a377f8f9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI_Util.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Result.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="ParentWindow.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="FileCatcher.h">
+      <Filter>ヘッダー ファイル\GUI_Util</Filter>
     </ClInclude>
     <ClInclude Include="MainWindow.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>ヘッダー ファイル\GUI_Util</Filter>
+    </ClInclude>
+    <ClInclude Include="ParentWindow.h">
+      <Filter>ヘッダー ファイル\GUI_Util</Filter>
     </ClInclude>
     <ClInclude Include="OutputLastError.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>ヘッダー ファイル\private</Filter>
     </ClInclude>
-    <ClInclude Include="FileCatcher.h">
+    <ClInclude Include="Graphics.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,4 +1,4 @@
-#include"OutputLastError.h"
+#include"private/OutputLastError.h"
 
 #include<Windows.h>
 

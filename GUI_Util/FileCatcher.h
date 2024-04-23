@@ -14,6 +14,7 @@ namespace GUI_Util
 		// 親のサイズ変更に合わせて自動で調整される
 		Result Create(const ParentWindow& parent);
 
+		// ファイルドロップがあったかどうかを確認する
 		bool Update();
 
 		// パスの長さ、パス、ドロップされた位置を取得する
@@ -34,12 +35,10 @@ namespace GUI_Util
 		FileCatcher(const FileCatcher&) = delete;
 		const FileCatcher& operator=(const FileCatcher&) = delete;
 
-
 		std::string mFilePath;
 		bool mIsUpdated;
 		wchar_t mWideFilePath[MAX_PATH];
 		DropPos mDropPos;
-
 
 		// このコールバック関数に、データを更新してもらう。
 		static LRESULT CALLBACK FileCatcherProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
