@@ -1,5 +1,6 @@
 #include"System.h"
 #include"GUI_Util.h"
+#include"Graphics.h"
 using namespace std;
 
 #include"MMD_VertexShasder.h"

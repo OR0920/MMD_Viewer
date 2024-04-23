@@ -8,7 +8,13 @@
 #ifndef _GUI_UTIL_H_
 #define _GUI_UTIL_H_
 
-#include"Graphics.h"
+#include<string>
+#include<windows.h>
+#include"ParentWindow.h"
+
+#include"Result.h"
+#include"MainWindow.h"
+#include"FileCatcher.h"
 
 // エントリポイントを隠蔽
 // デバッグ情報をコンソールへ
@@ -18,10 +24,6 @@
 #define MAIN() WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif // _DEBUG
 
-#include<string>
-#include"ParentWindow.h"
-#include"MainWindow.h"
-#include"FileCatcher.h"
 
 // WIN32APIのウィンドウ周りをラップ
 namespace GUI_Util

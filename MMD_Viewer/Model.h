@@ -1,12 +1,8 @@
 #ifndef _MODEL_H_
 #define _MODEL_H_
 
-#include"GUI_Util.h"
-
 #include"MathUtil.h"
 #include"MMDsdk.h"
-
-#include"System.h"
 
 class Model
 {

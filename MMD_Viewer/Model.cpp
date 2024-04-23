@@ -1,15 +1,16 @@
-#include"Model.h"
+#include"Graphics.h"
 
-#include"MMDsdk.h"
 #include"System.h"
+
+#include"Model.h"
+#include<memory>
+
 
 #include"MMD_VertexShasder.h"
 #include"MMD_PixelShader.h"
 
 #include"OutlineVS.h"
 #include"OutlinePS.h"
-
-#include<memory>
 
 #define ReturnIfFailed(func) if (func == GUI_Util::Result::FAIL) return GUI_Util::Result::FAIL;
 

@@ -1,5 +1,5 @@
-// ŽÀ‘•‚ª’·‚­‚È‚é‚Ì‚ÅŠu—£
 #include"GUI_Util.h"
+#include"Graphics.h"
 
 // std
 #include<cassert>
