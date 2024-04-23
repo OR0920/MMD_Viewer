@@ -171,6 +171,7 @@
   <ItemGroup>
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="GUI_Util.cpp" />
+    <ClCompile Include="ParentWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

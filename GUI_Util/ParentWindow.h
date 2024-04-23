@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _PARENT_WINDOW_H_
+#define _PARENT_WINDOW_H_
 
 namespace GUI_Util
 {
@@ -15,3 +16,6 @@ namespace GUI_Util
 		virtual const int GetClientHeight() const = 0;
 	};
 }
+
+#endif // !_PARENT_WINDOW_H_
+

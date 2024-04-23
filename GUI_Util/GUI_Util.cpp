@@ -33,16 +33,9 @@ void OutputLastError()
 }
 
 
-// ParentWindow
 using namespace GUI_Util;
 
-ParentWindow::~ParentWindow()
-{
-
-}
-
 // MainWindow
-
 MainWindow& MainWindow::Instance()
 {
 	static MainWindow inst;
