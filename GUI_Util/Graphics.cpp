@@ -27,12 +27,12 @@
 		DebugMessageNewLine();\
 		DebugOutParamHex(result);\
 		DebugMessageNewLine();\
-		return GUI::Result::FAIL;\
+		return GUI_Util::Result::FAIL;\
 	}\
 }
 
-using namespace GUI;
-using namespace GUI::Graphics;
+using namespace GUI_Util;
+using namespace GUI_Util::Graphics;
 
 template <class ComInterface>
 void SafeRelease(ComInterface** ptr)
@@ -56,7 +56,7 @@ void SafeRelease(ComInterface** ptr)
 
 // テクスチャデータの実装クラス
 // DirectX Texをラッピング
-namespace GUI
+namespace GUI_Util
 {
 	namespace Graphics
 	{

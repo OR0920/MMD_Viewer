@@ -8,7 +8,7 @@
 // other
 #include"Result.h"
 
-namespace GUI
+namespace GUI_Util
 {
 	class ParentWindow;
 

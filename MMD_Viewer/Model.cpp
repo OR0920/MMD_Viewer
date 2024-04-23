@@ -11,7 +11,7 @@
 
 #include<memory>
 
-#define ReturnIfFailed(func) if (func == GUI::Result::FAIL) return GUI::Result::FAIL;
+#define ReturnIfFailed(func) if (func == GUI_Util::Result::FAIL) return GUI_Util::Result::FAIL;
 
 void Model::ModelVertex::Load(const MMDsdk::PmdFile::Vertex& data)
 {
@@ -70,7 +70,7 @@ const wchar_t* Model::mToonPath[] =
 	L"DefaultTexture/toon10.bmp",
 };
 
-Model::Model(GUI::Graphics::Device& device)
+Model::Model(GUI_Util::Graphics::Device& device)
 	:
 	mDevice(device),
 	mVertexBuffer(),
@@ -112,22 +112,22 @@ Model::Model(GUI::Graphics::Device& device)
 	// param[4] : t1 : 乗算スフィアテクスチャ  
 	// param[5] : t2 : 加算スフィアテクスチャ  
 	// param[6] : t3 : Toonテクスチャ  
-	GUI::Graphics::DescriptorRange range;
+	GUI_Util::Graphics::DescriptorRange range;
 	range.SetRangeCount(1);
 	range.SetRangeForSRV(0, 0, 1);
 	mRootSignature.SetParamForDescriptorTable(3, range);
 
-	GUI::Graphics::DescriptorRange sphRange;
+	GUI_Util::Graphics::DescriptorRange sphRange;
 	sphRange.SetRangeCount(1);
 	sphRange.SetRangeForSRV(0, 1, 1);
 	mRootSignature.SetParamForDescriptorTable(4, sphRange);
 
-	GUI::Graphics::DescriptorRange spaRange;
+	GUI_Util::Graphics::DescriptorRange spaRange;
 	spaRange.SetRangeCount(1);
 	spaRange.SetRangeForSRV(0, 2, 1);
 	mRootSignature.SetParamForDescriptorTable(5, spaRange);
 
-	GUI::Graphics::DescriptorRange toonRange;
+	GUI_Util::Graphics::DescriptorRange toonRange;
 	toonRange.SetRangeCount(1);
 	toonRange.SetRangeForSRV(0, 3, 1);
 	mRootSignature.SetParamForDescriptorTable(6, toonRange);
@@ -180,21 +180,21 @@ Model::~Model()
 {
 }
 
-GUI::Result Model::Load(const char* const filepath)
+GUI_Util::Result Model::Load(const char* const filepath)
 {
 	// すべての形式で読み込んでみる
-	if (LoadPMX(filepath) == GUI::Result::SUCCESS)
+	if (LoadPMX(filepath) == GUI_Util::Result::SUCCESS)
 	{
 		DebugMessage("Load pmx file !");
 	}
-	else if (LoadPMD(filepath) == GUI::Result::SUCCESS)
+	else if (LoadPMD(filepath) == GUI_Util::Result::SUCCESS)
 	{
 		DebugMessage("Load pmd file !");
 	}
 	else
 	{
 		// 全フォーマットで読み込み失敗したらリターン
-		return GUI::Result::FAIL;
+		return GUI_Util::Result::FAIL;
 	}
 
 	DebugMessage("Model Load Succeeded !");
@@ -203,10 +203,10 @@ GUI::Result Model::Load(const char* const filepath)
 
 	DebugMessage("Default Buffer Created !");
 
-	return GUI::Result::SUCCESS;
+	return GUI_Util::Result::SUCCESS;
 }
 
-GUI::Result Model::CreateDefaultBufferData()
+GUI_Util::Result Model::CreateDefaultBufferData()
 {
 	// シーン情報の初期化
 	ReturnIfFailed
@@ -253,7 +253,7 @@ void Model::Update(const float frameTime)
 	mTransformBuffer.Unmap();
 }
 
-void Model::DrawMaterial(GUI::Graphics::GraphicsCommand& command, TransparentConfig config)
+void Model::DrawMaterial(GUI_Util::Graphics::GraphicsCommand& command, TransparentConfig config)
 {
 	// マテリアル毎にメッシュを描画
 	int indexOffs = 0;
@@ -336,7 +336,7 @@ void Model::DrawMaterial(GUI::Graphics::GraphicsCommand& command, TransparentCon
 	}
 }
 
-void Model::DrawOutline(GUI::Graphics::GraphicsCommand& command)
+void Model::DrawOutline(GUI_Util::Graphics::GraphicsCommand& command)
 {
 	// 輪郭線描画
 	command.SetGraphicsPipeline(mOutlinePipeline);
@@ -357,7 +357,7 @@ void Model::DrawOutline(GUI::Graphics::GraphicsCommand& command)
 	}
 }
 
-void Model::Draw(GUI::Graphics::GraphicsCommand& command)
+void Model::Draw(GUI_Util::Graphics::GraphicsCommand& command)
 {
 	// モデル描画用のルートシグネチャをセット
 	command.SetGraphicsRootSignature(mRootSignature);
@@ -426,13 +426,13 @@ void Model::MaterialInfo::Load(const MMDsdk::PmxFile::Material& data)
 
 
 
-GUI::Result Model::LoadPMD(const char* const filepath)
+GUI_Util::Result Model::LoadPMD(const char* const filepath)
 {
 	// PMDとして開けなければ失敗
 	MMDsdk::PmdFile file(filepath);
 	if (file.IsSuccessLoad() == false)
 	{
-		return GUI::Result::FAIL;
+		return GUI_Util::Result::FAIL;
 	}
 
 	// 頂点データを読み込み、バッファを作る
@@ -469,7 +469,7 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 	if (mMaterialCount == 0)
 	{
 		ReturnIfFailed(mDevice.CreateDescriptorHeap(mHeap, mDescriptorCount));
-		return GUI::Result::SUCCESS;
+		return GUI_Util::Result::SUCCESS;
 	}
 
 	// PMDの場合、テクスチャファイル名が
@@ -643,16 +643,16 @@ GUI::Result Model::LoadPMD(const char* const filepath)
 		}
 	}
 
-	return GUI::Result::SUCCESS;
+	return GUI_Util::Result::SUCCESS;
 }
 
 
-GUI::Result Model::LoadPMX(const char* const filepath)
+GUI_Util::Result Model::LoadPMX(const char* const filepath)
 {
 	MMDsdk::PmxFile file(filepath);
 	if (file.IsSuccessLoad() == false)
 	{
-		return GUI::Result::FAIL;
+		return GUI_Util::Result::FAIL;
 	}
 
 	// 頂点データを読み込みバッファを作成
@@ -727,28 +727,28 @@ GUI::Result Model::LoadPMX(const char* const filepath)
 		}
 	}
 
-	return GUI::Result::SUCCESS;
+	return GUI_Util::Result::SUCCESS;
 }
 
-GUI::Result Model::CreateVertexBuffer(const ModelVertex vertex[], const int vertexCount)
+GUI_Util::Result Model::CreateVertexBuffer(const ModelVertex vertex[], const int vertexCount)
 {
 	// バッファを作ってコピー
 	ReturnIfFailed(mDevice.CreateVertexBuffer(mVertexBuffer, sizeof(ModelVertex), vertexCount));
 	ReturnIfFailed(mVertexBuffer.Copy(vertex));
 
-	return GUI::Result::SUCCESS;
+	return GUI_Util::Result::SUCCESS;
 }
 
-GUI::Result Model::CreateIndexBuffer(const int index[], const int indexCount)
+GUI_Util::Result Model::CreateIndexBuffer(const int index[], const int indexCount)
 {
 	// バッファを作ってコピー
 	ReturnIfFailed(mDevice.CreateIndexBuffer(mIndexBuffer, sizeof(int), indexCount));
 	ReturnIfFailed(mIndexBuffer.Copy(index));
 
-	return GUI::Result::SUCCESS;
+	return GUI_Util::Result::SUCCESS;
 }
 
-GUI::Result Model::CreateMaterialBuffer(const Material material[], const int materialCount)
+GUI_Util::Result Model::CreateMaterialBuffer(const Material material[], const int materialCount)
 {
 	// バッファを作ってマップしてコピー
 	ReturnIfFailed
@@ -774,17 +774,17 @@ GUI::Result Model::CreateMaterialBuffer(const Material material[], const int mat
 
 	mMaterialBuffer.Unmap();
 
-	return GUI::Result::SUCCESS;
+	return GUI_Util::Result::SUCCESS;
 }
 
-GUI::Result Model::CreateTexture(const char* const dirPath, const char* const filename, const int texID)
+GUI_Util::Result Model::CreateTexture(const char* const dirPath, const char* const filename, const int texID)
 {
 	// ディレクトリがnullptrはありえない
-	if (dirPath == nullptr)	return GUI::Result::FAIL;
+	if (dirPath == nullptr)	return GUI_Util::Result::FAIL;
 
 	// テクスチャがない場合は、失敗ではないので成功として返す
-	if (filename == nullptr) return GUI::Result::SUCCESS;
-	if (texID == -1) return GUI::Result::SUCCESS;
+	if (filename == nullptr) return GUI_Util::Result::SUCCESS;
+	if (texID == -1) return GUI_Util::Result::SUCCESS;
 
 	// パスを結合
 	char* filepath = nullptr;
@@ -800,11 +800,11 @@ GUI::Result Model::CreateTexture(const char* const dirPath, const char* const fi
 	// テクスチャを作成
 	ReturnIfFailed(mDevice.CreateTexture2D(mUniqueTexture[texID], mHeap))
 
-		return GUI::Result::SUCCESS;
+		return GUI_Util::Result::SUCCESS;
 }
 
 
-GUI::Result Model::SetDefaultSceneData(const float aspectRatio)
+GUI_Util::Result Model::SetDefaultSceneData(const float aspectRatio)
 {
 	// 行列データ、シーンデータをマップしコピー
 	// データは一つだけなので、そのままクラスのポインタを使用する。
@@ -837,5 +837,5 @@ GUI::Result Model::SetDefaultSceneData(const float aspectRatio)
 	mPS_DataBuffer.Unmap();
 
 
-	return GUI::Result::SUCCESS;
+	return GUI_Util::Result::SUCCESS;
 }

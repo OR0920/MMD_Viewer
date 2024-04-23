@@ -1,6 +1,6 @@
 #pragma once
 
-namespace GUI
+namespace GUI_Util
 {
 	// メッセージ　兼　結果
 	// SUCCESSとFAILはHRESULTと統一

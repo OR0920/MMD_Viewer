@@ -165,6 +165,7 @@
   <ItemGroup>
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="GUI_Util.h" />
+    <ClInclude Include="ParentWindow.h" />
     <ClInclude Include="Result.h" />
   </ItemGroup>
   <ItemGroup>

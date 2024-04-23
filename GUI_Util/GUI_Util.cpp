@@ -34,7 +34,7 @@ void OutputLastError()
 
 
 // ParentWindow
-using namespace GUI;
+using namespace GUI_Util;
 
 ParentWindow::~ParentWindow()
 {
@@ -244,7 +244,7 @@ MainWindow::~MainWindow()
 }
 
 // ErrorBox
-void GUI::ErrorBox(const TCHAR* const message)
+void GUI_Util::ErrorBox(const TCHAR* const message)
 {
 	MessageBox(NULL, message, _T("ERROR"), MB_ICONERROR);
 }

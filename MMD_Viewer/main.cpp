@@ -9,7 +9,7 @@ using namespace std;
 #include"FPS_Monitor.h"
 
 #define QuitIfFailed(func)\
-if(func == GUI::Result::FAIL) \
+if(func == GUI_Util::Result::FAIL) \
 {\
 	DebugMessageFunctionError(func, MAIN);\
 	return -1;\
@@ -18,7 +18,7 @@ if(func == GUI::Result::FAIL) \
 static const int windowHeight = 1000;
 static const int windowWidth = 1000;
 
-const GUI::Graphics::Color clearColor(0.8f, 0.8f, 0.8f);
+const GUI_Util::Graphics::Color clearColor(0.8f, 0.8f, 0.8f);
 //const GUI::Graphics::Color clearColor(1.f, 1.f, 1.f);
 
 int MAIN()
@@ -30,44 +30,44 @@ int MAIN()
 	System::CheckMemoryLeak();
 
 	//　メインウィンドウのインスタンスを取得
-	auto& mainWindow = GUI::MainWindow::Instance();
+	auto& mainWindow = GUI_Util::MainWindow::Instance();
 
 	// ウィンドウを作成
 	QuitIfFailed(mainWindow.Create(windowWidth, windowHeight, L"MMD Viewer"));
 
 	// ファイル取得ウィンドウの初期化
-	GUI::FileCatcher fc;
+	GUI_Util::FileCatcher fc;
 	QuitIfFailed(fc.Create(mainWindow));
 
 	// 描画エンジン初期化
 	// デバッグモード　有効化
-	QuitIfFailed(GUI::Graphics::EnalbleDebugLayer());
+	QuitIfFailed(GUI_Util::Graphics::EnalbleDebugLayer());
 
 	// デバイス作成
-	GUI::Graphics::Device device;
+	GUI_Util::Graphics::Device device;
 	QuitIfFailed(device.Create());
 
 	// コマンドオブジェクト作成
-	GUI::Graphics::GraphicsCommand command;
+	GUI_Util::Graphics::GraphicsCommand command;
 	QuitIfFailed(device.CreateGraphicsCommand(command));
 
 	// スワップチェイン作成
-	GUI::Graphics::SwapChain swapChain;
+	GUI_Util::Graphics::SwapChain swapChain;
 	QuitIfFailed(swapChain.Create(command, mainWindow, 2));
 
 	// レンダーターゲット作成
-	GUI::Graphics::RenderTarget renderTarget;
+	GUI_Util::Graphics::RenderTarget renderTarget;
 	QuitIfFailed(device.CreateRenderTarget(renderTarget, swapChain));
 
 	// 深度ステンシル作成
-	GUI::Graphics::DepthStencilBuffer depthStencil;
+	GUI_Util::Graphics::DepthStencilBuffer depthStencil;
 	QuitIfFailed(device.CreateDepthBuffer(depthStencil, swapChain));
 
 	// ここにモデルを作る
 	Model* model = nullptr;
 	FPS_Monitor monitor(1000);
 
-	while (mainWindow.ProcessMessageNoWait() == GUI::Result::CONTINUE)
+	while (mainWindow.ProcessMessageNoWait() == GUI_Util::Result::CONTINUE)
 	{
 		monitor.Update();
 		if (fc.Update() == true)
@@ -78,10 +78,10 @@ int MAIN()
 			System::SafeDelete(&model);
 			model = new Model(device);
 
-			if (model->Load(fc.GetPath()) == GUI::Result::FAIL)
+			if (model->Load(fc.GetPath()) == GUI_Util::Result::FAIL)
 			{
 				// 読み込み失敗したら無かったことにする
-				GUI::ErrorBox(L"対応していないファイルです");
+				GUI_Util::ErrorBox(L"対応していないファイルです");
 				System::SafeDelete(&model);
 				continue;
 			}

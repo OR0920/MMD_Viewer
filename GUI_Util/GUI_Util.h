@@ -27,21 +27,11 @@
 #define MAIN() WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif // _DEBUG
 
+#include"ParentWindow.h"
+
 // WIN32APIのウィンドウ周りをラップ
-namespace GUI
+namespace GUI_Util
 {
-	// 子ウィンドウを持てるウィンドウのインターフェイス
-	// これを継承していないウィンドウは子ウィンドウを持てない
-	class ParentWindow
-	{
-	public:
-		virtual ~ParentWindow();
-		virtual const HWND GetHandle() const = 0;
-		virtual const int GetWindowWidth() const = 0;
-		virtual const int GetWindowHeight() const = 0;
-		virtual	const int GetClientWidth() const = 0; 
-		virtual const int GetClientHeight() const = 0;
-	};
 
 	// メインウィンドウ
 	// タイトルバーと閉じるなどのボタンを持つウィンドウ

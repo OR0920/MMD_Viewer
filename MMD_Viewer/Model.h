@@ -54,27 +54,27 @@ public:
 	};
 
 	// デバイスを渡して初期化
-	Model(GUI::Graphics::Device& device);
+	Model(GUI_Util::Graphics::Device& device);
 
 	~Model();
 
 	// 読み込み
-	GUI::Result	Load(const char* const filepath);
+	GUI_Util::Result	Load(const char* const filepath);
 	
 	// 行列をデフォルトの値に設定
-	GUI::Result SetDefaultSceneData(const float aspectRatio);
+	GUI_Util::Result SetDefaultSceneData(const float aspectRatio);
 
 	// 更新
 	void Update(const float frameTime);
 
 	// 描画
-	void Draw(GUI::Graphics::GraphicsCommand& command);
+	void Draw(GUI_Util::Graphics::GraphicsCommand& command);
 	
 private:
-	GUI::Graphics::Device& mDevice;
+	GUI_Util::Graphics::Device& mDevice;
 
-	GUI::Graphics::VertexBuffer mVertexBuffer;
-	GUI::Graphics::IndexBuffer mIndexBuffer;
+	GUI_Util::Graphics::VertexBuffer mVertexBuffer;
+	GUI_Util::Graphics::IndexBuffer mIndexBuffer;
 
 	// 全モデル共通のディスクリプタ数
 	static const int sDefaultTextureCount = 2;
@@ -84,12 +84,12 @@ private:
 	int mDescriptorCount;
 
 	// モデル描画時にバインドされるビューのヒープ
-	GUI::Graphics::DescriptorHeap mHeap;
+	GUI_Util::Graphics::DescriptorHeap mHeap;
 
 	// 定数バッファ
-	GUI::Graphics::ConstantBuffer mTransformBuffer;
-	GUI::Graphics::ConstantBuffer mPS_DataBuffer;
-	GUI::Graphics::ConstantBuffer mMaterialBuffer;
+	GUI_Util::Graphics::ConstantBuffer mTransformBuffer;
+	GUI_Util::Graphics::ConstantBuffer mPS_DataBuffer;
+	GUI_Util::Graphics::ConstantBuffer mMaterialBuffer;
 
 	// シェーダーから参照されないマテリアルのデータ
 	struct MaterialInfo
@@ -113,24 +113,24 @@ private:
 	int mMaterialCount;
 
 	// パイプラインの設定
-	GUI::Graphics::InputLayout mInputLayout;
-	GUI::Graphics::GraphicsPipeline mPipeline;
-	GUI::Graphics::GraphicsPipeline mNotCullPipeline;
-	GUI::Graphics::RootSignature mRootSignature;
+	GUI_Util::Graphics::InputLayout mInputLayout;
+	GUI_Util::Graphics::GraphicsPipeline mPipeline;
+	GUI_Util::Graphics::GraphicsPipeline mNotCullPipeline;
+	GUI_Util::Graphics::RootSignature mRootSignature;
 
 	// アウトライン描画時のパイプライン設定
-	GUI::Graphics::GraphicsPipeline mOutlinePipeline;
+	GUI_Util::Graphics::GraphicsPipeline mOutlinePipeline;
 
 	// 全モデル共有のトゥーンテクスチャファイル
 	static const wchar_t* mToonPath[10];
 
 	// モデル固有のテクスチャデータ
-	System::varray<GUI::Graphics::Texture2D> mUniqueTexture;
+	System::varray<GUI_Util::Graphics::Texture2D> mUniqueTexture;
 
 	// モデル共有のテクスチャデータ
-	GUI::Graphics::Texture2D mDefaultTextureWhite;
-	GUI::Graphics::Texture2D mDefaultTextureBlack;
-	GUI::Graphics::Texture2D mDefaultTextureToon[10];
+	GUI_Util::Graphics::Texture2D mDefaultTextureWhite;
+	GUI_Util::Graphics::Texture2D mDefaultTextureBlack;
+	GUI_Util::Graphics::Texture2D mDefaultTextureToon[10];
 
 	enum class TransparentConfig : bool
 	{
@@ -138,19 +138,19 @@ private:
 		DRAW_NOT_TRANSPARENT = true,
 	};
 
-	void DrawMaterial(GUI::Graphics::GraphicsCommand& command, TransparentConfig config);
-	void DrawOutline(GUI::Graphics::GraphicsCommand& command);
+	void DrawMaterial(GUI_Util::Graphics::GraphicsCommand& command, TransparentConfig config);
+	void DrawOutline(GUI_Util::Graphics::GraphicsCommand& command);
 	
 
-	GUI::Result LoadPMD(const char* const filepath);
-	GUI::Result LoadPMX(const char* const filepath);
+	GUI_Util::Result LoadPMD(const char* const filepath);
+	GUI_Util::Result LoadPMX(const char* const filepath);
 
-	GUI::Result CreateVertexBuffer(const ModelVertex vertex[], const int vertexCount);
-	GUI::Result CreateIndexBuffer(const int index[], const int indexCount);
-	GUI::Result CreateMaterialBuffer(const Material material[], const int materialCount);
-	GUI::Result CreateTexture(const char* const dirPath, const char* const filename, const int texID);
+	GUI_Util::Result CreateVertexBuffer(const ModelVertex vertex[], const int vertexCount);
+	GUI_Util::Result CreateIndexBuffer(const int index[], const int indexCount);
+	GUI_Util::Result CreateMaterialBuffer(const Material material[], const int materialCount);
+	GUI_Util::Result CreateTexture(const char* const dirPath, const char* const filename, const int texID);
 
-	GUI::Result CreateDefaultBufferData();
+	GUI_Util::Result CreateDefaultBufferData();
 };
 
 #endif // !_MODEL_H_
